@@ -1,1 +1,1 @@
-# Year 1 Course Directory
+# Fall Term Course Directory
