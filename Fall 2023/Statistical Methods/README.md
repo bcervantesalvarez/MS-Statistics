@@ -1,1 +1,1 @@
-# Statistical Methods Part 1
+# Course Description
