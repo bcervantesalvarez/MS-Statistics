@@ -1,0 +1,66 @@
+---
+title: "Getting used to R: Homework 1"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "10-04-2023"
+format: PrettyPDF-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+
+---
+
+## Part A
+
+```{r}
+# Set random seed for reproducibility
+set.seed(503)
+
+# Parameters
+n = 100
+mean = 12
+sd = 10
+
+# Generate the random sample 
+randomSample <- rnorm(n, mean, sd)
+# Show first 50 values of the random sample generation
+head(randomSample, 50)
+```
+
+
+{{< pagebreak >}}
+
+## Part B
+
+```{r}
+
+# Calculate the sample mean
+meanRandomSample <- mean(randomSample)
+# Show sample mean
+print(paste0("Sample Mean: ", meanRandomSample))
+
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+```{r}
+# Calculate the sample standard deviation
+sdRandomSample <- sd(randomSample)
+# Show sample standard deviation
+print(paste0("Sample Standard Deviation: ", sdRandomSample))
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+```{r}
+# Plot the random sample
+hist(randomSample)
+```
+
+
+
