@@ -1,5 +1,5 @@
 ---
-title: "Getting used to R: Homework 1"
+title: "ST551: Homework 0"
 author: 
     - "Brian Cervantes Alvarez"
 date: "10-04-2023"
