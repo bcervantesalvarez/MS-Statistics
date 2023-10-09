@@ -1,0 +1,141 @@
+---
+title: "ST557: Homework 1"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "10-06-2023"
+format: PrettyPDF-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Question 1
+
+```{r}
+# Set random seed for reproducibility
+set.seed(503)
+
+# Read HW1Q1 dataset in using base R
+ds <- read.csv("HW1Q1.csv")
+# Show first 5 rows
+head(ds, 5)
+
+
+```
+
+## Part A
+
+Read this data into R using read.csv(). Create a 2-dimensional scatter plot of the 20 observations (use plot() function in R).
+
+```{r}
+# Get X and Y Components into vectors
+x = ds$X
+y = ds$Y
+
+# Create scatter plot of Y ~ X
+plot(x,y)
+
+
+pnorm(19.9, 20, sqrt(4/40))
+
+
+pnorm(0.5, 20, sqrt(4/8))
+
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+Find the sample mean vector, and add this point to the plot using points(). You can make this point a different color using the col= argument, or you can make it a different plotting character using the pch= argument. For example: \> points(sampMean\[1\], sampMean\[2\], pch=16, col=2
+
+```{r}
+plot(x,y)
+
+sampMeanX = mean(x)
+sampMeanY = mean(y)
+
+points(sampMeanX, sampMeanY, pch=16, col=2)
+
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+Find the sample covariance matrix.
+
+```{r}
+# Sample covariance matrix
+sampCov <- cov(ds)
+
+sampCov
+```
+{{< pagebreak >}}
+
+## Part D
+
+Find the eigendecomposition (spectral decomposition) of the sample covariance matrix using eigen().
+
+```{r}
+sampEigenDecomp <- eigen(sampCov)
+
+sampEigenDecomp
+```
+{{< pagebreak >}}
+
+## Part E
+
+Add the eigenvector corresponding to the largest eigenvalue to the plot as a vector from the sample mean using `lines()`. Be careful here: if the first eigenvector is $(v_1, v_2)$ and the sample mean vector is $(\bar{x}_1, \bar{x}_2)$, you want a line from $(\bar{x}_1, \bar{x}_2)$ to $(\bar{x}_1 + v_1, \bar{x}_2 + v_2)$."
+
+```{r}
+# Find the index of the largest eigenvalue
+largestEigenvalue <- which.max(sampEigenDecomp$values)
+# Extract the eigenvector corresponding to the largest eigenvalue
+largestEigenvector <- sampEigenDecomp$vectors[, largestEigenvalue]
+
+# Calculate the endpoints of the line segment
+sampMeanX <- mean(x)
+sampMeanY <- mean(y)
+xend <- sampMeanX + largestEigenvector[1]
+yend <- sampMeanY + largestEigenvector[2]
+
+plot(x,y)
+# Add the line segment to the plot
+lines(c(sampMeanX, xend), c(sampMeanY, yend), col = "seagreen4", lwd = 2)
+points(sampMeanX, sampMeanY, pch=16, col=2)
+
+```
+
+### Discussion for Part E
+
+**Question: Describe how the direction of this eigenvector relates to the cloud of data points**
+
+The eigenvector follows the trend of the data points, which themselves are showing a positive increasing trend, and it culminates precisely at the location of the sample means for X and Y.
+
+{{< pagebreak >}}
+
+# Question 2
+
+```{r}
+
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```

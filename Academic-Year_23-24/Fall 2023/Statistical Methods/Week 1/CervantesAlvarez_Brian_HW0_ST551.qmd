@@ -43,6 +43,7 @@ print(paste0("Sample Mean: ", meanRandomSample))
 
 {{< pagebreak >}}
 
+
 ## Part C
 
 ```{r}
@@ -61,6 +62,4 @@ print(paste0("Sample Standard Deviation: ", sdRandomSample))
 hist(samp1)
 hist(samp1,breaks = seq(min(samp1), max(samp1) + 1, by = 1))
 ```
-
-
 
