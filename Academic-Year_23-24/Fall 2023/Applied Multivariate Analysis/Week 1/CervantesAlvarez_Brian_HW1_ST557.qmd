@@ -99,7 +99,7 @@ yend <- sampMeanY + largestEigenvector[2]
 
 plot(x,y)
 # Add the line segment to the plot
-lines(c(sampMeanX, xend), c(sampMeanY, yend), col = "seagreen4", lwd = 2)
+lines(c(sampMeanX, xend), c(sampMeanY, yend), col = "seagreen4", lwd = 3)
 points(sampMeanX, sampMeanY, pch=16, col=2)
 
 ```
@@ -108,15 +108,119 @@ points(sampMeanX, sampMeanY, pch=16, col=2)
 
 **Question: Describe how the direction of this eigenvector relates to the cloud of data points**
 
-The eigenvector follows the trend of the data points, which themselves are showing a positive increasing trend, and it culminates precisely at the location of the sample means for X and Y.
+The eigenvector follows the trend of the data points, which  are showing a positive increasing trend, and it culminates precisely at the location of the sample means for X and Y.
 
 {{< pagebreak >}}
 
 # Question 2
 
+## Part A
+
+```{r}
+ds <- read.csv("CubitData.csv")
+head(ds,5)
+
+# Calculate the sample mean vector
+sampleMeanVec <- colMeans(ds)
+sampleMeanVec
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+
+```{r}
+# Calculate the sample covariance matrix!
+sampleCovMatrix <- cov(ds)
+sampleCovMatrix
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+
+```{r}
+# Calculate the eigendecomposition using the covariance matrix, sampleCovMatrix
+sampleEigenDecomp <- eigen(sampleCovMatrix)
+sampleEigenDecomp
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+```{r}
+# Find the index of the largest eigenvalue
+largestEigenvalue <- which.max(sampleEigenDecomp$values)
+# Extract the eigenvector corresponding to the largest eigenvalue
+largestEigenvector <- sampleEigenDecomp$vectors[, largestEigenvalue]
+largestEigenvector
+```
+{{< pagebreak >}}
+
+```{r}
+# Create the scatter plot
+plot(ds$height, ds$cubit)
+
+# Calculate each sample mean
+meanCubit <- mean(ds$cubit)
+meanHeight <- mean(ds$height)
+
+# Use Part D!
+
+xend <- meanHeight + largestEigenvector[1]
+yend <- meanCubit + largestEigenvector[2]
+
+
+# Plot the eigenvector as a line from the mean point
+lines(c(meanHeight, xend), c(meanCubit, yend), col = "seagreen4", lwd = 3)
+
+```
+### Discussion for Part E
+
+**Question: Describe how the direction of this eigenvector relates to the cloud of data points**
+
+The eigenvector for the height and cubit follows the trend of the data points, which are showing a positive increasing trend. While not exactly the same, it's similar to problem 1. 
+
+
+
+{{< pagebreak >}}
+
+# Question 3
+
 ```{r}
 
+A <- matrix(c(5.125, 3.875, 2.125, -1.125, 0,
+              3.875, 5.125, -1.125, 2.125, 0,
+              2.125, -1.125, 5.125, 3.875, 0,
+              -1.125, 2.125, 3.875, 5.125, 0,
+              0, 0, 0, 0, -3), 
+            nrow = 5, 
+            byrow = TRUE)
 
+# Calculate the eigendecomposition
+eigenDecomposition <- eigen(A)
+eigenDecomposition
+
+```
+
+```{r}
+# Grab the eigenvalues from the eigen decomposition
+eigenvalues <- eigenDecomposition$values
+# Use the function "all" to check all eigenvalues to see if they're positive definite
+isPositiveDefinite <- all(eigenvalues > 0)
+isPositiveDefinite
+
+# False! Now we need to find a vector x...
+
+# Get all eigenvector(s) that are negative
+vectors <- eigenDecomposition$vectors[, which(eigenvalues < 0)]
+
+# We need to normalize the eigenvector(s) using the equation 
+
+vectorsNormalized <- vectors / 
 
 ```
 
@@ -124,9 +228,6 @@ The eigenvector follows the trend of the data points, which themselves are showi
 
 ```
 
-```{r}
-
-```
 
 ```{r}
 
@@ -135,3 +236,9 @@ The eigenvector follows the trend of the data points, which themselves are showi
 ```{r}
 
 ```
+
+
+
+
+
+
