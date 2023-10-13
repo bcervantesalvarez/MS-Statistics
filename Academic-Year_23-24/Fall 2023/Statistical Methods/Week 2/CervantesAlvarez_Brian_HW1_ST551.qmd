@@ -1,0 +1,83 @@
+---
+title: "ST551: Homework 1"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "10-11-2023"
+format: PrettyPDF-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Question 1
+
+Suppose an observational study showed that people who carry lighters
+have a higher rate of lung cancer. There are four possibilities:
+
+  1. The association is spurious: this was just a particularly unusual dataset.
+  2. The observed association is causative: carrying lighters causes lung cancer.
+  3. The causality in the observed association is reversed: lung cancer causes carrying lighters.
+  4. There is a confounder: something else about people who carry lighters is the true cause of lung cancer. Perhaps people who carry lighters are more likely to be smokers, and so smoking is a confounding variable: it is associated with both the predictor (carrying lighters) and the outcome (lung cancer).
+
+In each of the following settings, suggest a plausible alternative to the causal
+relationship suggested by the study: either propose a possible confounding factor, or
+describe why the causality might be reversed.
+
+{{< pagebreak >}}
+
+## Part A
+
+Observational studies show that smokers have a higher rate of liver cancer.
+Suggested causal relationship: Smoking causes liver cancer.
+
+
+
+{{< pagebreak >}}
+
+## Part B
+
+A study found that teenagers who smoke are more likely to be depressed as
+young adults. Suggested causal relationship: Smoking causes depression.
+
+
+
+{{< pagebreak >}}
+
+## Part C
+
+A study found that people who consume lots of artificial sweeteners in diet soda
+are more likely to be overweight than people who do not drink diet soda.
+Suggested causal relationship: Artificial sweeteners cause obesity.
+
+
+
+{{< pagebreak >}}
+
+## Part D
+
+Observational studies show that women on the pill have a higher incidence of
+cervical cancer. Suggested causal relationship: The pill causes cervical cancer.
+
+
+{{< pagebreak >}}
+
+## Part E
+
+A study showed that infants living in homes that have two or more dogs or cats
+are less likely than other babies to develop allergies. Suggested causal
+relationship: Living with pets as an infant reduces allergy incidence.
+
+
+{{< pagebreak >}}
+
+
+## Part F
+
+A study of 100,000 people (published in the Feb. 2003 issue of the journal Sleep)
+reported that people who reported sleeping eight or more hours per night had a
+
+
+
+
+

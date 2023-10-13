@@ -19,10 +19,11 @@ set.seed(503)
 # Read HW1Q1 dataset in using base R
 ds <- read.csv("HW1Q1.csv")
 # Show first 5 rows
-head(ds, 5)
-
+print(head(ds,50))
 
 ```
+
+{{< pagebreak >}}
 
 ## Part A
 
@@ -35,13 +36,6 @@ y = ds$Y
 
 # Create scatter plot of Y ~ X
 plot(x,y)
-
-
-pnorm(19.9, 20, sqrt(4/40))
-
-
-pnorm(0.5, 20, sqrt(4/8))
-
 ```
 
 {{< pagebreak >}}
@@ -72,6 +66,7 @@ sampCov <- cov(ds)
 
 sampCov
 ```
+
 {{< pagebreak >}}
 
 ## Part D
@@ -83,6 +78,7 @@ sampEigenDecomp <- eigen(sampCov)
 
 sampEigenDecomp
 ```
+
 {{< pagebreak >}}
 
 ## Part E

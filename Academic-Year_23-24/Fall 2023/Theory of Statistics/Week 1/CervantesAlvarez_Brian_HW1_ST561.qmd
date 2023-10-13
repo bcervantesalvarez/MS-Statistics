@@ -10,16 +10,19 @@ execute:
 editor: visual
 ---
 
-# Problems
-
 ## Question 1
 
-1.  Textbook, Page 37, Exercise 1.1
+1.  Textbook, Page $37$, Exercise $1.1$
 
-    (a) 
-    (b)
-    (c)
-    (d)
+    (a) We know that a coin has $2$ sides, $H$ or $T$. For each flip, there are $2$ possible options. Hence, we can describe each flip using this formula: $S = 2^n$. Given that we want to do 4 coin flips, our $n = 4$ and then $S = 2^4$. Therefore, our sample space will be, $$S = 16$$
+
+    (b) Varies! Depends how many leaves are insect damaged! If I observed $3$ damaged leaves out of $100$, our sample space, $S$, would be $3$. There can exist $0$ undamaged leaves but no negative leaves. Hence, we can say that the observable sample space will be $$S = [0,\infty)$$
+
+    (c) A 'lifetime' depends on how well manufactured the light bulb is. It can expire as soon as $0$ hours or be immortal and continue to $\infty$. Hence, similar to part $(b)$, our sample space will be $$S = [0, \infty)$$
+
+    (d) Right off the bat, we cannot have a weight equal $0$. And given that there is no definite maximum for the weights of the rats, we can assume that the weight can approach $\infty$. Therefore, our sample space will be $$S = (0, \infty)$$
+
+    (e) Alright, since we are looking at a proportion, it can only mean that the sample space will be from $0% to 100%$. So, the sample space will be $$S = (0,1)$$
 
 {{< pagebreak >}}
 
@@ -27,14 +30,26 @@ editor: visual
 
 2.  Suppose that you own 6 different Spanish textbooks, 4 different History textbooks, 4 different Geology textbooks, and 5 different English textbooks. You have reserved a shelf on a bookcase on which you place all these textbooks. How many different ways are there to place all 19 textbooks on the shelf so that all the textbooks in a given subject are grouped together?
 
+    Given that we have $n = 19$ number of books, we can apply the formula $${n! \choose n_1! \cdot n_2! \cdot \ldots \cdot n_k!}$$ We know the following information: $n = 16, n_1 = 6, n_2 = 4, n_3 = 4, n_4 = 5$. We can substitute those values into the formula and get $$\frac{19!}{6! \cdot 4! \cdot 4! \cdot 5!} = \frac{121645100408832000}{49766420} = 2444321820$$. Therefore, there are a total of $2444321820$ different ways you can combine the textbooks
+
 {{< pagebreak >}}
 
 ## Question 3
 
-3.  Four cards are drawn from a deck of 52 ordinary playing cards, without replacement.
-    (a) What is the probability that all 4 cards are aces?
+3.  Four cards are drawn from a deck of $52$ ordinary playing cards, without replacement.
+
+    (a) What is the probability that all $4$ cards are aces?
+
+        -   Given $P(A) = \frac{|A|}{|S|}$, let's determine the sample space $|S|$. Here is how we find the sample space, $$|S| = {52 \choose 4} = \frac{52!}{4!(52-4)!} = \frac{6497400}{24} = 270725$$ Now, we know that there are only $4$ aces in a ordinary deck of $52$ playing cards. The probability of $|A|$ is as follows $$|A| = {4 \choose 4} = \frac{4!}{4!(4-4)!} = \frac{4!}{4!\cdot 1} = 1 $$. Therefore, $$P(A) = \frac{1}{270725} = 0.0000037 \approx 0.00037\% $$
+
     (b) What is the probability of drawing, in order, the aces of clubs, diamonds, hearts, and spades?
+
+        -   The probability that of drawing the aces of clubs $(\frac{4}{52})$, diamonds $(\frac{3}{52})$, hearts $(\frac{2}{52})$, and spades $(\frac{1}{52})$ is as follows: $$(\frac{4}{52})\cdot(\frac{3}{52})\cdot(\frac{2}{52})\cdot(\frac{1}{52}) = \frac{1}{270725} = 0.0000037 \approx 0.00037\%$$
+
     (c) Answer (a) and (b) above if each card is replaced (and the deck shuffled) after it is drawn.
+
+        -   \[Part (a)\] Since each card is drawn independently and it is a fair deck, the probability changes to $$(\frac{4}{52})^4 = \frac{256}{7311696} = 0.0000349797 \approx 0.0035\%$$
+        -   \[Part (b)\] It will the follow the same logic as \[Part (a)\], where the aces of clubs $(\frac{4}{52})$, diamonds $(\frac{4}{52})$, hearts $(\frac{4}{52})$, and spades $(\frac{4}{52})$ yield the same probability: $$(\frac{4}{52})^4 = \frac{256}{7311696} = 0.0000349797 \approx 0.0035\%$$
 
 {{< pagebreak >}}
 
@@ -43,29 +58,134 @@ editor: visual
 4.  Find the union $A_1 \cup A_2$ and the intersection $A_1 \cap A_2$ of the two sets $A_1$ and $A_2$ where
 
     (a) $A_1 = \{x: 0 < x < 1\}$, $A_2 = \{x: 1 \leq x < 3\}$;
+
+        -   $A_1 \cup A_2 = \{x: 0<x<3 \}$
+
+        -   $A_1 \cap A_2 = \emptyset$
+
     (b) $A_1 = \{(x, y): 0 \leq x < 3, 0 < y \leq 3\}$, $A_2 = \{(x, y): 1 < x \leq 4, 1 \leq y < 4\}$; (Draw a picture to show the set.)
+
+        -   $A_1 \cup A_2 = \{(x, y) \, : \, 0 \leq x \leq 4, \, 0 < y \leq 3\}$
+        -   $A_1 \cap A_2 = \{(x, y) \, : \, 1 < x \leq 3, \, 1 < y \leq 3\}$
+
+        ```{r, echo=FALSE}
+        library(ggplot2)
+        library(latex2exp)
+
+        # Create the data frame for A1
+        a1 <- data.frame(x = c(0, 3), y = c(0, 3))
+
+        # Create the data frame for A2
+        a2 <- data.frame(x = c(1, 4), y = c(1, 4))
+
+        # Create the plot
+        p <- ggplot() +
+          geom_rect(data = a1, aes(xmin = x[1], xmax = x[2], ymin = y[1], ymax = y[2]), fill = "#000000", alpha = 0.3) +
+          geom_rect(data = a2, aes(xmin = x[1], xmax = x[2], ymin = y[1], ymax = y[2]), fill = "#D73F09", alpha = 0.3) +
+          annotate("text", x = 0.5, y = 0.5, label = "A1", color = "white", size = 4) +
+          annotate("text", x = 3.5, y = 3.5, label = "A2", color = "white", size = 4) + 
+          annotate("text", x = 2, y = 2, label = TeX("$A1 \\cap A2$", output = "character"), color = "white", size = 4, parse=TRUE) +
+          annotate("text", x = 2, y = 0.6, label = TeX("$A1 \\cup A2$", output = "character"), color = "#D73F09", size = 4, parse=TRUE) +
+          annotate("text", x = 2, y = 3.2, label = TeX("$A1 \\cup A2$", output = "character"), color = "#000000", size = 4,parse=TRUE) +
+          labs(x = "x", y = "y") +
+          theme_minimal() +
+          geom_segment(aes(x = 1, xend = 1, y = 1, yend = 4), color = "black", size = 0.8, linetype = "dashed") +
+          geom_segment(aes(x = 1, xend = 4, y = 4, yend = 4), color = "black", size = 0.8, linetype = "dashed") +
+          geom_segment(aes(x = 3, xend = 3, y = 0, yend = 3), color = "black", size = 0.8, linetype = "dashed") +
+          geom_segment(aes(x = 0, xend = 3, y = 0, yend = 0), color = "black", size = 0.8, linetype = "dashed")
+
+        p
+        ```
+
     (c) $A_1 = \{(x, y): x + y \leq 1, x \geq 0, y \geq 0\}$, $A_2 = \{(x, y): x^2 + y^2 \leq \frac{1}{2}, x \geq 0, y \geq 0\}$.
 
-    You are not required to show your work for this problem.
+        - $A_1 \cup A_2 = \{{(x, y): x + y \le 1 }, x \geq 0, y \geq 0\}$
+        - $A_1 \cap A_2 = \{{(x, y): x + y \le 1 \text{ and } x^2 + y^2 \le \frac{1}{2}}, x \geq 0, y \geq 0\}$
+
+You are not required to show your work for this problem.
 
 {{< pagebreak >}}
 
 ## Question 5
 
 5.  (Urn Model) r different balls $B_1, \ldots, B_r$ are to be randomly put into n different urns $U_1, \ldots, U_n$ ($r \leq n$). What is the probability of the following events?
+
     (a) Urns $U_1, \ldots, U_r$ each contains exactly one ball;
+
+        - We want to distribute $r$ balls into $n$ urns in such a way that each of the first $r$ urns contains exactly one ball. We have $n$ choices for each of the $r$ balls, giving us a total of $n^r$ possible ways.
+        - To count the possible outcomes where the first $r$ urns have exactly one ball each, we can arrange these $r$ balls in $r!$ different ways.
+        - Hence, we get 
+$$
+P(A) = \frac{r!}{n^r}
+$$
+
     (b) No urn contains more than one ball;
+        - To distribute $r$ balls into n urns such that no urn contains more than one ball, you can think of it this way:
+  
+          - For the first ball, you have $n$ choices of which urn to place it in.
+          - For the second ball, there are $(n-1)$ urns left to choose from since you can't place it in the same urn as the first ball.
+          - Similarly, for the third ball, you have $(n-2)$ choices, and so on, until you have $(n-r+1)$ choices for the $rth$ ball.
+  
+        - To find the total number of ways to distribute the $r$ balls into $n$ urns, you multiply these choices together:
+            - $n \cdot (n-1) \cdot (n-2) \cdot \ldots \cdot (n-r+1) = \frac{n!}{(n-r)!}$
+  
+        - Now, to calculate the probability, we need to consider the total number of outcomes for distributing the $r$ balls into the $n$ urns, which is $n^r$.
+        - Hence,
+$$
+P(B) = \frac{{n!}}{{(n-r)!}} \cdot \frac{1}{{n^r}} = \frac{{n!}}{{n^r(n-r)!}}
+$$
+
     (c) Urn $U_1$ contains exactly $m$ balls ($m \leq r$).
+        - Choose $m$ out of the $r$ balls to place into urn $U_1$. Thus, we get $\binom{r}{m}$
+
+        - Once we place the $m$ balls in $U_1$, we will have $(r - m)$ balls remaining to distribute among the remaining $(n - 1)$ urns.
+
+        - For each of the remaining $(n - 1)$ urns, we have $(n - 1)$ choices for where to place each of the $(r - m)$ remaining balls.
+
+        - Therefore,
+
+$$
+U_1 = \binom{r}{m} \cdot (n-1)^{r-m}
+$$
 
 {{< pagebreak >}}
 
 ## Question 6
 
 6.  Suppose $n > 0$, $0 \leq k \leq n$. Show that
+
     (a) ${n \choose k} = \frac{n!}{k!(n-k)!}$
+    
+        - This is the identity, so let's break it down. We have $\binom{n}{k}$, which represents the number of ways to choose $k$ items from a set of $n$ distinct items, where order does not matter. Next, we have $n!$ which is the total number of possible arrangements of $n$ unique items. Then, $k!$ is the total number of permutations of the $k$ selected items. Lastly, we have $(n-k)!$ which is the total number of permutations of the remaining $(n-k)$ items. Hence:
+$$
+\binom{n}{k} = \frac{n!}{k!(n-k)!}
+$$
+
     (b) ${n \choose 0} = {n \choose n} = 1$
+
+        - Here is how both are equal to 1
+$$
+\binom{n}{0} = \frac{n!}{0!(n-0)!} = \frac{n!}{1 \cdot n!} = \frac{n!}{n!} = 1
+$$
+$$
+\binom{n}{0} = \frac{n!}{n!(n-n)!} = \frac{n!}{n! \cdot 1} = \frac{n!}{n!} = 1
+$$
+
     (c) ${n \choose 1} = n$
+
+        - This simpifies down to n by this logic: $$\binom{n}{0} = \frac{n!}{1!(n-1)!} = \frac{n!}{(n-1)!} = \frac{n\cdot(n-1)\cdot(n-2)\cdot\ldots\cdot2\cdot1}{(n-1)\cdot(n-2)\cdot\ldots\cdot2\cdot1} = n$$
+
     (d) If $k > 1$, ${n \choose k} = {n-1 \choose k-1} + {n-1 \choose k}$.
+
+        - Here is how we get back to $\binom{n}{k}$
+$$
+\frac{{(n-1)!}}{{(k-1)! \cdot (n-k)!}} + \frac{{(n-1)!}}{{k! \cdot (n-k-1)!}} = \frac{{n! \cdot (n-k)}}{{k! \cdot (n-k)! \cdot (n-k)}} + \frac{{n! \cdot k}}{{k! \cdot (n-k)! \cdot k}} 
+$$
+
+$$
+= \frac{{n! \cdot (n-k) + n! \cdot k}}{{k! \cdot (n-k)! \cdot (n-k)}} = \frac{{n! \cdot n}}{{k! \cdot (n-k)!}} = \frac{{n!}}{{k! \cdot (n-k)!}} = \binom{n}{k}
+$$
+
 
 Can you give intuitive explanations for the results above? (You do not have to turn in your explanations.)
 
@@ -76,5 +196,21 @@ Can you give intuitive explanations for the results above? (You do not have to t
 7.  Consider the experiment of dealing a five-card poker hand at random from a deck of 52 ordinary playing cards. Let A be the event that you obtain a full house (3 cards of one rank and 2 cards of a second rank, e.g., 3 kings and 2 eights). Let B be the event that you obtain two pairs (2 cards of one rank, 2 cards of a second rank, and a 5th card of a third rank, e.g., 2 tens, 2 threes, and the Jack of diamonds). One of the following two probabilities is correct, and the other probability is incorrect.
 
     (a) Determine which probability is correct.
+
+        - $P(A)$ is correct while $P(B)$ is incorrect
+            $$
+            P(A) = \frac{(13)(12)\binom{4}{3}\binom{4}{2}}{\binom{52}{5}} = \frac{3744}{2598960} = 0.1440576 \approx 0.14405762304922\%
+            $$
+            $$
+            P(B) = \frac{(13)(12)\binom{4}{2}\binom{4}{2}(44)}{\binom{52}{5}} = \frac{247104}{2598960} = 0.09507803 \approx 9.5078031212485\%
+            $$
+    
     (b) Correct the incorrect probability.
+        $$
+        P(B) = \frac{{\binom{4}{2} \cdot \binom{4}{2} \cdot \binom{44}{1} \cdot \binom{13}{2}}}{{\binom{52}{5}}} = \frac{123552}{2598960} = 0.0475390156 \approx 4.575390156\%
+        $$
+
+
     (c) Explain clearly how the correct probability is obtained and why the incorrect probability is wrongly calculated.
+
+        - The correct probability for a full house (3 cards of one rank and 2 of another) in a five-card poker hand is calculated accurately using combinatorics. In contrast, the incorrect probability for two pairs fails to consider the possibility of one pair being a subset of the other, leading to an inaccurate calculation. Double counting leads to common miscalcuations such as this example.
