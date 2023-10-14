@@ -3,7 +3,6 @@ title: "ST557: Homework 1"
 author: 
     - "Brian Cervantes Alvarez"
 date: "10-06-2023"
-format: PrettyPDF-pdf
 execute: 
   warning: false
   message: false
@@ -108,7 +107,7 @@ points(sampMeanX, sampMeanY, pch=16, col=2)
 
 **Question: Describe how the direction of this eigenvector relates to the cloud of data points**
 
-The eigenvector follows the trend of the data points, which  are showing a positive increasing trend, and it culminates precisely at the location of the sample means for X and Y.
+The eigenvector follows the trend of the data points, which are showing a positive increasing trend, and it culminates precisely at the location of the sample means for X and Y.
 
 {{< pagebreak >}}
 
@@ -129,7 +128,6 @@ sampleMeanVec
 
 ## Part B
 
-
 ```{r}
 # Calculate the sample covariance matrix!
 sampleCovMatrix <- cov(ds)
@@ -139,7 +137,6 @@ sampleCovMatrix
 {{< pagebreak >}}
 
 ## Part C
-
 
 ```{r}
 # Calculate the eigendecomposition using the covariance matrix, sampleCovMatrix
@@ -158,6 +155,7 @@ largestEigenvalue <- which.max(sampleEigenDecomp$values)
 largestEigenvector <- sampleEigenDecomp$vectors[, largestEigenvalue]
 largestEigenvector
 ```
+
 {{< pagebreak >}}
 
 ```{r}
@@ -178,17 +176,18 @@ yend <- meanCubit + largestEigenvector[2]
 lines(c(meanHeight, xend), c(meanCubit, yend), col = "seagreen4", lwd = 3)
 
 ```
+
 ### Discussion for Part E
 
 **Question: Describe how the direction of this eigenvector relates to the cloud of data points**
 
-The eigenvector for the height and cubit follows the trend of the data points, which are showing a positive increasing trend. While not exactly the same, it's similar to problem 1. 
-
-
+The eigenvector for the height and cubit follows the trend of the data points, which are showing a positive increasing trend. While not exactly the same, it's similar to problem 1.
 
 {{< pagebreak >}}
 
 # Question 3
+
+## Part A
 
 ```{r}
 
@@ -206,6 +205,10 @@ eigenDecomposition
 
 ```
 
+{{< pagebreak >}}
+
+## Part B
+
 ```{r}
 # Grab the eigenvalues from the eigen decomposition
 eigenvalues <- eigenDecomposition$values
@@ -216,28 +219,151 @@ isPositiveDefinite
 # False! Now we need to find a vector x...
 
 # Get all eigenvector(s) that are negative
-vectors <- eigenDecomposition$vectors[, which(eigenvalues < 0)]
+negVec <- eigenDecomposition$vectors[, which(eigenvalues < 0)]
 
 # We need to normalize the eigenvector(s) using the equation 
+vecNorm <- negVec / sqrt(sum(negVec^2))
+vecNorm
 
-vectorsNormalized <- vectors / 
-
+result <- t(vecNorm) %*% A %*% vecNorm
+result
 ```
+
+We end of getting a vector $x = \begin{bmatrix} 0.3535534 \\ -0.3535534 \\ -0.3535534 \\ 0.3535534 \\ 0 \end{bmatrix}$ for which $x^T A x < 0$, confirming that $A$ is not positive definite.
+
+{{< pagebreak >}}
+
+## Part C
+
+The matrix-vector multiplication $Ax$, where $x = 4v_1 + 2v_5$, can be expressed symbolically as:
+
+$$Ax = 4\lambda_1 v_1 + 2\lambda_5 v_5$$
+
+In this expression, $\lambda_1$ and $\lambda_5$ are the eigenvalues corresponding to $v_1$ and $v_5$, respectively. If we want to calculate it, we could plug in the eigenvalues and solve.
+
+{{< pagebreak >}}
+
+# Question 4
+
+## Part A
 
 ```{r}
+# Read the data from the CSV file
+ds <- read.csv("IrisData.csv")
+names(ds)
 
+# Calculate the sample mean vector for all variables
+meanVec <- colMeans(ds[,])
+meanVec
+
+print(ds$Type)
 ```
 
+{{< pagebreak >}}
+
+## Part B
 
 ```{r}
+# Calculate the sample mean vector for each species
+species1MeanVec <- colMeans(ds[ds$type == 1, 1:4])
+species2MeanVec <- colMeans(ds[ds$type == 2, 1:4])
+species3MeanVec <- colMeans(ds[ds$type == 3, 1:4])
 
 ```
+
+{{< pagebreak >}}
+
+## Part C
 
 ```{r}
+# Calculate the sample correlation matrix for all variables
+corMatrix <- cor(ds[,])
+corMatrix
 
 ```
+{{< pagebreak >}}
+
+## Part D
+
+```{r}
+# Calculate individual correlation matrices for each species
+species1CorMatrix <- cor(ds[ds$type == 1, 1:4])
+species2CorMatrix <- cor(ds[ds$type == 2, 1:4])
+species3CorMatrix <- cor(ds[ds$type == 3, 1:4])
+```
+
+{{< pagebreak >}}
+
+## Part E
+
+```{r}
+library(ggplot2)
+
+pairs(ds[, 1:4], 
+      main = "Pairs Plot for Iris Dataset",
+      pch = 21, col = as.numeric(ds$Type), 
+      labels = colnames(ds)[1:4],
+      lower.panel = panel.smooth,
+)
+```
+You can totally spot some noticeable differences among these flowers. When it comes to telling them apart, Petal Width seems to be the way to go, thanks to their clear clustering that lets you easily identify the species. And if you look at Petal Length and Petal Width, it's pretty apparent that they both follow a nice linear pattern in their clustering, making it even easier to tell them apart based on these features. 
 
 
+{{< pagebreak >}}
+
+
+# Question 5
+
+
+# Part A
+
+To show that B is a symmetric matrix, we need to demonstrate that B equals its transpose, i.e., B = B^T. We have:
+
+$$
+B = A^T A
+$$
+
+Taking the transpose of B:
+
+$$
+B^T = (A^T A)^T = A^T (A^T)^T = A^T A = B
+$$
+
+Thus, B is a symmetric matrix.
+
+{{< pagebreak >}}
+
+# Part B
+
+To show that B is a positive semi-definite matrix, we need to prove that for any vector $x$ in $\mathbb{R}^p$, $x^T B x \geq 0$. Let's calculate this expression:
+
+$$
+x^T B x = x^T (A^T A) x = (x^T A^T) (A x) = (Ax)^T (Ax) = \lVert Ax \rVert^2
+$$
+
+Since the square of the Euclidean norm (length) of any vector is non-negative ($\lVert v \rVert^2 \geq 0$ for any vector $v$), we have $x^T B x \geq 0$. Therefore, B is a positive semi-definite matrix.
+
+{{< pagebreak >}}
+
+# Part C
+
+The sample covariance matrix S can be expressed as:
+
+$$
+S = \frac{1}{n-1} (X - \bar{X})^T (X - \bar{X})
+$$
+
+Where $\bar{X}$ is an $(n \times p)$ matrix with n identical rows equal to the sample mean vector $(\bar{X}_1, \bar{X}_2, \ldots, \bar{X}_p)$. To show that S is positive semi-definite, we need to prove that for any vector $x$ in $\mathbb{R}^p$, $x^T S x \geq 0$.
+
+Let $y = (X - \bar{X})x$, which is a linear combination of the columns of $X - \bar{X}$. Now, the expression $x^T S x$ can be written as:
+
+$$
+x^T S x = \frac{1}{n-1} y^T y
+$$
+
+Since $y$ is a linear combination of the columns of $X - \bar{X}$, $y$ is a vector in $\mathbb{R}^n$. The squared norm of any vector in $\mathbb{R}^n$ is non-negative. Therefore, $\frac{1}{n-1} y^T y \geq 0$, and as a result, $x^T S x \geq 0.
+
+This shows that the sample covariance matrix S is positive semi-definite.
 
 
 
