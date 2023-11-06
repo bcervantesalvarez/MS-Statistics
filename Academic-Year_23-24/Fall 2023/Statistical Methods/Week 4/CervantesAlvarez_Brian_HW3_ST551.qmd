@@ -1,0 +1,290 @@
+---
+title: "ST551: Homework 3"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "11-01-2023"
+format: PrettyPDF-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Question 1
+
+## Part A
+
+```{r}
+# Initialize values
+X <- 9
+n <- 15
+p <- 0.4
+# Perform the two-sided binomial test
+result <- binom.test(X, n, p, alternative = "two.sided")
+p_val1 <- result$p.val
+print(paste0("p-value of two-sided binomial test = ",p_val1))
+# Perform the cumulative probability test 
+prob <- dbinom(0:n, size = n, prob = p)
+cum_prob <- sum(prob[0:X])
+p_val2 <- 1 - cum_prob
+print(paste0("The cumulative probability when X <= 9 results in a p-value = ",
+             p_val2))
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+Yes, we fail to reject the null hypothesis \@ p = 0.4
+
+```{r}
+alpha <- 0.05
+if (p_val1 < alpha) {
+  print(paste("p_val =", p_val1, 
+              "We reject the null  = 0.4"))
+} else {
+  print(paste("p_val =", p_val1, 
+              "We fail to reject the null  = 0.4"))
+}
+
+if (p_val2 < alpha) {
+  print(paste("p_val =", p_val2, 
+              "We reject the null = 0.4"))
+} else {
+  print(paste("p_val =", p_val2, 
+              "We fail to reject the null = 0.4"))
+}
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+```{r}
+# Initialize values
+X <- 9
+n <- 15
+# Calculate the confidence interval
+result <- binom.test(X, n, conf.level = 0.95)
+conf_interval <- result$conf.int[1:2]
+print(paste0("Confidence Interval (95%): [", 
+             round(conf_interval[1], 3), " <-> ",
+             round(conf_interval[2], 3), "]"))
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+```{r}
+# Change the null hypothesis to 0.33
+p <- 0.33
+result2 <- binom.test(X, n, p, alternative = "two.sided")
+p_val <- result2$p.val
+print(paste0("p-value of two-sided binomial test = ",p_val))
+
+alpha <- 0.05
+if (p_val < alpha) {
+  print(paste("p_val =", p_val,
+              "Reject the null = 0.33"))
+} else {
+  print(paste("p_val =", p_val,
+              "We fail to reject the null = 0.33"))
+}
+```
+
+{{< pagebreak >}}
+
+## Part E
+
+The p-value of 0.04951 and the 95% confidence interval $$0.323, 0.837$$ both indicate significant evidence against the null hypothesis that the proportion is 0.33, aligning with the decision to reject the null hypothesis.
+
+{{< pagebreak >}}
+
+## Part F
+
+The explanation is given through the comments below!
+
+```{r}
+# We have 9 successes out of 15 trials.
+X <- 9
+n <- 15
+conf <- 0.95
+
+# Calculate the observed proportion
+p <- X / n
+# Standard error
+SE <- sqrt(p * (1 - p) / n)
+# Critical value (z)
+z <- qnorm(1 - (1 - conf) / 2)
+# Margin of error
+ME <- z * SE
+
+# Wilson score confidence interval
+lower_bound <- p - ME
+upper_bound <- p + ME
+
+# Print the confidence interval
+print(paste0("Confidence Interval (", 100 * conf, "%): [",
+             round(lower_bound, 3), " <-> ", round(upper_bound, 3), "]"))
+```
+
+{{< pagebreak >}}
+
+# Question 2
+
+The usual z-test (the score test) for a binomial proportion to test $H0: p = p_0$ uses test statistic:
+
+$$
+z(p_0) = \frac{\hat{p}-p_0}{\sqrt{\frac{p_0(1-p_0)}{n}}}
+$$
+
+where $\hat{p} = X/n$ is the nle proportion. For a two-sided level $\alpha$ test, the null hypothesis is rejected when $|z(p_0)| > z_{1 - \alpha / 2}$. Invert this test to obtain a confidence interval for $p$ : solve for $p_0$ that would not be rejected at level $\alpha$.
+
+Compare the center and length of the resulting interval to the more commonly used $\text{Wald interval:}$
+
+$$
+\hat{p} \pm z_{1-\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}
+$$
+
+## Solving for $p_0$
+
+So, we want to find values of $p_0$ such that:
+
+$$
+\left|\frac{\hat{p} - p_0}{\sqrt{\frac{p_0(1-p_0)}{n}}}\right| \leq z_{1 - \alpha/2}
+$$
+
+Square both sides
+
+$$
+\left(\frac{\hat{p} - p_0}{\sqrt{\frac{p_0(1-p_0)}{n}}}\right)^2 \leq \left(z_{1 - \alpha/2}\right)^2
+$$
+
+Simplify
+
+$$
+\frac{(\hat{p} - p_0)^2}{\frac{p_0(1-p_0)}{n}} \leq \left(z_{1 - \alpha/2}\right)^2
+$$
+
+Now we cross-multiply
+
+$$
+n(\hat{p} - p_0)^2 \leq p_0(1-p_0) \left(z_{1 - \alpha/2}\right)^2
+$$
+
+Next, move $p_0$ to the left side:
+
+$$
+p_0(1-p_0) \left(z_{1 - \alpha/2}\right)^2 - n(\hat{p} - p_0)^2 \geq 0
+$$
+
+This is a quadratic inequality in terms of $p_0$. We can solve it for $p_0$ using the quadratic formula. The solutions will be the values of $p_0$ for which the null hypothesis is not rejected at level $\alpha$. The resulting interval is our confidence interval for $p$. Beware! Solving this would take forever, but hopefully this explains enough on how to determine the values of $p_0$
+
+## Comparison with Wald Interval
+
+The Wald interval for a proportion is given by:
+
+$$
+\hat{p} \pm z_{1 - \alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}
+$$
+The Wald interval assumes a normal distribution for the nle proportion and centers on it, while the z-test interval, based on the actual binomial distribution, centers on a parameter solution and tends to be wider, better accounting for the binomial nature than the Wald interval, which assumes normality but might not be as reliable for small nle sizes.
+
+
+{{< pagebreak >}}
+
+# Question 3
+
+Prove that the one-sided upper z-test for a binomial proportion is a consistent test: If the true value of $p = p_A > p_0$, what is $P_{pA}(z(p_0) > z_{1-\alpha})$ as $n \to \infty$
+
+## Proof of Consistency for the One-Sided Upper Z-Test
+
+Let's explore the idea of consistency in the one-sided upper z-test when we have a really big nle size, denoted as "n." We can use the Central Limit Theorem to help us understand what happens to the nle proportion $\hat{p}$." As "n" gets larger and larger, $\hat{p}$ starts behaving a lot like a normal distribution with an average of "p" and a variance that becomes super tiny, making $\hat{p}$ essentially the same as "p". This makes the test statistic "z" simpler and can be expressed as:
+
+$$
+z = \frac{p - p_0}{\sqrt{\frac{p_0(1 - p_0)}{n}}}
+$$
+
+Moreover, with the nle size growing significantly, the denominator $\sqrt{\frac{p_0(1 - p_0)}{n}}$ becomes remarkably small, driving the test statistic $z$ towards infinity. As a result, $z$ approaches infinity as $n$ keeps increasing.
+
+Now, the critical value $z_{1-\alpha}$ remains constant and doesn't change with varying nle sizes. However, as $n$ tends towards infinity, the test statistic $z$ continues to rise and eventually surpasses the fixed critical value $z_{1-\alpha}$ with a certainty of 1.
+
+Thus, when we deal with a substantially large nle size, the probability of rejecting the null hypothesis $P_{p_A}(z(p_0) > z_{1-\alpha})$ reaches a value of 1. This strong convergence showcases the reliability and consistency of the one-sided upper z-test in assessing a binomial proportion, particularly when the true proportion $p = p_A > p_0$.
+
+{{< pagebreak >}}
+
+# Question 4
+
+
+## Theoretical approach
+
+1. To find the true probability $p$ of a sample from a Normal(1, 1) distribution being greater than the hypothesized median $m_0 = 0$, we need to use the CDF.
+   
+   We can calculate the CDF of the Normal(1, 1) distribution:
+
+   $$
+   p = P(X > 0) = 1 - P(X \leq 0) = 1 - \phi\left(\frac{0 - 1}{1}\right) = 1 - \phi(-1)
+   $$
+
+   where $\phi(z)$ represents the CDF of a standard normal distribution.
+
+2. We know that in the sign test, if $p$ equals the hypothesized value (in our case, $H_0 = 0.5$), it implies the observed proportion $\hat{p}$ being significantly different from what's expected under the null hypothesis. 
+
+   The critical values of $\hat{p}$ can be derived by solving for $z$:
+
+   $$
+   z < -\phi^{-1}\left(\frac{\alpha}{2}\right)
+   $$
+   $$
+   z > \phi^{-1}\left(\frac{\alpha}{2}\right)
+   $$
+
+3. Given everything from above, the probability represents the power of the sign test. It can be expressed as the probability that $\hat{p}$ lies within the range that leads to rejection, given the true value of $p$.
+
+Therefore, this process gives us a tool for detecting differences from the hypothesized median.
+
+{{< pagebreak >}}
+
+
+## Simulation Approach
+
+```{r}
+set.seed(124)
+
+# Parameters
+pop_med <- 1
+pop_sd <- 1
+n <- 30
+n_sim <- 10000
+alpha <- 0.05
+null_rejection_count <- 0
+
+# Simulation loop
+for (i in 1:n_sim) {
+  # Generate a random sample from Normal(1, 1)
+  samp <- rnorm(n, mean = pop_med, sd = pop_sd)
+  
+  # Compute the sample median
+  samp_med <- median(samp)
+  
+  # Perform a z-test to test whether the population median is 0
+  z_stat <- (samp_med - 0) / (pop_sd / sqrt(n))
+  
+  # Calculate the p-value for the z-test
+  p_val <- 2 * (1 - pnorm(abs(z_stat)))
+  
+  # Check if the null hypothesis is rejected (p-value < alpha)
+  if (p_val < alpha) {
+    null_rejection_count <- null_rejection_count + 1
+  }
+}
+
+# Calculate the proportion of simulations that reject the null hypothesis
+prop_rejected <- null_rejection_count / n_sim
+print(paste("Proportion of null rejections: m = 0:", prop_rejected))
+```
+
+
+
+
+{{< pagebreak >}}

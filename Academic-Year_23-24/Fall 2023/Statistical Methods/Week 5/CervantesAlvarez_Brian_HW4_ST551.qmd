@@ -2,7 +2,7 @@
 title: "ST551: Homework 4"
 author: 
     - "Brian Cervantes Alvarez"
-date: "11-05-2023"
+date: "11-06-2023"
 format: PrettyPDF-pdf
 execute: 
   warning: false
@@ -17,15 +17,3 @@ editor: visual
 ```
 
 {{< pagebreak >}}
-
-
-```{r}
-
-v <- c(18,10,6,9,6,11)
-
-
-
-person
-
-```
-

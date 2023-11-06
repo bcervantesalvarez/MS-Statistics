@@ -3,6 +3,7 @@ title: "ST557: Homework 1"
 author: 
     - "Brian Cervantes Alvarez"
 date: "10-06-2023"
+format: PrettyPDF-pdf
 execute: 
   warning: false
   message: false
@@ -281,6 +282,7 @@ corMatrix <- cor(ds[,])
 corMatrix
 
 ```
+
 {{< pagebreak >}}
 
 ## Part D
@@ -306,18 +308,16 @@ pairs(ds[, 1:4],
       lower.panel = panel.smooth,
 )
 ```
-You can totally spot some noticeable differences among these flowers. When it comes to telling them apart, Petal Width seems to be the way to go, thanks to their clear clustering that lets you easily identify the species. And if you look at Petal Length and Petal Width, it's pretty apparent that they both follow a nice linear pattern in their clustering, making it even easier to tell them apart based on these features. 
 
+You can totally spot some noticeable differences among these flowers. When it comes to telling them apart, Petal Width seems to be the way to go, thanks to their clear clustering that lets you easily identify the species. And if you look at Petal Length and Petal Width, it's pretty apparent that they both follow a nice linear pattern in their clustering, making it even easier to tell them apart based on these features.
 
 {{< pagebreak >}}
 
-
 # Question 5
-
 
 # Part A
 
-To show that B is a symmetric matrix, we need to demonstrate that B equals its transpose, i.e., B = B^T. We have:
+To show that B is a symmetric matrix, we need to demonstrate that B equals its transpose, i.e., B = B\^T. We have:
 
 $$
 B = A^T A
@@ -361,10 +361,6 @@ $$
 x^T S x = \frac{1}{n-1} y^T y
 $$
 
-Since $y$ is a linear combination of the columns of $X - \bar{X}$, $y$ is a vector in $\mathbb{R}^n$. The squared norm of any vector in $\mathbb{R}^n$ is non-negative. Therefore, $\frac{1}{n-1} y^T y \geq 0$, and as a result, $x^T S x \geq 0.
+Since $y$ is a linear combination of the columns of $X - \bar{X}$, $y$ is a vector in $\mathbb{R}^n$. The squared norm of any vector in $\mathbb{R}^n$ is non-negative. Therefore, $\frac{1}{n-1} y^T y \geq 0$, and as a result, \$x\^T S x \geq 0.
 
 This shows that the sample covariance matrix S is positive semi-definite.
-
-
-
-
