@@ -1,0 +1,17 @@
+---
+title: "Quarto 101"
+subtitle: "by Brian Cervantes Alvarez"
+format:
+  revealjs: 
+    theme: [default, custom.scss]
+---
+
+## Getting up
+
+- Turn off alarm
+- Get out of bed
+
+## Going to sleep
+
+- Get in bed
+- Count sheep

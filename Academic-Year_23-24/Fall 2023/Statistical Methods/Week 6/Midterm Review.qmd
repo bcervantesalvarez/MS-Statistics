@@ -110,13 +110,13 @@ editor: visual
 1.  **z-test/confidence interval/p-value**:
     -   A z-test is used when you have a large sample size (typically $n \ge 30$) and you know the population standard deviation. It assesses whether a sample mean is significantly different from a known population mean.
     -   A confidence interval for the mean can be constructed to estimate the range within which the true population mean is likely to fall.
-    -   A p-value is calculated to determine the significance of the results. A small p-value (e.g., \< 0.05) suggests that the sample mean is significantly different from the population mean.
+    -   A p-value is calculated to determine the significance of the results. A small p-value (e.g., $\alpha < 0.05$) suggests that the sample mean is significantly different from the population mean.
     -   Example: Conducting a z-test to determine if the average weight of apples in a shipment of 100 apples is different from the known population mean weight of apples.
     
 2.  **t-test/confidence interval/p-value**:
     -   A t-test is used when you have a small sample size (typically $n < 30$) and you don't know the population standard deviation. It assesses whether a sample mean is significantly different from a hypothesized population mean.
     -   A confidence interval for the mean can be constructed to estimate the range within which the true population mean is likely to fall.
-    -   A p-value is calculated to determine the significance of the results. A small p-value (e.g., < 0.05) suggests that the sample mean is significantly different from the hypothesized population mean.
+    -   A p-value is calculated to determine the significance of the results. A small p-value (e.g., $\alpha < 0.05$) suggests that the sample mean is significantly different from the hypothesized population mean.
     -   Example: Conducting a t-test to determine if the average test scores of a group of students differ from the expected mean score.
     
 3.  **Exact binomial test/p-value**:
@@ -172,13 +172,13 @@ editor: visual
     
 3.  **What assumptions are necessary when performing the normal approximation to the binomial test?**
     -   The sample size is sufficiently large (typically $n \ge 30$).
-    -   The success-failure condition is met, ensuring that np and n(1-p) are both greater than 5, where p is the probability of success.
+    -   The success-failure condition is met, ensuring that $np$ and $n(1-p)$ are both greater than $5$, where $p$ is the probability of success.
     
 4.  **What assumptions are necessary when interpreting the signed-rank test as a test of population mean/median?**
     -   The assumption is that the distribution of differences between paired observations is symmetric and continuous.
     
 5.  **What is the relationship between p-values and hypothesis test decisions?**
-    -   A smaller p-value indicates stronger evidence against the null hypothesis. Typically, if the p-value is less than the chosen significance level (e.g., 0.05), the null hypothesis is rejected in favor of the alternative hypothesis. Conversely, a larger p-value suggests weaker evidence against the null hypothesis.
+    -   A smaller p-value indicates stronger evidence against the null hypothesis. Typically, if the p-value is less than the chosen significance level (e.g., $\alpha = 0.05$), the null hypothesis is rejected in favor of the alternative hypothesis. Conversely, a larger p-value suggests weaker evidence against the null hypothesis.
     
 6.  **What is the relationship between confidence intervals and hypothesis test decisions?**
     -   A confidence interval provides a range of plausible values for a parameter (e.g., mean). If a null hypothesis value falls outside the confidence interval, it suggests that the null hypothesis may be inconsistent with the data, which corresponds to rejecting the null hypothesis in a hypothesis test.
