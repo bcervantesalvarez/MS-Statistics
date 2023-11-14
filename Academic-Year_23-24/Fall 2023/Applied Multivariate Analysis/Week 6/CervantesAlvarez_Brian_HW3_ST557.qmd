@@ -1,5 +1,5 @@
 ---
-title: "ST551: Homework 0"
+title: "ST557: Homework 3"
 author: 
     - "Brian Cervantes Alvarez"
 date: "11-13-2023"
@@ -126,7 +126,6 @@ The small p-value suggests notable variations in skull sizes across different ye
 ```{r}
 # Fit the MANOVA model
 manovaModel <- manova(cbind(MB, BH, BL, NH) ~ Year, data = skullData)
-# Fit the MANOVA model using Wilks' Lambda
 summary(manovaModel, test = "Wilks")
 ```
 
@@ -165,13 +164,16 @@ summary(nhAnova)
 
 ### Part A
 
+For NO2, there is no evidence to suggest that SolarRad has a significant effect.
+For O3, there is some marginal evidence (p = 0.0526) suggesting that SolarRad might have a significant effect, but it's not strong evidence.
+
 ```{r}
-# Load the data
 pollutionData <- read.csv("PollutionData.csv")
 
 # Fit the multivariate multiple regression model
 model <- lm(cbind(NO2, O3) ~ Wind + SolarRad, data = pollutionData)
 
+summary(model)
 ```
 
 
@@ -181,10 +183,7 @@ model <- lm(cbind(NO2, O3) ~ Wind + SolarRad, data = pollutionData)
 
 ### Part B
 
-```{r}
-
-```
-
+In both cases (NO2 and O3), the p-values for the Wind variable are greater than 0.05, indicating that there is not enough evidence to reject the null hypothesis. The conclusion is that, based on these tests, there is no significant effect of the Wind variable on either NO2 or O3 in the models.
 
 {{< pagebreak >}}
 
@@ -192,9 +191,12 @@ model <- lm(cbind(NO2, O3) ~ Wind + SolarRad, data = pollutionData)
 
 ### Part C
 
-```{r}
+The F-tests assess the joint significance of Wind and SolarRad predictors in the model, with the following results:
 
-```
+- For NO2: F-statistic = 0.4614, p-value = 0.6338 (Fail to reject $ \beta_1 = \beta_2 = 0 $)
+- For O3: F-statistic = 3.476, p-value = 0.04082 (Reject $ \beta_1 = \beta_2 = 0 $)
+
+Hence, the joint test aligns with individual tests. For O3, there's a significant relationship, consistent with SolarRad evidence in part (a) and lack of Wind evidence in part (b). For NO2, both joint and individual tests suggest no significant relationship with predictors. In other words, it's inconclusive whether $\beta_1 = \beta_2 = 0$.
 
 
 {{< pagebreak >}}
@@ -317,19 +319,23 @@ cumVarianceR <- cumsum(pcaR$values) / sum(pcaR$values)
 
 # Scree plot for S
 plot(1:length(pcaS$values), pcaS$values, type = 'b', 
-     main = "Scree Plot (S)", xlab = "Principal Component", ylab = "Eigenvalue")
+     main = "Scree Plot (S)", xlab = "Principal Component",
+     ylab = "Eigenvalue")
 
 # Cumulative variance explained plot for S
 plot(1:length(pcaS$values), cumVarianceS, type = 'b', 
-     main = "Cumulative Variance Explained (S)", xlab = "Principal Component", ylab = "Cumulative Variance Explained")
+     main = "Cumulative Variance Explained (S)", 
+     xlab = "Principal Component", ylab = "Cumulative Variance Explained")
 
 # Scree plot for R
 plot(1:length(pcaR$values), pcaR$values, type = 'b', 
-     main = "Scree Plot (R)", xlab = "Principal Component", ylab = "Eigenvalue")
+     main = "Scree Plot (R)", xlab = "Principal Component",
+     ylab = "Eigenvalue")
 
 # Cumulative variance explained plot for R
 plot(1:length(pcaR$values), cumVarianceR, type = 'b', 
-     main = "Cumulative Variance Explained (R)", xlab = "Principal Component", ylab = "Cumulative Variance Explained")
+     main = "Cumulative Variance Explained (R)", 
+     xlab = "Principal Component", ylab = "Cumulative Variance Explained")
 ```
 
 
@@ -381,9 +387,11 @@ print(propVarExplained[3])
 
 ### Part C
 
--   In Principal Component 1, JPMorgan and Citibank show positive loadings, implying a strong positive association, while RoyalDutchShell and ExxonMobil exhibit negative loadings, indicating an inverse relationship with financial stocks. WellsFargo has a smaller positive loading, suggesting a positive association with less influence compared to JPMorgan and Citibank. 
--   In Principal Component 2, Citibank and ExxonMobil have negative and positive loadings, respectively, suggesting an inverse relationship between these financial and energy stocks. 
--   In Principal Component 3, JPMorgan and Citibank display positive loadings, indicating a positive association, while WellsFargo has a negative loading, suggesting a contrasting movement compared to JPMorgan and Citibank. RoyalDutchShell and ExxonMobil have small loadings, indicating less influence on this component.
+- In PCA 1, JPMorgan and Citibank display positive loadings, indicating a strong positive association, while RoyalDutchShell and ExxonMobil show negative loadings, suggesting an inverse relationship with financial stocks. WellsFargo exhibits a smaller positive loading, implying a positive association with less influence compared to JPMorgan and Citibank.
+
+- In PCA 2, Citibank and ExxonMobil have negative and positive loadings, respectively, indicating an inverse relationship between these financial and energy stocks.
+
+- In PCA 3, JPMorgan and Citibank exhibit positive loadings, indicating a positive association, while WellsFargo has a negative loading, suggesting a contrasting movement compared to JPMorgan and Citibank. RoyalDutchShell and ExxonMobil show small loadings, indicating less influence on this component.
 
 
 ```{r}
