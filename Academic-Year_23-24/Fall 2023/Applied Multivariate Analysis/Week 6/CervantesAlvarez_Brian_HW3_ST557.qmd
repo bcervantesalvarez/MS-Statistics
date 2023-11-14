@@ -2,7 +2,7 @@
 title: "ST551: Homework 0"
 author: 
     - "Brian Cervantes Alvarez"
-date: "10-04-2023"
+date: "11-13-2023"
 format: PrettyPDF-pdf
 execute: 
   warning: false
@@ -10,57 +10,237 @@ execute:
 editor: visual
 ---
 
-## Part A
+
+
+## Question 3
+
+### Part A
 
 ```{r}
-# Set random seed for reproducibility
-set.seed(503)
+# Load the data
+pollutionData <- read.csv("PollutionData.csv")
 
-# Parameters
-n = 100
-mean = 12
-sd = 10
+# Fit the multivariate multiple regression model
+model <- lm(cbind(NO2, O3) ~ Wind + SolarRad, data = pollutionData)
 
-# Generate the random sample 
-samp1 <- rnorm(n, mean, sd)
-# Show first 50 values of the random sample generation
-head(samp1, 50)
 ```
 
 
 {{< pagebreak >}}
 
-## Part B
+## Question 3
+
+### Part B
 
 ```{r}
 
-# Calculate the sample mean
-meanRandomSample <- mean(samp1)
-# Show sample mean
-print(paste0("Sample Mean: ", meanRandomSample))
-
 ```
+
 
 {{< pagebreak >}}
 
-## Part C
+## Question 3
+
+### Part C
 
 ```{r}
-# Calculate the sample standard deviation
-sdRandomSample <- sd(samp1)
-# Show sample standard deviation
-print(paste0("Sample Standard Deviation: ", sdRandomSample))
+
 ```
+
 
 {{< pagebreak >}}
 
-## Part D
+## Question 4
+
+### Part A
+
+
+It is recommended to use the correlation matrix rather than the covariance matrix. The reason for this is that PCA is sensitive to the scale of the variables, and using the correlation matrix standardizes the variables to have mean 0 and standard deviation 1.
 
 ```{r}
-# Plot the random sample
-hist(samp1)
-hist(samp1,breaks = seq(min(samp1), max(samp1) + 1, by = 1))
+trackData <- read.csv("TrackData.csv")
+
+# Extract the columns containing distances
+distanceColumns <- c("X100m.s", "X200m.s", "X400m.s", "X800m.m", "X1500m.m", "X5000m.m", "X10000m.m", "Marathon.m")
+distanceData <- trackData[, c("Country", distanceColumns)]
+
+# Covariance matrix S
+covMatrix <- cov(distanceData[, -1])
+covMatrix
+
+# Correlation matrix R
+corMatrix <- cor(distanceData[, -1])
+corMatrix
 ```
 
+
+{{< pagebreak >}}
+
+## Question 4
+
+### Part B
+
+```{r}
+eigenS <- eigen(covMatrix)
+eigenS
+```
+
+
+{{< pagebreak >}}
+
+## Question 4
+
+### Part C
+
+```{r}
+eigenR <- eigen(corMatrix)
+eigenR
+```
+
+
+{{< pagebreak >}}
+
+## Question 4
+
+### Part D
+
+```{r}
+# PCA using covariance matrix
+pcaS <- eigenS
+
+# PCA using correlation matrix
+pcaR <- eigenR
+
+# Plots
+par(mfrow = c(2, 2))  # Setting up a 2x2 grid for subplots
+
+# Plotting loadings for the first four principal components of S
+for (i in 1:4) {
+  plot(1:(ncol(distanceData) - 1), pcaS$vectors[, i], 
+       main = paste("PC", i, "Loadings (S)"))
+}
+
+# Plotting loadings for the first four principal components of R
+for (i in 1:4) {
+  plot(1:(ncol(distanceData) - 1), pcaR$vectors[, i], 
+       main = paste("PC", i, "Loadings (R)"))
+}
+
+```
+
+
+{{< pagebreak >}}
+
+## Question 4
+
+### Part E
+
+The loadings for PCA 1 for Matrix S shows a strong, positive influence on the principal component.
+
+{{< pagebreak >}}
+
+## Question 4
+
+### Part F
+
+So, if the first principal component's loadings form a parabola for the distance records, it means that the way these races impact the data is not just a simple straight line. There could be some tricky and not-so-straight patterns going on. This suggests we should take a closer look at how performances in these races affect the overall patterns in our data, especially when it comes to the first principal component.
+
+
+{{< pagebreak >}}
+
+## Question 4
+
+### Part G
+
+The straight line pattern in the loadings of the second principal component helps us understand how various distance records affect the overall trends we see in the data. This line gives us a clearer picture of how each type of race contributes to the patterns we're studying. It lets us look more closely at how performances differ across these distances from the dataset.
+
+
+{{< pagebreak >}}
+
+## Question 4
+
+### Part H
+
+```{r}
+# Calculate cumulative variance explained
+cumVarianceS <- cumsum(pcaS$values) / sum(pcaS$values)
+cumVarianceR <- cumsum(pcaR$values) / sum(pcaR$values)
+
+# Scree plot for S
+plot(1:length(pcaS$values), pcaS$values, type = 'b', 
+     main = "Scree Plot (S)", xlab = "Principal Component", ylab = "Eigenvalue")
+
+# Cumulative variance explained plot for S
+plot(1:length(pcaS$values), cumVarianceS, type = 'b', 
+     main = "Cumulative Variance Explained (S)", xlab = "Principal Component", ylab = "Cumulative Variance Explained")
+
+# Scree plot for R
+plot(1:length(pcaR$values), pcaR$values, type = 'b', 
+     main = "Scree Plot (R)", xlab = "Principal Component", ylab = "Eigenvalue")
+
+# Cumulative variance explained plot for R
+plot(1:length(pcaR$values), cumVarianceR, type = 'b', 
+     main = "Cumulative Variance Explained (R)", xlab = "Principal Component", ylab = "Cumulative Variance Explained")
+```
+
+
+{{< pagebreak >}}
+
+## Question 4
+
+### Part I
+
+Checking out the scree plot, I'd stick with the first 3 components because that's where the variance stops increasing much. But, when I consider the total variance, I usually stop at the point where the components add up to around 80%. Funny enough, the first 1 component get the job done with about 98% variance. I would still pick the first 3 components as it levels off right after, which means that they are not as significant as the other components.
+
+{{< pagebreak >}}
+
+## Question 5
+
+### Part A
+
+
+```{r}
+nyseData <- read.csv("NYSEData.csv")
+
+# Construct the sample covariance matrix S and find the sample principal components
+covMatrix <- cov(nyseData)
+print(covMatrix)
+pca <- princomp(covMatrix)
+print(pca)
+```
+
+
+
+{{< pagebreak >}}
+
+## Question 5
+
+### Part B
+
+
+```{r}
+# Calculate the proportion of total sample variance explained by the first three principal components
+propVarExplained <- cumsum(pca$sdev^2) / sum(pca$sdev^2)
+print(propVarExplained[3])
+```
+
+
+
+{{< pagebreak >}}
+
+## Question 5
+
+### Part C
+
+-   In Principal Component 1, JPMorgan and Citibank show positive loadings, implying a strong positive association, while RoyalDutchShell and ExxonMobil exhibit negative loadings, indicating an inverse relationship with financial stocks. WellsFargo has a smaller positive loading, suggesting a positive association with less influence compared to JPMorgan and Citibank. 
+-   In Principal Component 2, Citibank and ExxonMobil have negative and positive loadings, respectively, suggesting an inverse relationship between these financial and energy stocks. 
+-   In Principal Component 3, JPMorgan and Citibank display positive loadings, indicating a positive association, while WellsFargo has a negative loading, suggesting a contrasting movement compared to JPMorgan and Citibank. RoyalDutchShell and ExxonMobil have small loadings, indicating less influence on this component.
+
+
+```{r}
+# Extract loadings for the first three components
+loadings <- pca$loadings[, 1:3]
+print(loadings)
+```
 
 

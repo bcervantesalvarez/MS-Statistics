@@ -1,0 +1,100 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{tabularx}
+\usepackage{fullpage}
+\usepackage{setspace}
+\usepackage{subfigure}
+\usepackage{placeins}
+\usepackage{authblk}
+\usepackage{amsthm}
+\usepackage{multicol}
+\usepackage{url}
+
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}
+\newtheorem{lem}[thm]{Lemma} 
+\newtheorem{prop}[thm]{Proposition} 
+\newtheorem{cor}{Corollary}
+
+\theoremstyle{definition} 
+\newtheorem{defn}{Definition}
+\newtheorem{conj}{Conjecture}
+\newtheorem{exmp}{Example}
+
+\theoremstyle{remark} 
+\newtheorem*{rem}{Remark} 
+\newtheorem*{note}{Note} 
+\newtheorem{case}{Case}
+
+\newcommand{\parasep}{\begin{center}*\hspace{1.5em}*\hspace{1.5em}*\hspace{1.5em}*\hspace{1.5em}*\hspace{1.5em}*\hspace{1.5em}*\hspace{1.5em}*\hspace{1.5em}*\hspace{1.5em}*\hspace{1.5em}*\hspace{1.5em}*\end{center}}
+
+
+\title{ST 557: Applied Multivariate Analysis}
+\author{Homework 3}
+\date{}
+
+\begin{document}
+\maketitle{}
+
+\begin{enumerate}
+
+\item Monthly temperature data for 20 different weather stations within 100 miles of Corvallis were obtained for the period 1950 - 2009.  From this data, decade averages were computed for each station and are given in the \textbf{TempData.csv} file available on Canvas.  Let $\mu_1, \mu_2, \mu_3, \mu_4, \mu_5, \mu_6$ denote the average temperature for decades 1950s, 1960s, 1970s, 1980s, 1990s, 2000s respectively.
+\begin{enumerate}
+\item Test the null hypothesis $H_0: \mu_1 = \mu_2 = \mu_3 = \mu_4 = \mu_5 = \mu_6$ vs. $H_A: \text{ not all }\mu_j \text{ are equal }$ at level $\alpha = 0.05$ using Hotelling's $T^2$ test.  Explain how you performed this test.  Based on the result of this hypothesis test, would you conclude that the average temperature around Corvallis has stayed constant over the past 60 years?
+\item Construct simultaneous 95\% Bonferroni confidence intervals for $\mu_2 - \mu_1$, $\mu_3 - \mu_1$, $\mu_4 - \mu_1$, $\mu_5 - \mu_1$, and $\mu_6 - \mu_1$. Do any of these confidence intervals include 0?  What would you conclude based on these confidence intervals?
+\end{enumerate}
+
+
+\item  Researchers have suggested that a change in skull size over time is evidence of the interbreeding of a resident population with immigrant populations.  Samples of 30 male Egyptian skulls were obtained for five different time periods: 4000 B.C., 3300 B.C., 1850 B.C., 200 B.C., and 180 A.D.  For each skull, measurements of four dimensions were taken, and are given in the file \textbf{SkullData.csv} available on Canvas.  The measured variables are
+\begin{itemize}
+\item  MB: Maximal Breadth of Skull
+\item  BH: Basibregmatic Height of Skull
+\item  BL: Basialveolar Length of Skull
+\item NH: Nasal Height of Skull
+\end{itemize}
+The first column in the data file indicates the time period of the sample, with negative numbers indicating B.C. and positive numbers indicating A.D.
+\begin{enumerate}
+\item Compute and compare the covariance matrices for each time period.  Do they seem approximately similar?
+\item Perform a level $\alpha = 0.05$ test of the hypothesis that population mean vectors for all of these time periods are the same (assume equal covariance matrices).  Based on this hypothesis test, does there seem to be evidence of interbreeding (if the researchers' theory that skull size change indicates interbreeding is correct)?
+\item Perform separate univariate ANOVAs for each variable at level $\alpha^* = \frac{\alpha}{p}$.  Are any of these univariate ANOVAs significant?  If we reject $H_0:\bm{\mu}_1 = \bm{\mu}_2 = \bm{\mu}_3 = \bm{\mu}_4 = \bm{\mu}_5$ if any of the univariate ANOVAs are significant at level  $\alpha^* = \frac{\alpha}{p}$, will the overall probability of a Type I error (the overall significance level) be controlled at level $\alpha$ (that is, will it be $\leq \alpha$)? Explain.
+\end{enumerate}
+
+\item   Air-pollution measurements were taken at 12:00 noon in Los Angeles on 42 different days.  For each day, the  amount of wind and solar radiation were measured, along with quantities of 2 different pollutants (NO$_2$ and O$_3$).  The data are available on Canvas in the file \textbf{PollutionData.csv}.   
+
+\begin{enumerate}
+\item Perform a multivariate multiple regression analysis using both responses $Y_1$ = NO$_2$ and $Y_2$ = O$_3$ and predictors $X_1$ = Wind and $X_2$ = Solar Radiation. Test the null hypothesis that $\bm{\beta}_2 = \mathbf{0}$.  What would you conclude based on this test?
+\item Test the null hypothesis that $\bm{\beta}_1 = \mathbf{0}$.  What would you conclude based on this test?
+\item Test the null hypothesis that $\bm{\beta}_1 = \bm{\beta}_2 = \mathbf{0}$.  What would you conclude based on this test? How does this result fit with the results of parts (a) and (b)?
+\end{enumerate}
+
+\item Data on national track records for men for 55 different countries are given in the file \textbf{TrackData.csv}, available on Canvas.   For each country, the national record for eight different distances is recorded.  The first column of the data set contains the country name, and the second column contains a three-letter abbreviation.  The next eight columns contain the national records for each of the eight distances: the first three distances (100m, 200m, 400m) are recorded in seconds, and the remaining five distances (800m, 1500m, 5000m, 10000m, Marathon) are recorded in minutes.
+
+\begin{enumerate}
+\item Obtain the sample covariance matrix $\mathbf{S}$ and the sample correlation matrix $\mathbf{R}$ for the distances based on this data.  Which of these matrices would you find more interesting/appropriate to use for a principal component analysis of this data, and why?
+\item Determine the eigenvalues and eigenvectors of $\mathbf{S}$.
+\item Determine the eigenvalues and eigenvectors of $\mathbf{R}$.
+\item Construct four plots of the loadings for the first four principal components of $\mathbf{S}$.  Include the loadings for the corresponding principal component of $\mathbf{R}$ on the same plot, in a different color or plotting character.
+\item How would you interpret the loadings for the first principal component found using $\mathbf{S}$? 
+\item How would you interpret the loadings for the first principal component found using $\mathbf{R}$?
+\item What does the second principal component of $\mathbf{R}$ seem to represent?
+\item Plot the scree plot and cumulative variance explained plot for the principal components of both $\mathbf{S}$ and $\mathbf{R}$.
+\item How many principal components of $\mathbf{R}$ would you want to keep? Explain.
+\end{enumerate}
+
+\item The weekly rates of return for five stocks listed on the New York Stock Exchange are given in the file \textbf{NYSEData.csv}, available on Canvas.  For each of the 103 weeks (two years), the return rates are reported for all five stocks.  The first three stocks are for financial companies, and the last two are energy/petroleum stocks.
+
+\begin{enumerate}
+\item Construct the sample covariance matrix $\mathbf{S}$ for the five stocks, and find the sample principal components.
+\item What proportion of the total sample variance is explained by the first three principal components?
+\item How would you interpret the first three principal components (that is, interpret the loadings for each of these components on the original variables--what do each of these directions represent)?
+\end{enumerate}
+
+
+
+\end{enumerate}
+\end{document}
+
