@@ -10,7 +10,156 @@ execute:
 editor: visual
 ---
 
+## Question 1
 
+### Part A
+
+No, we reject the null hypothesis that the average temperature in Corvallis has stayed the same. It is highly suggested to go with the alternative where the average temperature has changed over the span of 50 years or 5 decades.
+
+```{r}
+
+library(MASS)
+# Read the data
+tempData <- read.csv("TempData.csv")
+
+# Extract the relevant columns
+decadesData <- tempData[, c('X1950s', 'X1960s', 'X1970s', 'X1980s', 'X1990s', 'X2000s')]
+
+# Calculate mean vector and covariance matrix
+meanVec <- colMeans(decadesData)
+covMat <- cov(decadesData)
+
+n <- nrow(decadesData)
+p <- ncol(decadesData)
+
+# Calculate Hotelling's T2 statistic
+T2 <- n * t(meanVec) %*% solve(covMat) %*% meanVec
+
+# Degrees of freedom
+df1 <- p
+df2 <- n - p
+
+# Calculate the p-value using F-distribution
+pval <- pf(T2, df1, df2, lower.tail = FALSE)
+
+# Results
+print(paste0("Hotelling's T2 statistic: ", T2))
+print(paste0("Degrees of freedom: ", df1, ", ", df2))
+print(paste0("P-value: ", pval))
+
+# Check if the p-value is less than the significance level (e.g., 0.05)
+if (pval < 0.05) {
+  print("Reject the null hypothesis. Not all means are equal.")
+} else {
+  print("Fail to reject the null hypothesis. Means are equal.")
+}
+```
+{{< pagebreak >}}
+
+## Question 1
+
+### Part B
+
+```{r}
+alpha <- 0.05
+# Number of comparisons
+m <- 5  
+bonferroniFactor <- qt(1 - alpha / (2 * m), df = df2)
+
+# Confidence Intervals
+confIntervals <- matrix(NA, nrow = m, ncol = 2)
+for (i in 2:(m + 1)) {
+  diffMean <- meanVec[i] - meanVec[1]
+  se <- sqrt(covMat[i, i] / n + covMat[1, 1] / n - 2 * covMat[i, 1] / n)
+  marginOfError <- bonferroniFactor * se
+  confIntervals[i - 1, ] <- c(diffMean - marginOfError, diffMean + marginOfError)
+}
+
+# Display Confidence Intervals
+for (i in 2:(m + 1)) {
+  print(paste0("95% Bonferroni CI for (mu", i, " - mu1): [", confIntervals[i - 1, 1], ", ", confIntervals[i - 1, 2], "]"))
+}
+
+# Check if intervals include 0
+zeroIncluded <- any(confIntervals[, 1] <= 0 & confIntervals[, 2] >= 0)
+
+# Conclusion
+if (zeroIncluded) {
+  print("At least one interval includes 0. Conclude that the corresponding means are not significantly different.")
+} else {
+  print("None of the intervals include 0. Conclude that all corresponding means are significantly different.")
+}
+```
+
+{{< pagebreak >}}
+
+## Question 2
+
+### Part A
+
+
+Upon visual inspection, there are variations in the values across the matrices, indicating changes in the relationships between variables over time.
+
+
+```{r}
+skullData <- read.csv("SkullData.csv")
+
+names(skullData)
+
+# Split the data by Year
+splitData <- split(skullData[, 2:5], skullData[, 1])
+
+# Compute covariance matrices for each Year
+covMatrices <- lapply(splitData, cov)
+covMatrices
+```
+
+{{< pagebreak >}}
+
+## Question 2
+
+### Part B
+
+The small p-value suggests notable variations in skull sizes across different years. While the MANOVA test strongly supports rejecting the null hypothesis in favor of the alternative, the researcher now needs to provide a coherent narrative explaining why interbreeding is considered the primary factor causing these differences in skull sizes.
+
+
+```{r}
+# Fit the MANOVA model
+manovaModel <- manova(cbind(MB, BH, BL, NH) ~ Year, data = skullData)
+# Fit the MANOVA model using Wilks' Lambda
+summary(manovaModel, test = "Wilks")
+```
+
+
+{{< pagebreak >}}
+
+## Question 2
+
+### Part C
+
+For each skull measurement (MB, BH, BL, NH), the univariate tests indicate that the "Year" variable has a statistically significant effect, signifying variations in these skull features over time. These findings provide statistical support for the idea that skull measurements change across different years.
+
+If you reject $H_0: {\mu}_1 = {\mu}_2 = {\mu}_3 = {\mu}_4 = {\mu}_5$ whenever any of the univariate ANOVAs are significant at level $\alpha$, the overall probability of a Type I error is not guaranteed to be controlled at level $\alpha$. This is because the Bonferroni correction ($\alpha$) is a conservative adjustment. The actual overall significance level might be lower than $\alpha$, which reduces the chance of a Type I error but also reduces the power of the test!
+
+In this case, all $H_0: {\mu}_1 = {\mu}_2 = {\mu}_3 = {\mu}_4 = {\mu}_5$ are $\le \alpha$, hence the overall probability of a Type 1 error is controlled at level $\alpha$
+
+
+
+```{r}
+# Univariate ANOVA for each variable
+mbAnova <- aov(MB ~ Year, data = skullData)
+bhAnova <- aov(BH ~ Year, data = skullData)
+blAnova <- aov(BL ~ Year, data = skullData)
+nhAnova <- aov(NH ~ Year, data = skullData)
+
+# Check the p-values for each univariate ANOVA => Pr(>F)
+summary(mbAnova)
+summary(bhAnova)
+summary(blAnova)
+summary(nhAnova)
+```
+
+{{< pagebreak >}}
 
 ## Question 3
 
