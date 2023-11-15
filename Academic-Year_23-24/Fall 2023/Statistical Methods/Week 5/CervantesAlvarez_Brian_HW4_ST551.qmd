@@ -2,7 +2,7 @@
 title: "ST551: Homework 4"
 author: 
     - "Brian Cervantes Alvarez"
-date: "11-06-2023"
+date: "11-15-2023"
 format: PrettyPDF-pdf
 execute: 
   warning: false
@@ -10,9 +10,377 @@ execute:
 editor: visual
 ---
 
-## Part A
+## Question 1
 
 ```{r}
+library(Sleuth3)
+
+# Load the dataset
+data("ex0222")
+
+# a. Make a histogram of the scores on the Math component test
+hist(ex0222$Math, main = "Histogram of Math Scores", xlab = "Math Scores", col = "lightblue", border = "black")
+
+# b. Construct a 95% confidence interval for the population mean Math score using the t-test.
+# Assuming a normal distribution for the scores
+mean_math <- mean(ex0222$Math)
+sd_math <- sd(ex0222$Math)
+n <- length(ex0222$Math)
+confidence_level <- 0.95
+margin_error <- qt((1 + confidence_level) / 2, df = n - 1) * (sd_math / sqrt(n))
+confidence_interval_t <- c(mean_math - margin_error, mean_math + margin_error)
+
+# c. Construct an approximate 95% confidence interval for the population 'pseudomedian' Math score using the Wilcoxon Signed-Rank test.
+# Assuming a symmetric distribution
+wilcox_result <- wilcox.test(ex0222$Math, conf.int = TRUE, conf.level = confidence_level)
+confidence_interval_wilcox <- wilcox_result$conf.int
+
+# d. Compare these two intervals.
+cat("T-Test Confidence Interval:", confidence_interval_t, "\n")
+cat("Wilcoxon Signed-Rank Test Confidence Interval:", confidence_interval_wilcox, "\n")
+
+# Additional information or interpretation as needed.
+
+
+```
+
+{{< pagebreak >}}
+
+
+## Question 2
+
+```{r}
+
+# Install and load required libraries
+install.packages("Sleuth3")
+library(Sleuth3)
+
+# Set a seed for reproducibility
+set.seed(123)
+
+# Function to generate asymmetric data
+generate_asymmetric_data <- function(n, distribution = "exponential", skewness_param = 1) {
+  if (distribution == "exponential") {
+    return(rexp(n, rate = skewness_param))
+  } else if (distribution == "gamma") {
+    return(rgamma(n, shape = skewness_param))
+  }
+}
+
+# Function to perform Wilcoxon signed-rank test and return p-value
+wilcoxon_test <- function(data) {
+  return(wilcox.test(data)$p.value)
+}
+
+# Set parameters
+sample_size <- 100
+num_simulations <- 1000
+skewness_parameters <- c(1, 2, 3)  # Different skewness parameters to test
+
+# Perform simulations
+p_values <- matrix(nrow = num_simulations, ncol = length(skewness_parameters))
+
+for (i in 1:num_simulations) {
+  for (j in 1:length(skewness_parameters)) {
+    # Generate asymmetric data
+    asymmetric_data <- generate_asymmetric_data(sample_size, skewness_param = skewness_parameters[j])
+    
+    # Perform Wilcoxon test and store p-value
+    p_values[i, j] <- wilcoxon_test(asymmetric_data)
+  }
+}
+
+# Analyze results
+for (j in 1:length(skewness_parameters)) {
+  cat(paste("Skewness Parameter:", skewness_parameters[j], "\n"))
+  cat("Mean P-Value:", mean(p_values[, j]), "\n")
+  cat("Proportion of P-Values < 0.05:", mean(p_values[, j] < 0.05), "\n\n")
+}
+
+
+```
+
+{{< pagebreak >}}
+
+
+## Question 3
+
+The consistency of a statistical test means that, as the sample size ($n$) approaches infinity, the test will correctly reject a false null hypothesis with a probability approaching 1. In other words, the power of the test increases, and the probability of making a Type II error (failing to reject a false null hypothesis) approaches zero.
+
+The chi-squared test for the population variance is based on the chi-squared statistic:
+
+$$
+\chi^2 = \frac{(n-1)s^2}{\sigma_0^2}
+$$
+
+where:
+- $n$ is the sample size.
+- $s^2$ is the sample variance.
+- $\sigma_0^2$ is the hypothesized population variance.
+
+For the chi-squared test, the null hypothesis $H_0$ is that the population variance is equal to a specified value $\sigma_0^2$.
+
+Now, let's consider the sample variance $s^2$. It is a consistent estimator for the population variance $\sigma^2$, meaning that as the sample size $n$ approaches infinity, $s^2$ converges in probability to $\sigma^2$.
+
+As $n$ increases, the term $(n-1)s^2$ in the numerator becomes increasingly close to $n \times \sigma^2$, and the chi-squared statistic approaches:
+
+$$
+\lim_{{n \to \infty}} \frac{(n-1)s^2}{\sigma_0^2} = \lim_{{n \to \infty}} \frac{n \times \sigma^2}{\sigma_0^2}
+$$
+
+Now, if $\sigma^2 = \sigma_0^2$ (which is true under the null hypothesis), then the numerator becomes $n \times \sigma_0^2$ and the chi-squared statistic converges to $n$.
+
+If $\sigma^2 \neq \sigma_0^2$ (true under the alternative hypothesis), then the chi-squared statistic diverges from $n$.
+
+In both cases, as $n$ approaches infinity, the chi-squared statistic becomes large, providing evidence against the null hypothesis. This demonstrates the consistency of the chi-squared test for the population variance, regardless of the underlying distribution of the data.
+
+
+{{< pagebreak >}}
+
+
+
+## Question 4
+
+```{r}
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Function to perform Kolmogorov-Smirnov test and return p-value
+ks_test <- function(data, mu, sigma) {
+  ks_result <- ks.test(data, "pnorm", mean = mu, sd = sigma)
+  return(ks_result$p.value)
+}
+
+# Function to generate datasets and perform tests
+perform_ks_tests <- function(num_datasets, sample_size, true_mean, true_sd, use_true_parameters = TRUE) {
+  p_values <- numeric(num_datasets)
+
+  for (i in 1:num_datasets) {
+    # Generate dataset from standard normal distribution
+    dataset <- rnorm(sample_size)
+
+    # Use true parameters or sample parameters for the null hypothesis distribution
+    if (use_true_parameters) {
+      p_values[i] <- ks_test(dataset, true_mean, true_sd)
+    } else {
+      sample_mean <- mean(dataset)
+      sample_sd <- sd(dataset)
+      p_values[i] <- ks_test(dataset, sample_mean, sample_sd)
+    }
+  }
+
+  return(p_values)
+}
+
+# Parameters
+num_datasets <- 1000
+sample_size <- 50
+true_mean <- 0
+true_sd <- 1
+
+# a. Perform the Kolmogorov-Smirnov test with true parameters
+p_values_true_parameters <- perform_ks_tests(num_datasets, sample_size, true_mean, true_sd, use_true_parameters = TRUE)
+
+# Calculate rejection frequency
+rejection_frequency_true_parameters <- mean(p_values_true_parameters < 0.05)
+
+# Output rejection frequency
+cat("Rejection Frequency with True Parameters:", rejection_frequency_true_parameters, "\n")
+
+# b. Produce a histogram of p-values for true parameters
+hist(p_values_true_parameters, main = "KS Test with True Parameters", xlab = "P-values", col = "lightblue", border = "black")
+
+# c. Perform the Kolmogorov-Smirnov test with sample parameters
+p_values_sample_parameters <- perform_ks_tests(num_datasets, sample_size, true_mean, true_sd, use_true_parameters = FALSE)
+
+# Calculate rejection frequency
+rejection_frequency_sample_parameters <- mean(p_values_sample_parameters < 0.05)
+
+# Output rejection frequency
+cat("Rejection Frequency with Sample Parameters:", rejection_frequency_sample_parameters, "\n")
+
+# d. Produce a histogram of p-values for sample parameters
+hist(p_values_sample_parameters, main = "KS Test with Sample Parameters", xlab = "P-values", col = "lightgreen", border = "black")
+
+```
+
+{{< pagebreak >}}
+
+
+
+## Question 5
+
+Part A
+
+
+**a. Algebraic Proof:**
+
+**a. Algebraic Proof:**
+
+The two-sample t-test statistics for equal variance ($s_p^2$) and unequal variance ($s_1^2$, $s_2^2$) are given by:
+
+Equal-variance t-statistic:
+$$
+t_{\text{equal}} = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}
+$$
+
+Unequal-variance t-statistic:
+$$
+t_{\text{unequal}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}
+$$
+
+Now, let's show that when the sample sizes ($n_1$ and $n_2$) are equal, these two t-statistics are equal.
+
+First, recall the formula for the pooled variance ($s_p^2$):
+$$
+s_p^2 = \frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}
+$$
+
+When $n_1 = n_2 = n$, we can simplify the equal-variance t-statistic:
+$$
+t_{\text{equal}} = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{1}{n} + \frac{1}{n}}}
+$$
+
+Simplifying further:
+$$
+t_{\text{equal}} = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{2}{n}}}
+$$
+
+Now, let's look at the unequal-variance t-statistic with equal sample sizes:
+$$
+t_{\text{unequal}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2}{n} + \frac{s_2^2}{n}}}
+$$
+
+Simplifying:
+$$
+t_{\text{unequal}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2 + s_2^2}{n}}}
+$$
+
+Since $s_p^2 = \frac{s_1^2 + s_2^2}{2}$ (for equal sample sizes), we can replace the denominator in the unequal-variance t-statistic:
+$$
+t_{\text{unequal}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{2s_p^2}{n}}}
+$$
+
+Comparing the expressions for $t_{\text{equal}}$ and $t_{\text{unequal}}$, we see that they are equal when the sample sizes are equal.
+
+
+```{r}
+
+# Part B
+set.seed(123)
+
+# Function to simulate two-sample t-tests
+simulate_t_tests <- function(num_simulations, sample_size, var1, var2) {
+  reject_equal_variance <- reject_unequal_variance <- numeric(num_simulations)
+
+  for (i in 1:num_simulations) {
+    # Simulate two samples
+    sample1 <- rnorm(sample_size, mean = 0, sd = sqrt(var1))
+    sample2 <- rnorm(sample_size, mean = 0, sd = sqrt(var2))
+
+    # Perform two-sample t-test assuming equal variance
+    t_test_equal_variance <- t.test(sample1, sample2, var.equal = TRUE)$p.value
+    reject_equal_variance[i] <- t_test_equal_variance < 0.05
+
+    # Perform two-sample t-test assuming unequal variance
+    t_test_unequal_variance <- t.test(sample1, sample2, var.equal = FALSE)$p.value
+    reject_unequal_variance[i] <- t_test_unequal_variance < 0.05
+  }
+
+  return(list(reject_equal_variance, reject_unequal_variance))
+}
+
+# Parameters
+num_simulations <- 10000
+sample_size <- 20
+var_smaller <- 1
+var_larger <- 2
+
+# Simulate t-tests
+results <- simulate_t_tests(num_simulations, sample_size, var_smaller, var_larger)
+
+# Calculate rejection rates
+reject_rate_equal_variance <- mean(results[[1]])
+reject_rate_unequal_variance <- mean(results[[2]])
+
+# Output rejection rates
+cat("Rejection Rate (Equal Variance):", reject_rate_equal_variance, "\n")
+cat("Rejection Rate (Unequal Variance):", reject_rate_unequal_variance, "\n")
+
+
+```
+
+{{< pagebreak >}}
+
+
+## Question 6
+
+
+**a. Relationship between Population Covariance and Paired t-test:**
+
+If the true population covariance between $X$ and $Y$ is negative, it implies that the variables move in opposite directions. Let's denote the sample means as $\bar{X}$ and $\bar{Y}$ and the sample variances as $s_X^2$ and $s_Y^2$.
+
+The formula for the paired t-test is given by:
+
+$$
+t = \frac{\bar{d}}{\sqrt{\frac{s_d^2}{n}}},
+$$
+
+where $n$ is the number of pairs, $\bar{d}$ is the mean of the differences $d_i = x_i - y_i$, and $s_d^2$ is the sample variance of the differences.
+
+If the covariance between $X$ and $Y$ is negative, $\bar{d}$ is likely to be large when $X$ is small and $Y$ is large, and vice versa. This means that $s_d^2$ will be relatively large. As a result, the denominator in the t-test formula will be large, leading to a larger t-value.
+
+Since the t-value is in the numerator of the t-test statistic, a larger t-value makes it more likely to reject the null hypothesis. Therefore, in the presence of negative covariance, the paired t-test is more likely to reject the null hypothesis than it should, leading to an inflated Type I error rate.
+
+
+
+
+```{r}
+# Function to simulate data for paired t-test calibration
+simulate_paired_calibration <- function(n, mean_diff, sd_diff, alpha) {
+  set.seed(123)  # for reproducibility
+  X <- rnorm(n)
+  Y <- X + rnorm(n, mean = mean_diff, sd = sd_diff)
+  
+  # Perform paired t-test
+  paired_test_result <- t.test(X, Y, paired = TRUE)
+  
+  # Return whether null hypothesis is rejected at significance level alpha
+  return(paired_test_result$p.value < alpha)
+}
+
+# Function to simulate data for two-sample t-test power
+simulate_two_sample_power <- function(n, mean_diff, sd_diff, alpha) {
+  set.seed(123)  # for reproducibility
+  X <- rnorm(n)
+  Y <- rnorm(n, mean = mean_diff, sd = sd_diff)
+  
+  # Perform two-sample t-test
+  two_sample_test_result <- t.test(X, Y)
+  
+  # Return whether null hypothesis is rejected at significance level alpha
+  return(two_sample_test_result$p.value < alpha)
+}
+
+# Set parameters
+n <- 50          # sample size
+mean_diff <- 0.5 # mean difference for the alternative hypothesis
+sd_diff <- 1     # standard deviation of the difference
+
+alpha <- 0.05    # significance level
+
+# Number of simulations
+num_simulations <- 1000
+
+# Simulate and calculate rejection rates for both tests
+paired_calibration_rejection_rate <- mean(replicate(num_simulations, simulate_paired_calibration(n, mean_diff, sd_diff, alpha)))
+two_sample_power_rejection_rate <- mean(replicate(num_simulations, simulate_two_sample_power(n, mean_diff, sd_diff, alpha)))
+
+# Display results
+cat("Paired t-test calibration rejection rate:", paired_calibration_rejection_rate, "\n")
+cat("Two-sample t-test power rejection rate:", two_sample_power_rejection_rate, "\n")
+
 
 ```
 
