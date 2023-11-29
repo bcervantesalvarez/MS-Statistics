@@ -259,14 +259,6 @@ The high rejection rates for log-transformed data suggest a substantial impact o
 
 ### Part A
 
-\[
-\begin{align*}
-P(\text{Library Member}) & = \frac{18}{18 + 2} \\
-P(\text{Vegetarian | Non-Library Member}) & = \frac{2}{2 + 53} \\
-P(\text{Vegetarian}) & = \frac{18 + 2}{18 + 2 + 37 + 53}
-\end{align*}
-\]
-
 
 ```{r}
 # Given data
@@ -274,35 +266,27 @@ data <- matrix(c(18, 2, 37, 53), nrow = 2, byrow = TRUE)
 colnames(data) <- c("Yes", "No")
 rownames(data) <- c("Yes", "No")
 
+print(data)
+
 # Total number of observations
-totalObs <- sum(data)
+totalObs <- 100
 
 # P(Library Member)
-probLibraryMember <- sum(data["Yes", ]) / totalObs
+probLibraryMember <- sum(data[,"Yes"]) / totalObs
 print(paste0("P(Library Member) = ", probLibraryMember))
 
 # P(Vegetarian | Non-Library Member)
-probVegetarianNonLibrary <- data["No", "Yes"] / sum(data["No", ])
+probVegetarianNonLibrary <- data["Yes", "No"] / sum(data[,"No" ])
 print(paste0("P(Vegetarian | Non-Library Member) = ", probVegetarianNonLibrary))
 
 # P(Vegetarian)
-probVegetarian <- sum(data[, "Yes"]) / totalObs
+probVegetarian <- sum(data["Yes", ]) / totalObs
 print(paste0("P(Vegetarian) = ", probVegetarian))
 ```
 
 {{< pagebreak >}}
 
 ### Part B
-
-\[
-\begin{align*}
-P(\text{Marathon Runner}) & = \frac{5}{5 + 15} \\
-P(\text{Smoker}) & = \frac{15}{5 + 15 + 95 + 85} \\
-P(\text{Smoker | Marathon Runner}) & = \frac{5}{5 + 15} \\
-P(\text{Marathon Runner | Non-Smoker}) & = \frac{85}{95 + 85}
-\end{align*}
-\]
-
 
 
 ```{r}
@@ -312,7 +296,7 @@ colnames(data) <- c("Yes", "No")
 rownames(data) <- c("Yes", "No")
 
 # Total number of observations
-totalObs <- sum(data)
+totalObs <- 200
 
 # P(Marathon Runner)
 probMarathonRunner <- sum(data["Yes", ]) / totalObs
@@ -323,11 +307,11 @@ probSmoker <- sum(data[, "Yes"]) / totalObs
 print(paste0("P(Smoker) = ", probSmoker))
 
 # P(Smoker | Marathon Runner)
-probSmokerGivenMarathon <- data["Yes", "Yes"] / sum(data["Yes", ])
+probSmokerGivenMarathon <- data["Yes", "Yes"] / sum(data[,"Yes"])
 print(paste0("P(Smoker | Marathon Runner) = ", probSmokerGivenMarathon))
 
 # P(Marathon Runner | Non-smoker)
-probMarathonGivenNonSmoker <- data["No", "Yes"] / sum(data["No", ])
+probMarathonGivenNonSmoker <- data["Yes", "No"] / sum(data["Yes",])
 print(paste0("P(Marathon Runner | Non-smoker) = ", probMarathonGivenNonSmoker))
 ```
 
@@ -336,17 +320,6 @@ print(paste0("P(Marathon Runner | Non-smoker) = ", probMarathonGivenNonSmoker))
 
 ### Part C
 
-\[
-\begin{align*}
-P(\text{Marathon Runner}) & = \frac{2}{2 + 98} \\
-P(\text{Smoker}) & = \frac{98}{2 + 98 + 8 + 92} \\
-P(\text{Smoker | Marathon Runner}) & = \frac{2}{2 + 98} \\
-P(\text{Marathon Runner | Non-Smoker}) & = \frac{92}{8 + 92}
-\end{align*}
-\]
-
-
-
 ```{r}
 # Given data
 data <- matrix(c(2, 98, 8, 92), nrow = 2, byrow = TRUE)
@@ -354,7 +327,7 @@ colnames(data) <- c("Yes", "No")
 rownames(data) <- c("Yes", "No")
 
 # Total number of observations
-totalObs <- sum(data)
+totalObs <- 200
 
 # P(Marathon Runner)
 probMarathonRunner <- sum(data["Yes", ]) / totalObs
@@ -365,27 +338,15 @@ probSmoker <- sum(data[, "Yes"]) / totalObs
 print(paste0("P(Smoker) = ", probSmoker))
 
 # P(Smoker | Marathon Runner)
-probSmokerGivenMarathon <- data["Yes", "Yes"] / sum(data["Yes", ])
+probSmokerGivenMarathon <- data["Yes", "Yes"] / sum(data[,"Yes"])
 print(paste0("P(Smoker | Marathon Runner) = ", probSmokerGivenMarathon))
 
 # P(Marathon Runner | Non-smoker)
-probMarathonGivenNonSmoker <- data["No", "Yes"] / sum(data["No", ])
+probMarathonGivenNonSmoker <- data["Yes", "No"] / sum(data["No",])
 print(paste0("P(Marathon Runner | Non-smoker) = ", probMarathonGivenNonSmoker))
 ```
 
 ### Part D
-
-
-\[
-\begin{align*}
-P(\text{Undergrad}) & = \frac{5}{5 + 25} \\
-P(\text{Skier}) & = \frac{5}{5 + 25 + 15 + 55} \\
-P(\text{Skier | Grad}) & = \frac{25}{25 + 55} \\
-P(\text{Grad | Snowboarder}) & = \frac{55}{15 + 55} \\
-\text{Estimated Population Proportion of Skiing Preference} & = \frac{5}{(5 + 25 + 15 + 55) \times 0.8}
-\end{align*}
-\]
-
 
 ```{r}
 # Given data
@@ -394,7 +355,7 @@ colnames(data) <- c("Undergrad", "Grad")
 rownames(data) <- c("Ski", "Snowboard")
 
 # Total number of observations
-totalObs <- sum(data)
+totalObs <- 100
 
 # P(Undergrad)
 probUndergrad <- sum(data[, "Undergrad"]) / totalObs
@@ -405,11 +366,11 @@ probSkier <- sum(data["Ski", ]) / totalObs
 print(paste0("P(Skier) = ", probSkier))
 
 # P(Skier | Grad)
-probSkierGivenGrad <- data["Ski", "Grad"] / sum(data[, "Grad"])
+probSkierGivenGrad <- data["Ski", "Grad"] / sum(data["Ski",])
 print(paste0("P(Skier | Grad) = ", probSkierGivenGrad))
 
 # P(Grad | Snowboarder)
-probGradGivenSnowboarder <- data["Snowboard", "Grad"] / sum(data["Snowboard", ])
+probGradGivenSnowboarder <- data["Snowboard", "Grad"] / sum(data[,"Grad"])
 print(paste0("P(Grad | Snowboarder) = ", probGradGivenSnowboarder))
 
 # Estimate population proportion of OSU students who prefer skiing
