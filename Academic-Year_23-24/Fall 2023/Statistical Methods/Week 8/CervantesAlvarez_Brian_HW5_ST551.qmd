@@ -1,0 +1,180 @@
+---
+title: "ST551: Homework 5"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "11-28-2023"
+format: PrettyPDF-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Question 1
+
+## Part A
+
+When we're dealing with the original data, the hypothesis test is built around how the data looks and what we assume about it. We set up null and alternative hypotheses, based on the original size and pattern of the data. But, if we transform the data, like using a log, it changes things. The scale and even the shape of the data might shift. So, we have to rethink or redo the hypothesis test to match the transformed data. And when we interpret the results, we need to talk about the new size and pattern introduced by the transformation.
+
+```{r}
+set.seed(123)
+
+simulateAndTest <- function(m, n, numSimulations = 10000) {
+  rejectionCountOriginal <- 0
+  rejectionCountTransformed <- 0
+  
+  for (i in 1:numSimulations) {
+    sample1 <- rchisq(m, df = 4)
+    sample2 <- rgamma(n, shape = 0.5, scale = 8)
+    
+    tResultOriginal <- t.test(sample1, sample2)
+    tResultTransformed <- t.test(log(sample1), log(sample2))
+    
+    if (tResultOriginal$p.value < 0.05) {
+      rejectionCountOriginal <- rejectionCountOriginal + 1
+    }
+    if (tResultTransformed$p.value < 0.05) {
+      rejectionCountTransformed <- rejectionCountTransformed + 1
+    }
+  }
+  
+  rejectionRateOriginal <- rejectionCountOriginal / numSimulations
+  rejectionRateTransformed <- rejectionCountTransformed / numSimulations
+  
+  return(c(rejectionRateOriginal, rejectionRateTransformed))
+}
+
+scenarios <- list(
+  c(20, 50),
+  c(200, 500),
+  c(20, 50),
+  c(200, 500)
+)
+
+for (scenario in scenarios) {
+  m <- scenario[1]
+  n <- scenario[2]
+  
+  rejectionRates <- simulateAndTest(m, n)
+  cat(sprintf("Untransformed Rejection Rate: %.4f, Transformed Rejection Rate: %.4f\n", rejectionRates[1], rejectionRates[2]))
+}
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+In summary, observing histograms with a more normal distribution after applying the log-transformation suggests a positive outcome in addressing skewness in the data. This transformation often proves effective in promoting a more symmetric shape. Nevertheless, it's crucial to exercise caution and consider the demands we require for our analysis. 
+
+```{r}
+set.seed(42)
+
+# Untransformed Chi-squared(df=4) distribution
+sample1_i <- rchisq(200, df = 4)
+hist(sample1_i, main = "Untransformed Chi-squared(df=4) distribution",
+     xlab = "Value", 
+     ylab = "Frequency", 
+     col = "lightgreen",
+     border = "black")
+
+# Log-transformed
+sample2_ii <- log(rchisq(200, df = 4))
+hist(sample2_ii, main = "Log-transformed Chi-squared(df=4) distribution",
+     xlab = "Value", 
+     ylab = "Frequency", 
+     col = "lightgreen", 
+     border = "black")
+
+# Untransformed Gamma(shape=0.5, scale=8) distribution
+sample3_iii <- rgamma(200, shape = 0.5, scale = 8)
+hist(sample3_iii, main = "Untransformed Gamma(shape=0.5, scale=8) distribution",
+     xlab = "Value", 
+     ylab = "Frequency", 
+     col = "lightgreen",
+     border = "black")
+
+# Log-transformed
+sample4_iv <- log(rgamma(200, shape = 0.5, scale = 8))
+hist(sample4_iv, main = "Log-transformed Gamma(shape=0.5, scale=8) distribution",
+     xlab = "Value", 
+     ylab = "Frequency", 
+     col = "lightgreen", 
+     border = "black")
+
+# Untransformed Gamma(shape=0.5, scale=21.75) distribution
+sample5_v <- rgamma(200, shape = 0.5, scale = 21.75)
+hist(sample5_v, main = "Untransformed Gamma(shape=0.5, scale=21.75) distribution",
+     xlab = "Value", 
+     ylab = "Frequency", 
+     col = "lightgreen",
+     border = "black")
+
+# Log-transformed
+sample6_vi <- log(rgamma(200, shape = 0.5, scale = 21.75))
+hist(sample6_vi, main = "Log-transformed Gamma(shape=0.5, scale=21.75) distribution",
+     xlab = "Value", ylab = "Frequency", col = "lightgreen", border = "black")
+```
+
+### Part C
+
+```{r}
+# Set seed for reproducibility
+set.seed(42)
+
+# Parameters
+numSimulations <- 10000
+nSamp <- 1000
+
+# Initialize variables
+chiSquaredMeans <- 0
+gamma1Means <- 0
+gamma2Means <- 0
+
+# Initialize log-transformed variables
+logChiSquaredMeans <- 0
+logGamma1Means <- 0
+logGamma2Means <- 0
+
+# Perform simulations
+for (i in 1:numSimulations) {
+  # Simulate random samples from Chi-squared distribution
+  chiSquaredSample <- rchisq(nSamp, 4)
+  
+  # Simulate random samples from Gamma distributions
+  gammaSample1 <- rgamma(nSamp, shape = 0.5, scale = 8)
+  gammaSample2 <- rgamma(nSamp, shape = 0.5, scale = 21.75)
+  
+  # Calculate means and store results
+  chiSquaredMeans[i] <- mean(chiSquaredSample)
+  gamma1Means[i] <- mean(gammaSample1)
+  gamma2Means[i] <- mean(gammaSample2)
+  
+  # Calculate log-transformed means and store results
+  logChiSquaredMeans[i] <- mean(log(chiSquaredSample))
+  logGamma1Means[i] <- mean(log(gammaSample1))
+  logGamma2Means[i] <- mean(log(gammaSample2))
+}
+
+# Calculate average of the simulation results
+averageChiSquaredMean <- mean(chiSquaredMeans)
+averageGamma1Mean <- mean(gamma1Means)
+averageGamma2Mean <- mean(gamma2Means)
+
+# Calculate average of log-transformed simulation results
+averageLogChiSquaredMean <- mean(logChiSquaredMeans)
+averageLogGamma1Mean <- mean(logGamma1Means)
+averageLogGamma2Mean <- mean(logGamma2Means)
+
+# Print the average estimated means
+cat("Average Estimated True Population Mean (Chi-squared):", averageChiSquaredMean, "\n")
+cat("Average Estimated True Population Mean (Log-transformed Chi-squared):", averageLogChiSquaredMean, "\n")
+
+cat("Average Estimated True Population Mean (Gamma, shape=0.5, scale=8):", averageGamma1Mean, "\n")
+cat("Average Estimated True Population Mean (Log-transformed Gamma, shape=0.5, scale=8):", averageLogGamma1Mean, "\n")
+
+cat("Average Estimated True Population Mean (Gamma, shape=0.5, scale=21.75):", averageGamma2Mean, "\n")
+cat("Average Estimated True Population Mean (Log-transformed Gamma, shape=0.5, scale=21.75):", averageLogGamma2Mean, "\n")
+
+```
+
+

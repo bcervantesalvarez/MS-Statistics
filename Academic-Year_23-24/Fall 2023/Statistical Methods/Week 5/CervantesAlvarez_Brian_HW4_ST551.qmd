@@ -12,376 +12,467 @@ editor: visual
 
 ## Question 1
 
+### Part A
+
+Assuming the population distribution is symmetric in its current form would be a mistake; it is bimodal, indicating the presence of a confounding variable in this data.
+
 ```{r}
 library(Sleuth3)
+library(MASS)
+library(car)
 
-# Load the dataset
 data("ex0222")
+hist(ex0222$Math, 
+     main = "Histogram of Math Scores", 
+     xlab = "Scores", 
+     col = "lemonchiffon2")
 
-# a. Make a histogram of the scores on the Math component test
-hist(ex0222$Math, main = "Histogram of Math Scores", xlab = "Math Scores", col = "lightblue", border = "black")
-
-# b. Construct a 95% confidence interval for the population mean Math score using the t-test.
-# Assuming a normal distribution for the scores
-mean_math <- mean(ex0222$Math)
-sd_math <- sd(ex0222$Math)
-n <- length(ex0222$Math)
-confidence_level <- 0.95
-margin_error <- qt((1 + confidence_level) / 2, df = n - 1) * (sd_math / sqrt(n))
-confidence_interval_t <- c(mean_math - margin_error, mean_math + margin_error)
-
-# c. Construct an approximate 95% confidence interval for the population 'pseudomedian' Math score using the Wilcoxon Signed-Rank test.
-# Assuming a symmetric distribution
-wilcox_result <- wilcox.test(ex0222$Math, conf.int = TRUE, conf.level = confidence_level)
-confidence_interval_wilcox <- wilcox_result$conf.int
-
-# d. Compare these two intervals.
-cat("T-Test Confidence Interval:", confidence_interval_t, "\n")
-cat("Wilcoxon Signed-Rank Test Confidence Interval:", confidence_interval_wilcox, "\n")
-
-# Additional information or interpretation as needed.
-
-
+densityPlot(ex0222$Math, 
+     main = "Histogram of Math Scores", 
+     xlab = "Scores", 
+     col = "lemonchiffon2")
 ```
 
 {{< pagebreak >}}
 
+### Part B
+
+```{r}
+mu <- mean(ex0222$Math)
+sd <- sd(ex0222$Math)
+n <- length(ex0222$Math)
+conf <- 0.95
+
+ME <- qt((1 + conf) / 2, df = n - 1) * (sd / sqrt(n))
+confInt <- c(mu - ME, mu + ME)
+```
+
+{{< pagebreak >}}
+
+### Part C
+
+With 95% confidence, the median student math score is estimated to be between 14.00000 and 14.49996, with a range of approximately 0.5.
+
+```{r}
+wilcoxTest <- wilcox.test(ex0222$Math, conf.int = TRUE, conf.level = conf)
+wilcoxConfInt <- wilcoxTest$conf.int
+wilcoxConfInt
+```
+
+
+The T-test confidence interval suggests the mean student math score is estimated to be between 13.95303 and 14.43784 with 95% confidence. Meanwhile, the Wilcoxon signed-rank test indicates the median score falls within the interval of 14.00000 to 14.49996 with the same confidence level.. In this case, I would choose the Wilcoxon signed-rank test given that it is deemed more appropriate due to the math score distribution being bimodal.
+
+{{< pagebreak >}}
+
+### Part D
+
+```{r}
+print(paste0("T-Test Confidence Interval"))
+confInt
+print(paste0("Wilcoxon Signed-Rank Test Confidence Interval:"))
+wilcoxConfInt
+```
+
+{{< pagebreak >}}
 
 ## Question 2
 
+My simulation uses a sample size of 30 with factors set at 0.5, 1, and 2, each iteration being simulated 1000 times. The outcomes, including factor values, average precision, and average power, are systematically recorded in a dataframe. Making the function was quite fun since I desired a method to simplify my simulations.
+
 ```{r}
-
-# Install and load required libraries
-install.packages("Sleuth3")
-library(Sleuth3)
-
-# Set a seed for reproducibility
-set.seed(123)
-
-# Function to generate asymmetric data
-generate_asymmetric_data <- function(n, distribution = "exponential", skewness_param = 1) {
-  if (distribution == "exponential") {
-    return(rexp(n, rate = skewness_param))
-  } else if (distribution == "gamma") {
-    return(rgamma(n, shape = skewness_param))
-  }
-}
-
-# Function to perform Wilcoxon signed-rank test and return p-value
-wilcoxon_test <- function(data) {
-  return(wilcox.test(data)$p.value)
-}
+library(dplyr)
 
 # Set parameters
-sample_size <- 100
-num_simulations <- 1000
-skewness_parameters <- c(1, 2, 3)  # Different skewness parameters to test
+n <- 30
+factors <- c(0.5, 1, 2)
+nSim <- 1000
 
-# Perform simulations
-p_values <- matrix(nrow = num_simulations, ncol = length(skewness_parameters))
+results <- data.frame(Factor = numeric(), 
+                      Average_Exactness = numeric(), 
+                      Average_Power = numeric())
 
-for (i in 1:num_simulations) {
-  for (j in 1:length(skewness_parameters)) {
-    # Generate asymmetric data
-    asymmetric_data <- generate_asymmetric_data(sample_size, skewness_param = skewness_parameters[j])
+# Function to perform the simulation and return results
+createSim <- function(distributionName) {
+  cat(paste("\n", distributionName, "Distribution \n"))
+  cat("Factor\t   Average_Exactness\tAverage_Power\n")
+  
+  # Initialize variables to accumulate results
+  totalExactness <- 0
+  totalPower <- 0
+  
+  for (i in factors) {
+    for (j in 1:nSim) {
+      # Generate data for two groups
+      grp1 <- switch(distributionName,
+                     "Gamma" = rgamma(n, shape = 1),
+                     "Exponential" = rexp(n, rate = 1))
+      data1 <- rnorm(n, mean = 0, sd = i)
+      grp1 <- grp1 + data1
+      
+      grp2 <- switch(distributionName,
+                     "Gamma" = rgamma(n, shape = 1),
+                     "Exponential" = rexp(n, rate = 1))
+      data2 <- rnorm(n, mean = 0, sd = i)
+      grp2 <- grp2 + data2
+      
+      # Perform Wilcoxon signed-rank test
+      wilcoxResult <- wilcox.test(grp1, grp2, paired = TRUE)
+      
+      # Accumulate results
+      totalExactness <- totalExactness + (wilcoxResult$p.value > 0.05)
+      totalPower <- totalPower + (1 - wilcoxResult$p.value)
+    }
     
-    # Perform Wilcoxon test and store p-value
-    p_values[i, j] <- wilcoxon_test(asymmetric_data)
+    # Calculate averages for the current factor
+    avgExactness <- totalExactness / nSim
+    avgPower <- totalPower / nSim
+    
+    # Add results to the df
+    results <- rbind(results, c(i, avgExactness, avgPower))
+    
+    # Display results for the current factor
+    cat(paste(i, "\t  ", avgExactness, "\t       ", avgPower, "\n"))
   }
+  
+  # Assign column names
+  colnames(results) <- c("Factor", "Average_Exactness", "Average_Power")
+  
+  # Print results
+  print(results)
 }
 
-# Analyze results
-for (j in 1:length(skewness_parameters)) {
-  cat(paste("Skewness Parameter:", skewness_parameters[j], "\n"))
-  cat("Mean P-Value:", mean(p_values[, j]), "\n")
-  cat("Proportion of P-Values < 0.05:", mean(p_values[, j] < 0.05), "\n\n")
-}
+# Perform simulations for Gamma Distribution
+createSim("Gamma")
 
-
+# Perform simulations for Exponential Distribution
+createSim("Exponential")
 ```
 
 {{< pagebreak >}}
-
 
 ## Question 3
 
-The consistency of a statistical test means that, as the sample size ($n$) approaches infinity, the test will correctly reject a false null hypothesis with a probability approaching 1. In other words, the power of the test increases, and the probability of making a Type II error (failing to reject a false null hypothesis) approaches zero.
+The statistical test's consistency implies that as $n \to \infty$, it correctly rejects a false null hypothesis with a probability approaching 1, increasing test power and reducing the Type II error probability to zero.
 
-The chi-squared test for the population variance is based on the chi-squared statistic:
+The chi-squared test for population variance uses the statistic $\chi^2 = \frac{(n-1)s^2}{\sigma_0^2}$, where $n$ is the sample size, $s^2$ is the sample variance, and $\sigma_0^2$ is the hypothesized population variance ($H_0$).
 
-$$
-\chi^2 = \frac{(n-1)s^2}{\sigma_0^2}
-$$
-
-where:
-- $n$ is the sample size.
-- $s^2$ is the sample variance.
-- $\sigma_0^2$ is the hypothesized population variance.
-
-For the chi-squared test, the null hypothesis $H_0$ is that the population variance is equal to a specified value $\sigma_0^2$.
-
-Now, let's consider the sample variance $s^2$. It is a consistent estimator for the population variance $\sigma^2$, meaning that as the sample size $n$ approaches infinity, $s^2$ converges in probability to $\sigma^2$.
-
-As $n$ increases, the term $(n-1)s^2$ in the numerator becomes increasingly close to $n \times \sigma^2$, and the chi-squared statistic approaches:
-
-$$
-\lim_{{n \to \infty}} \frac{(n-1)s^2}{\sigma_0^2} = \lim_{{n \to \infty}} \frac{n \times \sigma^2}{\sigma_0^2}
-$$
-
-Now, if $\sigma^2 = \sigma_0^2$ (which is true under the null hypothesis), then the numerator becomes $n \times \sigma_0^2$ and the chi-squared statistic converges to $n$.
-
-If $\sigma^2 \neq \sigma_0^2$ (true under the alternative hypothesis), then the chi-squared statistic diverges from $n$.
-
-In both cases, as $n$ approaches infinity, the chi-squared statistic becomes large, providing evidence against the null hypothesis. This demonstrates the consistency of the chi-squared test for the population variance, regardless of the underlying distribution of the data.
-
+The sample variance $s^2$ consistently estimates population variance $\sigma^2$ as $n \to \infty$. As $n$ increases, the chi-squared statistic approaches $\lim_{{n \to \infty}} \frac{n \times \sigma^2}{\sigma_0^2}$, converging to $n$ under $H_0$ and diverging if $\sigma^2 \neq \sigma_0^2$. In both cases, as $n \to \infty$, the chi-squared statistic provides evidence against $H_0$, showcasing the test's consistency irrespective of data distribution.
 
 {{< pagebreak >}}
 
-
-
 ## Question 4
 
+### Part A
+
+A rejection frequency of 0.049 means that the null hypothesis was rejected in approximately 4.9% of the tests. Given that the significance level is 0.05, a rejection frequency of 0.049 suggests that the test is performing reasonably close to the chosen significance level.
+
 ```{r}
+set.seed(579)
+# Set parameters
+nSim <- 1000
+nObservations <- 50
+alpha <- 0.05
+rejectionCount <- 0
 
-# Set seed for reproducibility
-set.seed(123)
 
-# Function to perform Kolmogorov-Smirnov test and return p-value
-ks_test <- function(data, mu, sigma) {
-  ks_result <- ks.test(data, "pnorm", mean = mu, sd = sigma)
-  return(ks_result$p.value)
-}
+# This store p-values for historgram in part b
+pvals <- numeric(nSim)
 
-# Function to generate datasets and perform tests
-perform_ks_tests <- function(num_datasets, sample_size, true_mean, true_sd, use_true_parameters = TRUE) {
-  p_values <- numeric(num_datasets)
-
-  for (i in 1:num_datasets) {
-    # Generate dataset from standard normal distribution
-    dataset <- rnorm(sample_size)
-
-    # Use true parameters or sample parameters for the null hypothesis distribution
-    if (use_true_parameters) {
-      p_values[i] <- ks_test(dataset, true_mean, true_sd)
-    } else {
-      sample_mean <- mean(dataset)
-      sample_sd <- sd(dataset)
-      p_values[i] <- ks_test(dataset, sample_mean, sample_sd)
-    }
+# Perform the test for each dataset
+for (i in 1:nSim) {
+  # Generate data
+  data <- rnorm(nObservations)
+  
+  # Perform KS test
+  ksResult <- ks.test(data, "pnorm", mean = 0, sd = 1)
+  
+  # Store the p-value
+  pvals[i] <- ksResult$p.value
+  
+  # Check if null hypothesis is rejected
+  if (ksResult$p.value < alpha) {
+    rejectionCount <- rejectionCount + 1
   }
-
-  return(p_values)
 }
 
-# Parameters
-num_datasets <- 1000
-sample_size <- 50
-true_mean <- 0
-true_sd <- 1
-
-# a. Perform the Kolmogorov-Smirnov test with true parameters
-p_values_true_parameters <- perform_ks_tests(num_datasets, sample_size, true_mean, true_sd, use_true_parameters = TRUE)
-
 # Calculate rejection frequency
-rejection_frequency_true_parameters <- mean(p_values_true_parameters < 0.05)
+rejectionFrequency <- rejectionCount / nSim
 
-# Output rejection frequency
-cat("Rejection Frequency with True Parameters:", rejection_frequency_true_parameters, "\n")
-
-# b. Produce a histogram of p-values for true parameters
-hist(p_values_true_parameters, main = "KS Test with True Parameters", xlab = "P-values", col = "lightblue", border = "black")
-
-# c. Perform the Kolmogorov-Smirnov test with sample parameters
-p_values_sample_parameters <- perform_ks_tests(num_datasets, sample_size, true_mean, true_sd, use_true_parameters = FALSE)
-
-# Calculate rejection frequency
-rejection_frequency_sample_parameters <- mean(p_values_sample_parameters < 0.05)
-
-# Output rejection frequency
-cat("Rejection Frequency with Sample Parameters:", rejection_frequency_sample_parameters, "\n")
-
-# d. Produce a histogram of p-values for sample parameters
-hist(p_values_sample_parameters, main = "KS Test with Sample Parameters", xlab = "P-values", col = "lightgreen", border = "black")
-
+# Print results
+print(paste("Rejection frequency:", rejectionFrequency))
 ```
 
 {{< pagebreak >}}
 
+### Part B
 
+The p-values appear to follow a uniform distribution, which is a good sign. This is because under the null hypothesis, the p-values should be uniformly distributed between 0 and 1. If it was calibrated near-perfectly, it should be a near perfect uniform distribution $U(0,1)$
+
+```{r}
+# Create a histogram of p-values
+hist(pvals, main = "Histogram of KS Test P-values", 
+     xlab = "P-value", 
+     ylab = "Frequency", col = "darkseagreen3")
+```
+
+{{< pagebreak >}}
+
+### Part C
+
+This test rejects little to none of the null hypothesis tests. Even at a signficiance level of 0.05, it still have extremely low rejection (R can't even process the lower rejection because of memory).
+
+```{r}
+set.seed(579)
+# Set parameters
+nSim <- 1000
+nObservations <- 500
+alpha <- 0.05
+rejectionCount <- 0
+
+# This stores p-values for the histogram in part B
+pvals <- numeric(nSim)
+
+# Perform the test for each dataset
+for (i in 1:nSim) {
+  # Generate data
+  data <- rnorm(nObservations)
+  
+  # Calculate sample mean and sample standard deviation
+  sampMean <- mean(data)
+  sampSd <- sd(data)
+  
+  # Perform KS test with sample mean and sample standard deviation
+  ksResult <- ks.test(data, "pnorm", mean = sampMean, sd = sampSd)
+  
+  # Store the p-value
+  pvals[i] <- ksResult$p.value
+  
+  # Check if null hypothesis is rejected
+  if (ksResult$p.value < alpha) {
+    rejectionCount <- rejectionCount + 1
+  }
+}
+
+# Calculate rejection frequency
+rejectionFrequency <- rejectionCount / nSim
+
+# Print results
+print(paste("Rejection frequency:", rejectionFrequency))
+
+```
+{{< pagebreak >}}
+
+## Part D
+
+The data is not following a normal distribution. Again, it the p-values should follow a uniform distribution of $U(0,1)$
+
+```{r}
+# Create a histogram of p-values
+hist(pvals, main = "Histogram of KS Test P-values",
+     xlab = "P-value",
+     ylab = "Frequency",
+     col = "darkseagreen3")
+```
+
+{{< pagebreak >}}
 
 ## Question 5
 
-Part A
-
-
-**a. Algebraic Proof:**
-
-**a. Algebraic Proof:**
+### Part A
 
 The two-sample t-test statistics for equal variance ($s_p^2$) and unequal variance ($s_1^2$, $s_2^2$) are given by:
 
-Equal-variance t-statistic:
+Equal-variance t-statistic: 
+
 $$
 t_{\text{equal}} = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}
 $$
 
-Unequal-variance t-statistic:
+Unequal-variance t-statistic: 
+
 $$
 t_{\text{unequal}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}
 $$
 
-Now, let's show that when the sample sizes ($n_1$ and $n_2$) are equal, these two t-statistics are equal.
 
-First, recall the formula for the pooled variance ($s_p^2$):
-$$
-s_p^2 = \frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}
-$$
+Given that the sample size is the same for both samples $n$, we can prove that the equal and unequal variance test statistics are equal.
 
-When $n_1 = n_2 = n$, we can simplify the equal-variance t-statistic:
+When $n_1 = n_2 = n$, we can simplify the equal-variance t-statistic: 
+
 $$
-t_{\text{equal}} = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{1}{n} + \frac{1}{n}}}
+t_{\text{equal}} = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{1}{n} + \frac{1}{n}}} =  \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{2}{n}}}
 $$
 
-Simplifying further:
+
+
+
+Now, let's look at the unequal-variance t-statistic with equal sample sizes: 
+
 $$
-t_{\text{equal}} = \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{2}{n}}}
+t_{\text{unequal}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2}{n} + \frac{s_2^2}{n}}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2 + s_2^2}{n}}}
 $$
 
-Now, let's look at the unequal-variance t-statistic with equal sample sizes:
+In our case, $s_p^2 = \frac{s_1^2 + s_2^2}{2}$, so we can replace the denominator in the unequal-variance t-statistic: 
+
 $$
-t_{\text{unequal}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2}{n} + \frac{s_2^2}{n}}}
+t_{\text{unequal}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{2s_p^2}{n}}} =  \frac{\bar{x}_1 - \bar{x}_2}{s_p \sqrt{\frac{2}{n}}}
 $$
 
-Simplifying:
+Therefore,
+
 $$
-t_{\text{unequal}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2 + s_2^2}{n}}}
+t_{\text{equal}} = t_{\text{unequal}}
 $$
 
-Since $s_p^2 = \frac{s_1^2 + s_2^2}{2}$ (for equal sample sizes), we can replace the denominator in the unequal-variance t-statistic:
-$$
-t_{\text{unequal}} = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{2s_p^2}{n}}}
-$$
+### Part B
 
-Comparing the expressions for $t_{\text{equal}}$ and $t_{\text{unequal}}$, we see that they are equal when the sample sizes are equal.
+Intriguing, the choice between equal and unequal variance t-tests depends on the specific characteristics of the data. Equal variance assumption may not be suitable in all cases, and the performance varies across different scenarios as shown in the simulations.
 
 
 ```{r}
+set.seed(529)
 
-# Part B
-set.seed(123)
-
-# Function to simulate two-sample t-tests
-simulate_t_tests <- function(num_simulations, sample_size, var1, var2) {
-  reject_equal_variance <- reject_unequal_variance <- numeric(num_simulations)
-
-  for (i in 1:num_simulations) {
-    # Simulate two samples
-    sample1 <- rnorm(sample_size, mean = 0, sd = sqrt(var1))
-    sample2 <- rnorm(sample_size, mean = 0, sd = sqrt(var2))
-
-    # Perform two-sample t-test assuming equal variance
-    t_test_equal_variance <- t.test(sample1, sample2, var.equal = TRUE)$p.value
-    reject_equal_variance[i] <- t_test_equal_variance < 0.05
-
-    # Perform two-sample t-test assuming unequal variance
-    t_test_unequal_variance <- t.test(sample1, sample2, var.equal = FALSE)$p.value
-    reject_unequal_variance[i] <- t_test_unequal_variance < 0.05
-  }
-
-  return(list(reject_equal_variance, reject_unequal_variance))
+# Function to perform t-tests and return rejection results
+performTTests <- function(X, Y) {
+  equalVarResult <- t.test(X, Y, var.equal = TRUE)$p.value < 0.05
+  unequalVarResult <- t.test(X, Y, var.equal = FALSE)$p.value < 0.05
+  return(data.frame(
+    EqualVariance = as.logical(equalVarResult),
+    UnequalVariance = as.logical(unequalVarResult)
+  ))
 }
 
-# Parameters
-num_simulations <- 10000
-sample_size <- 20
-var_smaller <- 1
-var_larger <- 2
+# Create table (dataframe)
+results <- data.frame(
+  Scenario = character(),
+  EqualVariance = numeric(),
+  UnequalVariance = numeric(),
+  stringsAsFactors = FALSE
+)
 
-# Simulate t-tests
-results <- simulate_t_tests(num_simulations, sample_size, var_smaller, var_larger)
+# Simulate 10,000 times
+nSim <- 10000
 
-# Calculate rejection rates
-reject_rate_equal_variance <- mean(results[[1]])
-reject_rate_unequal_variance <- mean(results[[2]])
+for (i in 1:nSim) {
+  # Scenario 1: Normal(0, 1) vs Normal(0, 4), m=10, n=30
+  X <- rnorm(10, mean = 0, sd = 1)
+  Y <- rnorm(30, mean = 0, sd = 4)
+  rejectionResults <- performTTests(X, Y)
+  results <- bind_rows(results, tibble(Scenario = "Normal(0,1) vs Normal(0,4), m=10, n=30", rejectionResults))
+  
+  # Scenario 2: Exponential(1) vs Normal(1, 4), m=30, n=10
+  X <- rexp(30, rate = 1)
+  Y <- rnorm(10, mean = 1, sd = 4)
+  rejectionResults <- performTTests(X, Y)
+  results <- bind_rows(results, tibble(Scenario = "Exponential(1) vs Normal(1,4), m=30, n=10", rejectionResults))
+  
+  # Scenario 3: Chi-squared(5) vs Normal(5, 1), m=20, n=50
+  X <- rchisq(20, df = 5)
+  Y <- rnorm(50, mean = 5, sd = 1)
+  rejectionResults <- performTTests(X, Y)
+  results <- bind_rows(results, tibble(Scenario = "Chi-squared(5) vs Normal(5,1), m=20, n=50", rejectionResults))
+  
+  # Scenario 4: t(5) vs t(3), m=30, n=10
+  X <- rt(30, df = 5)
+  Y <- rt(10, df = 3)
+  rejectionResults <- performTTests(X, Y)
+  results <- bind_rows(results, tibble(Scenario = "t(5) vs t(3), m=30, n=10", rejectionResults))
+}
 
-# Output rejection rates
-cat("Rejection Rate (Equal Variance):", reject_rate_equal_variance, "\n")
-cat("Rejection Rate (Unequal Variance):", reject_rate_unequal_variance, "\n")
+# Calculate the average results
+averageResults <- results %>%
+  group_by(Scenario) %>%
+  summarise(across(c(EqualVariance, UnequalVariance), mean))
 
-
+# Print the average results
+print(averageResults)
 ```
 
 {{< pagebreak >}}
 
-
 ## Question 6
 
+### Part A
 
-**a. Relationship between Population Covariance and Paired t-test:**
-
-If the true population covariance between $X$ and $Y$ is negative, it implies that the variables move in opposite directions. Let's denote the sample means as $\bar{X}$ and $\bar{Y}$ and the sample variances as $s_X^2$ and $s_Y^2$.
-
-The formula for the paired t-test is given by:
+A negative population covariance between $X$ and $Y$ indicates opposite directional movement. The paired t-test formula,
 
 $$
 t = \frac{\bar{d}}{\sqrt{\frac{s_d^2}{n}}},
 $$
 
-where $n$ is the number of pairs, $\bar{d}$ is the mean of the differences $d_i = x_i - y_i$, and $s_d^2$ is the sample variance of the differences.
+where $\bar{d}$ is the mean of differences $d_i = x_i - y_i$, $s_d^2$ is the sample variance of differences, and $n$ is the number of pairs, is affected. Negative covariance suggests a likelihood of large $\bar{d}$ when $X$ is small and $Y$ is large, and vice versa, resulting in a relatively large $s_d^2$. This inflates the t-value denominator, increasing the t-value and the likelihood of rejecting the null hypothesis. Negative covariance thus elevates the Type I error rate in the paired t-test.
 
-If the covariance between $X$ and $Y$ is negative, $\bar{d}$ is likely to be large when $X$ is small and $Y$ is large, and vice versa. This means that $s_d^2$ will be relatively large. As a result, the denominator in the t-test formula will be large, leading to a larger t-value.
+{{< pagebreak >}}
 
-Since the t-value is in the numerator of the t-test statistic, a larger t-value makes it more likely to reject the null hypothesis. Therefore, in the presence of negative covariance, the paired t-test is more likely to reject the null hypothesis than it should, leading to an inflated Type I error rate.
+## Part B
 
-
+The simulation results indicate that, on average, neither the paired t-test nor the unequal variance t-test yielded statistically significant differences (p-value < 0.05) across the specified scenarios, suggesting that observed mean differences are likely due to random chance.
 
 
 ```{r}
-# Function to simulate data for paired t-test calibration
-simulate_paired_calibration <- function(n, mean_diff, sd_diff, alpha) {
-  set.seed(123)  # for reproducibility
-  X <- rnorm(n)
-  Y <- X + rnorm(n, mean = mean_diff, sd = sd_diff)
+# Set seed
+set.seed(529)
+
+# Function to perform paired and unequal t-tests and return rejection results
+performTTests <- function(X, Y) {
+  paired_p_value <- t.test(X, Y, paired = TRUE)$p.value
+  unequal_p_value <- t.test(X, Y, var.equal = FALSE)$p.value
   
-  # Perform paired t-test
-  paired_test_result <- t.test(X, Y, paired = TRUE)
-  
-  # Return whether null hypothesis is rejected at significance level alpha
-  return(paired_test_result$p.value < alpha)
+  return(data.frame(
+    PairedTTest = as.logical(paired_p_value < 0.05),
+    UnequalTTest = as.logical(unequal_p_value < 0.05)
+  ))
 }
 
-# Function to simulate data for two-sample t-test power
-simulate_two_sample_power <- function(n, mean_diff, sd_diff, alpha) {
-  set.seed(123)  # for reproducibility
-  X <- rnorm(n)
-  Y <- rnorm(n, mean = mean_diff, sd = sd_diff)
-  
-  # Perform two-sample t-test
-  two_sample_test_result <- t.test(X, Y)
-  
-  # Return whether null hypothesis is rejected at significance level alpha
-  return(two_sample_test_result$p.value < alpha)
+# Create table (dataframe)
+results <- data.frame(
+  Scenario = character(),
+  PairedTTest = numeric(),
+  UnequalTTest = numeric(),
+  stringsAsFactors = FALSE
+)
+
+# Simulate 10,000 times
+nSim <- 10000
+
+# Scenario 1: Normal(0, 1) vs Normal(0, 4), m=10, n=10
+for (i in 1:nSim) {
+  X <- rnorm(10, mean = 0, sd = 1)
+  Y <- rnorm(10, mean = 0, sd = 4)
+  rejectionResults <- performTTests(X, Y)  # Ensure X and Y have the same length
+  results <- bind_rows(results, tibble(Scenario = "Normal(0,1) vs Normal(0,4), m=10, n=10", rejectionResults))
 }
 
-# Set parameters
-n <- 50          # sample size
-mean_diff <- 0.5 # mean difference for the alternative hypothesis
-sd_diff <- 1     # standard deviation of the difference
+# Scenario 2: Chi-squared(5) vs Normal(5, 4), m=30, n=30
+for (i in 1:nSim) {
+  X <- rchisq(30, df = 5)
+  Y <- rnorm(30, mean = 5, sd = 4)
+  rejectionResults <- performTTests(X, Y)  # Ensure X and Y have the same length
+  results <- bind_rows(results, tibble(Scenario = "Chi-squared(5) vs Normal(5,4), m=30, n=30", rejectionResults))
+}
 
-alpha <- 0.05    # significance level
+# Scenario 3: Normal(0, 1) vs Normal(2, 4), m=10, n=10
+for (i in 1:nSim) {
+  X <- rnorm(10, mean = 0, sd = 1)
+  Y <- rnorm(10, mean = 2, sd = 4)
+  rejectionResults <- performTTests(X, Y)  # Ensure X and Y have the same length
+  results <- bind_rows(results, tibble(Scenario = "Normal(0,1) vs Normal(2,4), m=10, n=10", rejectionResults))
+}
 
-# Number of simulations
-num_simulations <- 1000
+# Scenario 4: Chi-squared(5) vs Normal(3, 4), m=30, n=30
+for (i in 1:nSim) {
+  X <- rchisq(30, df = 5)
+  Y <- rnorm(30, mean = 3, sd = 4)
+  rejectionResults <- performTTests(X, Y)  # Ensure X and Y have the same length
+  results <- bind_rows(results, tibble(Scenario = "Chi-squared(5) vs Normal(3,4), m=30, n=30", rejectionResults))
+}
 
-# Simulate and calculate rejection rates for both tests
-paired_calibration_rejection_rate <- mean(replicate(num_simulations, simulate_paired_calibration(n, mean_diff, sd_diff, alpha)))
-two_sample_power_rejection_rate <- mean(replicate(num_simulations, simulate_two_sample_power(n, mean_diff, sd_diff, alpha)))
+# Calculate the average results
+averageResults <- results %>%
+  group_by(Scenario) %>%
+  summarise(across(c(PairedTTest, UnequalTTest), mean))
 
-# Display results
-cat("Paired t-test calibration rejection rate:", paired_calibration_rejection_rate, "\n")
-cat("Two-sample t-test power rejection rate:", two_sample_power_rejection_rate, "\n")
-
+# Print the average results
+print(averageResults)
 
 ```
-
-{{< pagebreak >}}
