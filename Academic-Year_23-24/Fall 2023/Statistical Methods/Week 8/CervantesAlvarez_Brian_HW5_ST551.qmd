@@ -18,102 +18,169 @@ When we're dealing with the original data, the hypothesis test is built around h
 
 ```{r}
 set.seed(123)
+#----------------------------------------------------------------------------#
 
-simulateAndTest <- function(m, n, numSimulations = 10000) {
-  rejectionCountOriginal <- 0
-  rejectionCountTransformed <- 0
-  
-  for (i in 1:numSimulations) {
-    sample1 <- rchisq(m, df = 4)
-    sample2 <- rgamma(n, shape = 0.5, scale = 8)
-    
-    tResultOriginal <- t.test(sample1, sample2)
-    tResultTransformed <- t.test(log(sample1), log(sample2))
-    
-    if (tResultOriginal$p.value < 0.05) {
-      rejectionCountOriginal <- rejectionCountOriginal + 1
-    }
-    if (tResultTransformed$p.value < 0.05) {
-      rejectionCountTransformed <- rejectionCountTransformed + 1
-    }
-  }
-  
-  rejectionRateOriginal <- rejectionCountOriginal / numSimulations
-  rejectionRateTransformed <- rejectionCountTransformed / numSimulations
-  
-  return(c(rejectionRateOriginal, rejectionRateTransformed))
-}
+# First data set
+m1 <- 20
+n1 <- 50
+alpha <- 0.05
 
-scenarios <- list(
-  c(20, 50),
-  c(200, 500),
-  c(20, 50),
-  c(200, 500)
-)
+# Untransformed data
+rejectionRatesUntransformed1 <- replicate(10000, {
+  sample1 <- rchisq(m1, df = 4)
+  sample2 <- rgamma(n1, shape = 0.5, scale = 8)
+  tTestResult <- t.test(sample1, sample2)
+  tTestResult$p.value < alpha
+})
 
-for (scenario in scenarios) {
-  m <- scenario[1]
-  n <- scenario[2]
-  
-  rejectionRates <- simulateAndTest(m, n)
-  cat(sprintf("Untransformed Rejection Rate: %.4f, Transformed Rejection Rate: %.4f\n", rejectionRates[1], rejectionRates[2]))
-}
+# Log-transformed data
+rejectionRatesTransformed1 <- replicate(10000, {
+  sample1 <- log(rchisq(m1, df = 4))
+  sample2 <- log(rgamma(n1, shape = 0.5, scale = 8))
+  tTestResult <- t.test(sample1, sample2)
+  tTestResult$p.value < alpha
+})
+
+#----------------------------------------------------------------------------#
+
+# Second data set
+m2 <- 200
+n2 <- 500
+
+# Untransformed data
+rejectionRatesUntransformed2 <- replicate(10000, {
+  sample1 <- rchisq(m2, df = 4)
+  sample2 <- rgamma(n2, shape = 0.5, scale = 8)
+  tTestResult <- t.test(sample1, sample2)
+  tTestResult$p.value < alpha
+})
+
+# Log-transformed data
+rejectionRatesTransformed2 <- replicate(10000, {
+  sample1 <- log(rchisq(m2, df = 4))
+  sample2 <- log(rgamma(n2, shape = 0.5, scale = 8))
+  tTestResult <- t.test(sample1, sample2)
+  tTestResult$p.value < alpha
+})
+
+#----------------------------------------------------------------------------#
+
+# Third data set
+m3 <- 20
+n3 <- 50
+
+# Untransformed data
+rejectionRatesUntransformed3 <- replicate(10000, {
+  sample1 <- rchisq(m3, df = 4)
+  sample2 <- rgamma(n3, shape = 0.5, scale = 21.75)
+  tTestResult <- t.test(sample1, sample2)
+  tTestResult$p.value < alpha
+})
+
+# Log-transformed data
+rejectionRatesTransformed3 <- replicate(10000, {
+  sample1 <- log(rchisq(m3, df = 4))
+  sample2 <- log(rgamma(n3, shape = 0.5, scale = 21.75))
+  tTestResult <- t.test(sample1, sample2)
+  tTestResult$p.value < alpha
+})
+
+
+#----------------------------------------------------------------------------#
+
+# Fourth Data set
+m4 <- 200
+n4 <- 500
+
+# Untransformed data
+rejectionRatesUntransformed4 <- replicate(10000, {
+  sample1 <- rchisq(m4, df = 4)
+  sample2 <- rgamma(n4, shape = 0.5, scale = 21.75)
+  tTestResult <- t.test(sample1, sample2)
+  tTestResult$p.value < alpha
+})
+
+# Log-transformed data
+rejectionRatesTransformed4 <- replicate(10000, {
+  sample1 <- log(rchisq(m4, df = 4))
+  sample2 <- log(rgamma(n4, shape = 0.5, scale = 21.75))
+  tTestResult <- t.test(sample1, sample2)
+  tTestResult$p.value < alpha
+})
+
+# Print Rejection Rates for Data set 1
+print(paste0("Data set 1 - Untransformed Data: Rejection Rate =", mean(rejectionRatesUntransformed1)))
+print(paste0("Data set 1 - Log-transformed Data: Rejection Rate =", mean(rejectionRatesTransformed1)))
+
+# Print Rejection Rates for Data set 2
+print(paste0("Data set 2 - Untransformed Data: Rejection Rate =", mean(rejectionRatesUntransformed2)))
+print(paste0("Data set 2 - Log-transformed Data: Rejection Rate =", mean(rejectionRatesTransformed2)))
+
+# Print Rejection Rates for Data set 3
+print(paste0("Data set 3 - Untransformed Data: Rejection Rate =", mean(rejectionRatesUntransformed3)))
+print(paste0("Data set 3 - Log-transformed Data: Rejection Rate =", mean(rejectionRatesTransformed3)))
+
+# Print Rejection Rates for Data set 4
+print(paste0("Data set 4 - Untransformed Data: Rejection Rate =", mean(rejectionRatesUntransformed4)))
+print(paste0("Data set 4 - Log-transformed Data: Rejection Rate =", mean(rejectionRatesTransformed4)))
 ```
 
 {{< pagebreak >}}
 
 ## Part B
 
-In summary, observing histograms with a more normal distribution after applying the log-transformation suggests a positive outcome in addressing skewness in the data. This transformation often proves effective in promoting a more symmetric shape. Nevertheless, it's crucial to exercise caution and consider the demands we require for our analysis. 
+In summary, observing histograms with a more normal distribution after applying the log-transformation suggests a positive outcome in addressing skewness in the data. This transformation often proves effective in promoting a more symmetric shape. Nevertheless, it's crucial to exercise caution and consider the demands we require for our analysis.
 
 ```{r}
 set.seed(42)
 
 # Untransformed Chi-squared(df=4) distribution
-sample1_i <- rchisq(200, df = 4)
-hist(sample1_i, main = "Untransformed Chi-squared(df=4) distribution",
+hist1 <- rchisq(200, df = 4)
+hist(hist1, main = "Untransformed Chi-squared(df=4) distribution",
      xlab = "Value", 
      ylab = "Frequency", 
      col = "lightgreen",
      border = "black")
 
 # Log-transformed
-sample2_ii <- log(rchisq(200, df = 4))
-hist(sample2_ii, main = "Log-transformed Chi-squared(df=4) distribution",
+hist2 <- log(rchisq(200, df = 4))
+hist(hist2, main = "Log-transformed Chi-squared(df=4) distribution",
      xlab = "Value", 
      ylab = "Frequency", 
      col = "lightgreen", 
      border = "black")
 
 # Untransformed Gamma(shape=0.5, scale=8) distribution
-sample3_iii <- rgamma(200, shape = 0.5, scale = 8)
-hist(sample3_iii, main = "Untransformed Gamma(shape=0.5, scale=8) distribution",
+hist3 <- rgamma(200, shape = 0.5, scale = 8)
+hist(hist3, main = "Untransformed Gamma(shape=0.5, scale=8) distribution",
      xlab = "Value", 
      ylab = "Frequency", 
      col = "lightgreen",
      border = "black")
 
 # Log-transformed
-sample4_iv <- log(rgamma(200, shape = 0.5, scale = 8))
-hist(sample4_iv, main = "Log-transformed Gamma(shape=0.5, scale=8) distribution",
+hist4 <- log(rgamma(200, shape = 0.5, scale = 8))
+hist(hist4, main = "Log-transformed Gamma(shape=0.5, scale=8) distribution",
      xlab = "Value", 
      ylab = "Frequency", 
      col = "lightgreen", 
      border = "black")
 
 # Untransformed Gamma(shape=0.5, scale=21.75) distribution
-sample5_v <- rgamma(200, shape = 0.5, scale = 21.75)
-hist(sample5_v, main = "Untransformed Gamma(shape=0.5, scale=21.75) distribution",
+hist5<- rgamma(200, shape = 0.5, scale = 21.75)
+hist(hist5, main = "Untransformed Gamma(shape=0.5, scale=21.75) distribution",
      xlab = "Value", 
      ylab = "Frequency", 
      col = "lightgreen",
      border = "black")
 
 # Log-transformed
-sample6_vi <- log(rgamma(200, shape = 0.5, scale = 21.75))
-hist(sample6_vi, main = "Log-transformed Gamma(shape=0.5, scale=21.75) distribution",
+hist6 <- log(rgamma(200, shape = 0.5, scale = 21.75))
+hist(hist6, main = "Log-transformed Gamma(shape=0.5, scale=21.75) distribution",
      xlab = "Value", ylab = "Frequency", col = "lightgreen", border = "black")
 ```
+
+{{< pagebreak >}}
 
 ### Part C
 
@@ -166,15 +233,211 @@ averageLogGamma1Mean <- mean(logGamma1Means)
 averageLogGamma2Mean <- mean(logGamma2Means)
 
 # Print the average estimated means
-cat("Average Estimated True Population Mean (Chi-squared):", averageChiSquaredMean, "\n")
-cat("Average Estimated True Population Mean (Log-transformed Chi-squared):", averageLogChiSquaredMean, "\n")
+print(paste0("Average Estimated True Population Mean (Chi-squared):", averageChiSquaredMean))
+print(paste0("Average Estimated True Population Mean (Log-transformed Chi-squared):", averageLogChiSquaredMean))
 
-cat("Average Estimated True Population Mean (Gamma, shape=0.5, scale=8):", averageGamma1Mean, "\n")
-cat("Average Estimated True Population Mean (Log-transformed Gamma, shape=0.5, scale=8):", averageLogGamma1Mean, "\n")
+print(paste0("Average Estimated True Population Mean (Gamma, shape=0.5, scale=8):", averageGamma1Mean))
+print(paste0("Average Estimated True Population Mean (Log-transformed Gamma, shape=0.5, scale=8):", averageLogGamma1Mean))
 
-cat("Average Estimated True Population Mean (Gamma, shape=0.5, scale=21.75):", averageGamma2Mean, "\n")
-cat("Average Estimated True Population Mean (Log-transformed Gamma, shape=0.5, scale=21.75):", averageLogGamma2Mean, "\n")
+print(paste0("Average Estimated True Population Mean (Gamma, shape=0.5, scale=21.75):", averageGamma2Mean))
+print(paste0("Average Estimated True Population Mean (Log-transformed Gamma, shape=0.5, scale=21.75):", averageLogGamma2Mean))
 
 ```
 
+{{< pagebreak >}}
+
+
+### Part D
+
+The high rejection rates for log-transformed data suggest a substantial impact of the log transformation on the distribution. If we do not reject the hypothesis for log-transformed data, it implies, assuming normality, that the means on the log scale are not significantly different. Hence, it is crucial to highlight the need to understand how transformations influence hypothesis testing for meaningful conclusions.
+
+
+{{< pagebreak >}}
+
+## Question 2
+
+
+### Part A
+
+\[
+\begin{align*}
+P(\text{Library Member}) & = \frac{18}{18 + 2} \\
+P(\text{Vegetarian | Non-Library Member}) & = \frac{2}{2 + 53} \\
+P(\text{Vegetarian}) & = \frac{18 + 2}{18 + 2 + 37 + 53}
+\end{align*}
+\]
+
+
+```{r}
+# Given data
+data <- matrix(c(18, 2, 37, 53), nrow = 2, byrow = TRUE)
+colnames(data) <- c("Yes", "No")
+rownames(data) <- c("Yes", "No")
+
+# Total number of observations
+totalObs <- sum(data)
+
+# P(Library Member)
+probLibraryMember <- sum(data["Yes", ]) / totalObs
+print(paste0("P(Library Member) = ", probLibraryMember))
+
+# P(Vegetarian | Non-Library Member)
+probVegetarianNonLibrary <- data["No", "Yes"] / sum(data["No", ])
+print(paste0("P(Vegetarian | Non-Library Member) = ", probVegetarianNonLibrary))
+
+# P(Vegetarian)
+probVegetarian <- sum(data[, "Yes"]) / totalObs
+print(paste0("P(Vegetarian) = ", probVegetarian))
+```
+
+{{< pagebreak >}}
+
+### Part B
+
+\[
+\begin{align*}
+P(\text{Marathon Runner}) & = \frac{5}{5 + 15} \\
+P(\text{Smoker}) & = \frac{15}{5 + 15 + 95 + 85} \\
+P(\text{Smoker | Marathon Runner}) & = \frac{5}{5 + 15} \\
+P(\text{Marathon Runner | Non-Smoker}) & = \frac{85}{95 + 85}
+\end{align*}
+\]
+
+
+
+```{r}
+# Given data
+data <- matrix(c(5, 15, 95, 85), nrow = 2, byrow = TRUE)
+colnames(data) <- c("Yes", "No")
+rownames(data) <- c("Yes", "No")
+
+# Total number of observations
+totalObs <- sum(data)
+
+# P(Marathon Runner)
+probMarathonRunner <- sum(data["Yes", ]) / totalObs
+print(paste0("P(Marathon Runner) = ", probMarathonRunner))
+
+# P(Smoker)
+probSmoker <- sum(data[, "Yes"]) / totalObs
+print(paste0("P(Smoker) = ", probSmoker))
+
+# P(Smoker | Marathon Runner)
+probSmokerGivenMarathon <- data["Yes", "Yes"] / sum(data["Yes", ])
+print(paste0("P(Smoker | Marathon Runner) = ", probSmokerGivenMarathon))
+
+# P(Marathon Runner | Non-smoker)
+probMarathonGivenNonSmoker <- data["No", "Yes"] / sum(data["No", ])
+print(paste0("P(Marathon Runner | Non-smoker) = ", probMarathonGivenNonSmoker))
+```
+
+
+{{< pagebreak >}}
+
+### Part C
+
+\[
+\begin{align*}
+P(\text{Marathon Runner}) & = \frac{2}{2 + 98} \\
+P(\text{Smoker}) & = \frac{98}{2 + 98 + 8 + 92} \\
+P(\text{Smoker | Marathon Runner}) & = \frac{2}{2 + 98} \\
+P(\text{Marathon Runner | Non-Smoker}) & = \frac{92}{8 + 92}
+\end{align*}
+\]
+
+
+
+```{r}
+# Given data
+data <- matrix(c(2, 98, 8, 92), nrow = 2, byrow = TRUE)
+colnames(data) <- c("Yes", "No")
+rownames(data) <- c("Yes", "No")
+
+# Total number of observations
+totalObs <- sum(data)
+
+# P(Marathon Runner)
+probMarathonRunner <- sum(data["Yes", ]) / totalObs
+print(paste0("P(Marathon Runner) = ", probMarathonRunner))
+
+# P(Smoker)
+probSmoker <- sum(data[, "Yes"]) / totalObs
+print(paste0("P(Smoker) = ", probSmoker))
+
+# P(Smoker | Marathon Runner)
+probSmokerGivenMarathon <- data["Yes", "Yes"] / sum(data["Yes", ])
+print(paste0("P(Smoker | Marathon Runner) = ", probSmokerGivenMarathon))
+
+# P(Marathon Runner | Non-smoker)
+probMarathonGivenNonSmoker <- data["No", "Yes"] / sum(data["No", ])
+print(paste0("P(Marathon Runner | Non-smoker) = ", probMarathonGivenNonSmoker))
+```
+
+### Part D
+
+
+\[
+\begin{align*}
+P(\text{Undergrad}) & = \frac{5}{5 + 25} \\
+P(\text{Skier}) & = \frac{5}{5 + 25 + 15 + 55} \\
+P(\text{Skier | Grad}) & = \frac{25}{25 + 55} \\
+P(\text{Grad | Snowboarder}) & = \frac{55}{15 + 55} \\
+\text{Estimated Population Proportion of Skiing Preference} & = \frac{5}{(5 + 25 + 15 + 55) \times 0.8}
+\end{align*}
+\]
+
+
+```{r}
+# Given data
+data <- matrix(c(5, 25, 15, 55), nrow = 2, byrow = TRUE)
+colnames(data) <- c("Undergrad", "Grad")
+rownames(data) <- c("Ski", "Snowboard")
+
+# Total number of observations
+totalObs <- sum(data)
+
+# P(Undergrad)
+probUndergrad <- sum(data[, "Undergrad"]) / totalObs
+print(paste0("P(Undergrad) = ", probUndergrad))
+
+# P(Skier)
+probSkier <- sum(data["Ski", ]) / totalObs
+print(paste0("P(Skier) = ", probSkier))
+
+# P(Skier | Grad)
+probSkierGivenGrad <- data["Ski", "Grad"] / sum(data[, "Grad"])
+print(paste0("P(Skier | Grad) = ", probSkierGivenGrad))
+
+# P(Grad | Snowboarder)
+probGradGivenSnowboarder <- data["Snowboard", "Grad"] / sum(data["Snowboard", ])
+print(paste0("P(Grad | Snowboarder) = ", probGradGivenSnowboarder))
+
+# Estimate population proportion of OSU students who prefer skiing
+estimatedPropSkiing <- sum(data["Ski", ]) / (totalObs * 0.8)
+print(paste0("Estimated Population Proportion of Skiing Preference = ", estimatedPropSkiing))
+```
+
+
+## Question 3
+
+In the Fisher's test, the p-value is 0.65, showing we can't really say my friend's good at telling coffee types apart. The odds ratio is 2.23, but the confidence interval is wide, so we're not very sure.
+
+For the chi-squared test, the p-value is 0.65 too, basically saying my friend's guesses aren't different from random.
+
+Both tests suggest my friend's not reliably telling the difference between instant and drip coffee.
+
+```{r}
+# Given data
+observed_table <- matrix(c(7, 5, 3, 5), nrow = 2, byrow = TRUE)
+colnames(observed_table) <- c("Instant", "Freshly Ground Drip")
+rownames(observed_table) <- c("Instant", "Fresh Ground Drip")
+
+# Fisher's exact test
+fisher_test_result <- fisher.test(observed_table)
+print(fisher_test_result)
+
+# Pearson's chi-squared test
+chi_squared_test_result <- chisq.test(observed_table)
+print(chi_squared_test_result)
+```
 
