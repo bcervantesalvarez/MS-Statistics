@@ -129,7 +129,7 @@ print(paste0("Data set 4 - Log-transformed Data: Rejection Rate =", mean(rejecti
 
 ## Part B
 
-In summary, observing histograms with a more normal distribution after applying the log-transformation suggests a positive outcome in addressing skewness in the data. This transformation often proves effective in promoting a more symmetric shape. Nevertheless, it's crucial to exercise caution and consider the demands we require for our analysis.
+My takeaway is that the histograms show a more normal distribution after applying the log-transformation, signaling a positive outcome in addressing skewness in the data. I find that this transformation often proves effective in promoting a more symmetric shape. Nevertheless, it's crucial to exercise caution and consider the demands we have for our analysis.
 
 ```{r}
 set.seed(42)
@@ -246,19 +246,15 @@ print(paste0("Average Estimated True Population Mean (Log-transformed Gamma, sha
 
 {{< pagebreak >}}
 
-
 ### Part D
 
 The high rejection rates for log-transformed data suggest a substantial impact of the log transformation on the distribution. If we do not reject the hypothesis for log-transformed data, it implies, assuming normality, that the means on the log scale are not significantly different. Hence, it is crucial to highlight the need to understand how transformations influence hypothesis testing for meaningful conclusions.
-
 
 {{< pagebreak >}}
 
 ## Question 2
 
-
 ### Part A
-
 
 ```{r}
 # Given data
@@ -288,7 +284,6 @@ print(paste0("P(Vegetarian) = ", probVegetarian))
 
 ### Part B
 
-
 ```{r}
 # Given data
 data <- matrix(c(5, 15, 95, 85), nrow = 2, byrow = TRUE)
@@ -314,7 +309,6 @@ print(paste0("P(Smoker | Marathon Runner) = ", probSmokerGivenMarathon))
 probMarathonGivenNonSmoker <- data["Yes", "No"] / sum(data["Yes",])
 print(paste0("P(Marathon Runner | Non-smoker) = ", probMarathonGivenNonSmoker))
 ```
-
 
 {{< pagebreak >}}
 
@@ -345,6 +339,8 @@ print(paste0("P(Smoker | Marathon Runner) = ", probSmokerGivenMarathon))
 probMarathonGivenNonSmoker <- data["Yes", "No"] / sum(data["No",])
 print(paste0("P(Marathon Runner | Non-smoker) = ", probMarathonGivenNonSmoker))
 ```
+
+{{< pagebreak >}}
 
 ### Part D
 
@@ -378,14 +374,18 @@ estimatedPropSkiing <- sum(data["Ski", ]) / (totalObs * 0.8)
 print(paste0("Estimated Population Proportion of Skiing Preference = ", estimatedPropSkiing))
 ```
 
+{{< pagebreak >}}
 
-## Question 3
+# Question 3
 
 In the Fisher's test, the p-value is 0.65, showing we can't really say my friend's good at telling coffee types apart. The odds ratio is 2.23, but the confidence interval is wide, so we're not very sure.
 
 For the chi-squared test, the p-value is 0.65 too, basically saying my friend's guesses aren't different from random.
 
 Both tests suggest my friend's not reliably telling the difference between instant and drip coffee.
+
+
+## Part A
 
 ```{r}
 # Given data
@@ -396,9 +396,12 @@ rownames(observed_table) <- c("Instant", "Fresh Ground Drip")
 # Fisher's exact test
 fisher_test_result <- fisher.test(observed_table)
 print(fisher_test_result)
+```
 
+## Part B
+
+```{r}
 # Pearson's chi-squared test
 chi_squared_test_result <- chisq.test(observed_table)
 print(chi_squared_test_result)
 ```
-
