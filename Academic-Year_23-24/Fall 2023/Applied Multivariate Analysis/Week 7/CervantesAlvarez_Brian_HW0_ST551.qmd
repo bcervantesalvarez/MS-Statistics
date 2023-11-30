@@ -10,35 +10,218 @@ execute:
 editor: visual
 ---
 
+
+# Question 1
+
+## Part A
+
+
+Models 1 and 2 both highlight important factors: Weight, Height, SBP, AAI, FEV, DSST, Physact, and Atrophy.
+
+PC1 in both models combines anthropometric and physiological factors, while PC2 focuses on cognitive and respiratory aspects. In Model 2, PC2 includes physical activity and atrophy, and PC3 introduces more variation related to cognitive and respiratory factors, as well as physical activity and atrophy.
+
+Consistent variables that I noticed between both models: Weight, Height, SBP, AAI, FEV, and DSST consistently impact both models.
+
+Hence, the principal components represent a mix of physical health, cognitive function, and physiological factors. PC1 generally captures overall health and physiological status, while subsequent PCs reveal details such as cognitive performance and specific physical attributes.
+
+```{r}
+# Load the data
+physio <- read.csv('PhysioData.csv')
+
+# Extract the correlation matrix
+correlationMatrix <- as.matrix(physio)
+
+# Principal Component Factor Analysis
+
+# Factors = 2 & 3
+pcaResult2 <- prcomp(correlationMatrix, rank = 2)
+pcaResult3 <- prcomp(correlationMatrix, rank = 3)
+
+# Variance explained
+print(summary(pcaResult2)$importance)
+print(summary(pcaResult3)$importance)
+
+# Loadings for factors  = 2 & 3
+loadings2 <- pcaResult2$rotation
+loadings3 <- pcaResult3$rotation
+print(loadings2)
+print(loadings3)
+
+```
+
+
+{{< pagebreak >}}
+
+
+## Part B
+
+```{r}
+# Residual Matrix for factors 2 & 3
+residualMatrix2 <- correlationMatrix - (pcaResult2$rotation %*% t(pcaResult2$rotation))
+residualMatrix3 <- correlationMatrix - (pcaResult3$rotation %*% t(pcaResult3$rotation))
+print(residualMatrix2)
+print(residualMatrix3)
+```
+
+{{< pagebreak >}}
+
+
+## Part C
+
+In Model 1, the first factor is shaped by variables such as weight, height, physical activity physact, fev, and dsst. This factor indicates a combination of physical activity levels, and cognitive and respiratory elements. The second factor, in contrast, is influenced by sbp, aai, and atrophy. It places emphasis on physiological aspects such as blood pressure, arterial health, and the presence of atrophy in the studied subjects.
+
+Moving on to Model 2, the first factor shares similarities with Model 1, being driven by weight, height, physical activity ,fev, and the dsst. This factor continues to represent a blend of body measurements, physical activity, and cognitive and respiratory factors. The second factor, however, is influenced by additional variables including ldl, crt, plt, sbp, aai, and atrophy. In other words, this factor focuses on physiological factors such as lipid levels, blood pressure, arterial health, and the presence of atrophy. Lastly, the  third factor features crt, plt, fev, and dsst, respectively. 
+
+Together, these models from the MLFA provide the health indicators and factors within the studied population.
+
+
+```{r}
+# Maximum Likelihood Factor Analysis
+
+# Factors = 2 & 3
+mlfaResult2 <- factanal(covmat = correlationMatrix, factors = 2, method = "ml")
+mlfaResult3 <- factanal(covmat = correlationMatrix, factors = 3, method = "ml")
+
+# Loadings for factors = 2 & 3
+loadings2 <- mlfaResult2$loadings
+loadings3 <- mlfaResult3$loadings
+print(loadings2)
+print(loadings3)
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+After some side research, it was found that the residual values are zero (NULL), which means our factors and their connections perfectly match what we observe in the study. Again, this is not something that happens a lot in real-world situations. Getting a perfect match like this is like finding a needle in a haystack. 
+
+
+If this is not the correct method to get the residuals, then I must please leave me feedback with the correct R code. But I am certain this is the method.
+
+
+```{r}
+# Residual Matrix for factors = 2 & 3
+residualMatrix2 <- residuals(mlfaResult2)
+residualMatrix3 <- residuals(mlfaResult3)
+print(residualMatrix2)
+print(residualMatrix3)
+```
+
+
+{{< pagebreak >}}
+
+## Part E
+
+I would opt for using Principal Component Analysis for this dataset since I prioritize interpretability and simplicity. PCA's ability to capture maximum variance is a very useful tool. However, the choice is influenced by the challenge of understanding the factors from Maximum Likelihood Factor Analysis due to limited information on loadings and residuals. This lack of clarity led me to favor PCA for its transparency and ease of use in this context. Plus, I've used Principle Component Analysis before on a few machine learning projects so it's more easier for me to work with.
+
+
+{{< pagebreak >}}
+
+## Part F
+
+For models with m = 2 factors, both PCA and MLFA yield similar factors, emphasizing anthropometric, physiological, cognitive, and respiratory aspects. Likewise the m = 3 models, yielded similar results with PCA's PC3 aligning with MLFA's third factor, introducing additional variation related to cognitive, respiratory, and physical health factors.
+
+Therefore, both methods are effective, and improved interpretability depends on one's familiarity with each tool.
+
+
+{{< pagebreak >}}
+
+# Question 2
+
+The first canonical variate, the weights for glucose intolerance, insulin response to oral glucose, and insulin resistance are approximately -528.870, -2174.966, and -2383.596, just to highlight.
+
+Now, here is my best interpretation of the canonical variables (still rather new for me to grasp). In the context of this study, the results should provide insights into how the variables of the primary variables, glucose and insulin, and the secondary variables, weight and glucose levels, are correlated in non-diabetic patients. The canonical variables and correlations help summarize and quantify these relationships in a way that maximizes the shared information between the two sets of variables. 
+
+I think that is how it is? Truthfully, I do not fully understand how to interpret the results of the canonical correlations, but it's still a wonderful tool that I may touch upon in the near future.
+
+
+```{r}
+# Given covariance matrix
+S <- matrix(c(1106.00, 396.70, 108.40, 0.79, 26.23,
+              396.70, 2382.00, 1143.00, -0.21, -23.96,
+              108.40, 1143.00, 2136.00, 2.19, -20.84,
+              0.79, -0.21, 2.19, 0.02, 0.22,
+              26.23, -23.96, -20.84, 0.22, 70.56), nrow = 5, byrow = TRUE)
+
+# Split the covariance matrix into S11, S12, S21, and S22
+S11 <- S[1:3, 1:3]
+S12 <- S[1:3, 4:5]
+S21 <- S[4:5, 1:3]
+S22 <- S[4:5, 4:5]
+
+# Find canonical variable
+A1 <- S11^(-1/2) %*% S12 %*% S22^(-1) %*%  S21 %*% S11^(-1/2)
+A2 <- S22^(-1/2) %*% S21 %*% S11^(-1) %*%  S12 %*% S22^(-1/2)
+
+# Compute canonical variables and correlations for all canonical variates
+num_canonical_vars <- min(dim(S11)[1], dim(S22)[1])
+canonical_variables <- matrix(NA, nrow = dim(S11)[1], ncol = num_canonical_vars)
+canonical_correlations <- numeric(num_canonical_vars)
+
+for (i in 1:num_canonical_vars) {
+  eigenvectors_A1 <- eigen(A1)$vectors
+  eigenvectors_A2 <- eigen(A2)$vectors
+  
+  a <- eigenvectors_A1[, i]
+  b <- eigenvectors_A2[, i]
+  
+  U <- Re(a %*% t(S11))  
+  V <- Re(b %*% t(S22))  
+  
+  lambda <- eigen(A1)$values[i]
+  r <- sqrt(lambda)
+  
+  canonical_variables[, i] <- U
+  canonical_correlations[i] <- r
+}
+
+# Print canonical variables and correlations for all canonical variates
+print("Canonical Variables:")
+print(canonical_variables)
+
+print("Canonical Correlations:")
+print(canonical_correlations)
+```
+
+
+{{< pagebreak >}}
+
+# Question 3
+
 ## Part A
 
 ```{r}
-# Set random seed for reproducibility
-set.seed(503)
+library(MASS)
+library(caret)
 
-# Parameters
-n = 100
-mean = 12
-sd = 10
+crudeOil <- read.csv("CrudeOilData.csv")
+colnames(crudeOil) <- c("Population", "Vanadium", "Iron", "Beryllium", "SaturatedHydrocarbons", "AromaticHydrocarbons")
+crudeOil$Population <- as.factor(crudeOil$Population)
 
-# Generate the random sample 
-samp1 <- rnorm(n, mean, sd)
-# Show first 50 values of the random sample generation
-head(samp1, 50)
+ldaModel <- lda(Population ~ ., data = crudeOil)
+x0 <- data.frame(Vanadium = 4.0, Iron = 17.0, Beryllium = 0.50, SaturatedHydrocarbons = 5.54, AromaticHydrocarbons = 3.51)
+classificationX0 <- predict(ldaModel, newdata = x0)$class
+print(paste("A. Classification for x0:", classificationX0))
 ```
-
 
 {{< pagebreak >}}
 
 ## Part B
 
 ```{r}
+set.seed(2392)
+trainIndex <- createDataPartition(crudeOil$Population, p = 0.8, list = FALSE)
+trainData <- crudeOil[trainIndex, ]
+testData <- crudeOil[-trainIndex, ]
 
-# Calculate the sample mean
-meanRandomSample <- mean(samp1)
-# Show sample mean
-print(paste0("Sample Mean: ", meanRandomSample))
+ldaModel <- lda(Population ~ ., data = trainData)
+predictions <- predict(ldaModel, newdata = testData)$class
+confMatrix <- confusionMatrix(predictions, testData$Population)
+APER <- 1 - confMatrix$overall["Accuracy"]
 
+print("B. Confusion Matrix:")
+print(confMatrix)
+print(paste("Apparent Error Rate (APER):", APER))
 ```
 
 {{< pagebreak >}}
@@ -46,21 +229,17 @@ print(paste0("Sample Mean: ", meanRandomSample))
 ## Part C
 
 ```{r}
-# Calculate the sample standard deviation
-sdRandomSample <- sd(samp1)
-# Show sample standard deviation
-print(paste0("Sample Standard Deviation: ", sdRandomSample))
+ldaModel <- lda(Population ~ ., data = crudeOil)
+newObservation <- data.frame(Vanadium = 4.0, Iron = 17.0, Beryllium = 0.50, SaturatedHydrocarbons = 5.54, AromaticHydrocarbons = 3.51)
+classificationX <- predict(ldaModel, newdata = newObservation)$class
+print(paste("C. Classification for x:", classificationX))
 ```
 
-{{< pagebreak >}}
 
-## Part D
 
-```{r}
-# Plot the random sample
-hist(samp1)
-hist(samp1,breaks = seq(min(samp1), max(samp1) + 1, by = 1))
-```
+
+
+
 
 
 
