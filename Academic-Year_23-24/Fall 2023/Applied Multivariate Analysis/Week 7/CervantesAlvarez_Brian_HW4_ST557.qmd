@@ -1,8 +1,8 @@
 ---
-title: "ST551: Homework 0"
+title: "ST557: Homework 4"
 author: 
     - "Brian Cervantes Alvarez"
-date: "10-04-2023"
+date: "11-29-2023"
 format: PrettyPDF-pdf
 execute: 
   warning: false
@@ -10,11 +10,9 @@ execute:
 editor: visual
 ---
 
-
 # Question 1
 
 ## Part A
-
 
 Models 1 and 2 both highlight important factors: Weight, Height, SBP, AAI, FEV, DSST, Physact, and Atrophy.
 
@@ -49,9 +47,7 @@ print(loadings3)
 
 ```
 
-
 {{< pagebreak >}}
-
 
 ## Part B
 
@@ -65,15 +61,13 @@ print(residualMatrix3)
 
 {{< pagebreak >}}
 
-
 ## Part C
 
 In Model 1, the first factor is shaped by variables such as weight, height, physical activity physact, fev, and dsst. This factor indicates a combination of physical activity levels, and cognitive and respiratory elements. The second factor, in contrast, is influenced by sbp, aai, and atrophy. It places emphasis on physiological aspects such as blood pressure, arterial health, and the presence of atrophy in the studied subjects.
 
-Moving on to Model 2, the first factor shares similarities with Model 1, being driven by weight, height, physical activity ,fev, and the dsst. This factor continues to represent a blend of body measurements, physical activity, and cognitive and respiratory factors. The second factor, however, is influenced by additional variables including ldl, crt, plt, sbp, aai, and atrophy. In other words, this factor focuses on physiological factors such as lipid levels, blood pressure, arterial health, and the presence of atrophy. Lastly, the  third factor features crt, plt, fev, and dsst, respectively. 
+Moving on to Model 2, the first factor shares similarities with Model 1, being driven by weight, height, physical activity ,fev, and the dsst. This factor continues to represent a blend of body measurements, physical activity, and cognitive and respiratory factors. The second factor, however, is influenced by additional variables including ldl, crt, plt, sbp, aai, and atrophy. In other words, this factor focuses on physiological factors such as lipid levels, blood pressure, arterial health, and the presence of atrophy. Lastly, the third factor features crt, plt, fev, and dsst, respectively.
 
 Together, these models from the MLFA provide the health indicators and factors within the studied population.
-
 
 ```{r}
 # Maximum Likelihood Factor Analysis
@@ -93,11 +87,9 @@ print(loadings3)
 
 ## Part D
 
-After some side research, it was found that the residual values are zero (NULL), which means our factors and their connections perfectly match what we observe in the study. Again, this is not something that happens a lot in real-world situations. Getting a perfect match like this is like finding a needle in a haystack. 
-
+After some side research, it was found that the residual values are zero (NULL), which means our factors and their connections perfectly match what we observe in the study. Again, this is not something that happens a lot in real-world situations. Getting a perfect match like this is like finding a needle in a haystack.
 
 If this is not the correct method to get the residuals, then I must please leave me feedback with the correct R code. But I am certain this is the method.
-
 
 ```{r}
 # Residual Matrix for factors = 2 & 3
@@ -107,13 +99,11 @@ print(residualMatrix2)
 print(residualMatrix3)
 ```
 
-
 {{< pagebreak >}}
 
 ## Part E
 
 I would opt for using Principal Component Analysis for this dataset since I prioritize interpretability and simplicity. PCA's ability to capture maximum variance is a very useful tool. However, the choice is influenced by the challenge of understanding the factors from Maximum Likelihood Factor Analysis due to limited information on loadings and residuals. This lack of clarity led me to favor PCA for its transparency and ease of use in this context. Plus, I've used Principle Component Analysis before on a few machine learning projects so it's more easier for me to work with.
-
 
 {{< pagebreak >}}
 
@@ -123,17 +113,15 @@ For models with m = 2 factors, both PCA and MLFA yield similar factors, emphasiz
 
 Therefore, both methods are effective, and improved interpretability depends on one's familiarity with each tool.
 
-
 {{< pagebreak >}}
 
 # Question 2
 
 The first canonical variate, the weights for glucose intolerance, insulin response to oral glucose, and insulin resistance are approximately -528.870, -2174.966, and -2383.596, just to highlight.
 
-Now, here is my best interpretation of the canonical variables (still rather new for me to grasp). In the context of this study, the results should provide insights into how the variables of the primary variables, glucose and insulin, and the secondary variables, weight and glucose levels, are correlated in non-diabetic patients. The canonical variables and correlations help summarize and quantify these relationships in a way that maximizes the shared information between the two sets of variables. 
+Now, here is my best interpretation of the canonical variables (still rather new for me to grasp). In the context of this study, the results should provide insights into how the variables of the primary variables, glucose and insulin, and the secondary variables, weight and glucose levels, are correlated in non-diabetic patients. The canonical variables and correlations help summarize and quantify these relationships in a way that maximizes the shared information between the two sets of variables.
 
 I think that is how it is? Truthfully, I do not fully understand how to interpret the results of the canonical correlations, but it's still a wonderful tool that I may touch upon in the near future.
-
 
 ```{r}
 # Given covariance matrix
@@ -183,7 +171,6 @@ print("Canonical Correlations:")
 print(canonical_correlations)
 ```
 
-
 {{< pagebreak >}}
 
 # Question 3
@@ -195,13 +182,22 @@ library(MASS)
 library(caret)
 
 crudeOil <- read.csv("CrudeOilData.csv")
-colnames(crudeOil) <- c("Population", "Vanadium", "Iron", "Beryllium", "SaturatedHydrocarbons", "AromaticHydrocarbons")
+colnames(crudeOil) <- c("Population", 
+                        "Vanadium", 
+                        "Iron", 
+                        "Beryllium", 
+                        "SaturatedHydrocarbons", 
+                        "AromaticHydrocarbons")
 crudeOil$Population <- as.factor(crudeOil$Population)
+head(crudeOil)
 
 ldaModel <- lda(Population ~ ., data = crudeOil)
-x0 <- data.frame(Vanadium = 4.0, Iron = 17.0, Beryllium = 0.50, SaturatedHydrocarbons = 5.54, AromaticHydrocarbons = 3.51)
+x0 <- data.frame(Vanadium = 1.0, 
+                 Iron = 30.0, Beryllium = 0.07, 
+                 SaturatedHydrocarbons = 8.34, 
+                 AromaticHydrocarbons = 9.59)
 classificationX0 <- predict(ldaModel, newdata = x0)$class
-print(paste("A. Classification for x0:", classificationX0))
+print(paste("Classification for x0: ", classificationX0))
 ```
 
 {{< pagebreak >}}
@@ -219,9 +215,9 @@ predictions <- predict(ldaModel, newdata = testData)$class
 confMatrix <- confusionMatrix(predictions, testData$Population)
 APER <- 1 - confMatrix$overall["Accuracy"]
 
-print("B. Confusion Matrix:")
+print("Confusion Matrix:")
 print(confMatrix)
-print(paste("Apparent Error Rate (APER):", APER))
+print(paste("Apparent Error Rate: ", APER))
 ```
 
 {{< pagebreak >}}
@@ -230,16 +226,11 @@ print(paste("Apparent Error Rate (APER):", APER))
 
 ```{r}
 ldaModel <- lda(Population ~ ., data = crudeOil)
-newObservation <- data.frame(Vanadium = 4.0, Iron = 17.0, Beryllium = 0.50, SaturatedHydrocarbons = 5.54, AromaticHydrocarbons = 3.51)
-classificationX <- predict(ldaModel, newdata = newObservation)$class
-print(paste("C. Classification for x:", classificationX))
+newObs <- data.frame(Vanadium = 4.0, 
+                             Iron = 17.0, 
+                             Beryllium = 0.50, 
+                             SaturatedHydrocarbons = 5.54,
+                             AromaticHydrocarbons = 3.51)
+classificationX <- predict(ldaModel, newdata = newObs)$class
+print(paste("Classification for x: ", classificationX))
 ```
-
-
-
-
-
-
-
-
-
