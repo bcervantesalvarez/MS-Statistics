@@ -1,0 +1,141 @@
+---
+title: "ST557: Homework 5"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "11-30-2023"
+format: PrettyPDF-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Question 1
+
+## Part A
+
+In the single linkage dendrogram, the main cluster gradually stretches vertically from left to right, hinting that points within it are getting farther apart, possibly because the algorithm is sensitive to small distances. 
+
+On the flip side, the complete linkage dendrogram shows three nicely leveled clusters, suggesting that it has identified solid groups. These leveled clusters mean that the dissimilarity within each cluster is consistent, and the merging stops when the distances between clusters are at a maximum. 
+
+Based on these results, the complete linkage dendrogram has successfully grouped the data into three distinct and internally similar clusters, making complete linkage a good choice; especially when dealing with the impact of outliers in this dataset.
+
+
+```{r}
+library(cluster)
+
+trackData <- read.csv("TrackData.csv")
+
+# Extract the columns
+countryData <- trackData[, -c(1, 2)]
+
+# Function to calculate Euclidean distances between countries
+euclideanDistances <- dist(countryData, method = "euclidean")
+
+# Hierarchical clustering using single and complete linkage
+singleLinkageClusters <- hclust(euclideanDistances, method = "single")
+completeLinkageClusters <- hclust(euclideanDistances, method = "complete")
+
+# Plots
+plot(singleLinkageClusters,
+     main = "Single Linkage Dendrogram",
+     xlab = "Countries")
+plot(completeLinkageClusters, 
+     main = "Complete Linkage Dendrogram",
+     xlab = "Countries")
+```
+{{< pagebreak >}}
+
+## Part B
+
+```{r}
+# Perform k-means clustering for k = 2, 3, and 4
+kMeans2 <- kmeans(countryData, centers = 2)
+kMeans3 <- kmeans(countryData, centers = 3)
+kMeans4 <- kmeans(countryData, centers = 4)
+
+
+# Use this function to print out the clusters (very neat)
+getClusterLists <- function(result, k) {
+  clusterLists <- lapply(1:k, function(i) {
+    countriesInCluster <- result$cluster == i
+    return(trackData$Country[countriesInCluster])
+  })
+  names(clusterLists) <- paste0("Cluster", 1:k)
+  return(clusterLists)
+}
+
+# Get lists of countries for each cluster
+clusterLists2 <- getClusterLists(kMeans2, 2)
+clusterLists3 <- getClusterLists(kMeans3, 3)
+clusterLists4 <- getClusterLists(kMeans4, 4)
+
+# Display lists of countries by cluster
+print("K-means Clustering (k = 2):")
+clusterLists2
+
+print("K-means Clustering (k = 3):")
+clusterLists3
+
+print("K-means Clustering (k = 4):")
+clusterLists4
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+
+I prefer using K-means clustering for this data because it offers a simpler and more direct way to understand how the data is grouped. To me, K-means provides clear clusters and has made it easier to interpret why certain countries are grouped together. For example, if I took the extra time to figure out relationships between the countries that are grouped, it would be more insightful than the hierarchical system. 
+
+Although I considered hierarchical clustering, particularly complete linkage, K-means seemed more straightforward. The method's efficiency makes it a better choice, especially since I don't need the hierarchical relationships captured by methods like complete linkage. Though, that could just be this specific dataset, after all.
+
+
+```{r}
+# Compare k-means clustering with hierarchical clustering
+print("Hierarchical Clustering - Single Linkage:")
+print(cutree(singleLinkageClusters, k = 2))
+print(cutree(singleLinkageClusters, k = 3))
+print(cutree(singleLinkageClusters, k = 4))
+
+print("Hierarchical Clustering - Complete Linkage:")
+print(cutree(completeLinkageClusters, k = 2))
+print(cutree(completeLinkageClusters, k = 3))
+print(cutree(completeLinkageClusters, k = 4))
+
+print("K-means Clustering:")
+print(kMeans2$cluster)
+print(kMeans3$cluster)
+print(kMeans4$cluster)
+```
+
+
+
+{{< pagebreak >}}
+
+# Question 2
+
+```{r}
+archaeo <- read.csv("ArchaeoData.csv", 
+                 header = TRUE, 
+                 row.names = 1)
+
+distances <- as.matrix(archaeo)
+
+# Perform multidimensional scaling for q = 2
+mds_result <- cmdscale(distances, k = 2)
+
+# Plot the coordinates for q = 2
+plot(mds_result, type = "n", 
+     xlab = "Dimension 1", 
+     ylab = "Dimension 2", 
+     main = "Multidimensional Scaling (q = 2)")
+
+# Add points with labels (not perfect but it works)
+points(mds_result, col = "green4", pch = 2)
+text(mds_result, labels = rownames(mds_result), 
+     pos = 4, col = "chocolate4")
+```
+
+
+
