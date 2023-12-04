@@ -28,6 +28,7 @@ glimpse(whiteWine)
 summary(redWine)
 summary(whiteWine)
 ```
+
 ```{r}
 # Load necessary libraries
 library(tidyverse)
@@ -54,7 +55,8 @@ wineDs <- wineDs %>%
             `citric acid`,
             `residual sugar`,
             `free sulfur dioxide`,
-            `total sulfur dioxide`))
+            `total sulfur dioxide`,
+            quality))
 
 # Display the column names of the combined dataset
 names(wineDs)
@@ -83,28 +85,73 @@ meanVectors <- wineDs %>%
 print("Mean Vectors:")
 print(meanVectors)
 
+# Reshape data for plotting
+meanDs <- tidyr::gather(meanVectors, key = "attribute", value = "means", -wineType)
 
-meanVectors %>%
-  ggplot(aes(x = wineType))
+# Plot
+ggplot(meanDs, aes(x = means, y = attribute, fill = wineType)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(title = "Mean Values for Chemical Attributes in Red|White Wines",
+       x = "Mean Value",
+       y = "Chemical Attributes") +
+  theme_minimal()
+
+
+# Plot
+ggplot(meanDs, aes(x = log(means), y = attribute, fill = wineType)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(title = "Log-Transformed Mean Values for Chemical Attributes in Red|White Wines",
+       x = "Mean Value",
+       y = "Chemical Attributes") +
+  theme_minimal()
+
+
+
+
+# Assuming your original dataset is named meanDs
+meanDifDs <- meanDs %>%
+  spread(wineType, means) %>%
+  mutate(meanDifference = red - white) %>%
+  select(attribute, meanDifference)
+
+# Plot the mean differences
+ggplot(meanDifDs, aes(x = meanDifference, y = attribute)) +
+  geom_bar(stat = "identity", position = "dodge", fill = "red", color = "black") +
+  labs(title = "Mean Differences between Red and White Wines for Chemical Attributes",
+       x = "Mean Difference",
+       y = "Chemical Attributes") +
+  theme_minimal()
 ```
 
+## Perform a statistical test ANOVA to determine if there is a significant difference in mean vectors between red and white wines.
 
+### Hypotheses
 
-### Perform a statistical test ANOVA to determine if there is a significant difference in mean vectors between red and white wines.
+**Null Hypothesis** 
 
-The MANOVA results indicate that there is a significant difference in mean vectors between red and white wines for the specified chemical attributes. Here's a breakdown of the key information from the output:
+$$
+H_0: \mu_{\text{red}} = \mu_{\text{white}}
+$$
 
-Pillai's Trace: The value is 0.86158, which is a measure of the proportion of variance in the dependent variables explained by the independent variable (wine type). A value close to 1 indicates a strong effect.
+**Alternative Hypothesis** 
 
-Approximate F-statistic: The value is 3669.6, and the associated p-value is very close to zero (< 2.2e-16). This F-statistic is used to test the overall hypothesis that there are no differences between the mean vectors of the groups.
+$$
+H_A: \mu_{\text{red}} \neq \mu_{\text{white}}
+$$
 
-Degrees of Freedom: There is 1 degree of freedom for the wine type factor and 6495 degrees of freedom for residuals.
+# Statistical Test
 
-Pr(>F): The p-value associated with the F-statistic. In this case, it is highly significant (much less than 0.05), suggesting that there are significant differences in mean vectors between red and white wines.
+The MANOVA results show a clear difference in average values between red and white wines for specific chemical traits. Here are the key findings from the MANOVA test:
 
-The "***" next to the p-value indicates that the difference is highly significant.
+1.  **Pillai's Trace:** The variation explained in chemical traits was 0.86158. Remember that a value near 1 signals a strong effect.
 
-In summary, based on the MANOVA results, there is strong evidence to reject the null hypothesis that there is no difference in mean vectors between red and white wines for the specified chemical attributes.
+2.  **Approximate F-statistic:** With a value of 3669.6 and an extremely low p-value (\< 2.2e-16), this test suggests significant differences in mean values among the groups.
+
+3.  **Degrees of Freedom:** 1 degree for wine type and 6495 for residuals.
+
+4.  **Pr(\>F):** The associated p-value is highly significant (\< 0.05), indicating substantial differences in mean values between red and white wines.
+
+In short, the MANOVA results strongly reject the idea that there's no distinction in average values between red and white wines for the specified chemical traits. The "\*\*\*" next to the p-value emphasizes the high significance of this difference.
 
 ```{r}
 wineManova <- manova(cbind(chlorides, density, pH, sulphates, 
@@ -116,72 +163,222 @@ wineManova <- manova(cbind(chlorides, density, pH, sulphates,
 summary(wineManova)
 ```
 
-
-
 ### The attributes with significant differences in mean vectors are the ones that differ the most between red and white wine.
 
-
-### Perform a MANOVA To 
-
-
-
+### Perform a MANOVA To
 
 {{< pagebreak >}}
 
 ### b) Classification:
 
-Split the dataset into training and testing sets.
-Train a classification model (e.g., logistic regression, decision tree, or random forest) using the 11 chemical attributes as features and the wine type (red or white) as the target variable.
-Evaluate the model's performance using metrics such as accuracy, precision, recall, and F1-score.
-The classification rule would be based on the learned weights or feature importance from the model.
+Split the dataset into training and testing sets. Train a classification model (e.g., logistic regression, decision tree, or random forest) using the 11 chemical attributes as features and the wine type (red or white) as the target variable. Evaluate the model's performance using metrics such as accuracy, precision, recall, and F1-score. The classification rule would be based on the learned weights or feature importance from the model.
+
+
+```{r}
+library(caret)
+
+set.seed(123)
+
+# Split the dataset into training and testing sets
+splitIndex <- createDataPartition(wineDs$wineType, p = 0.7, list = FALSE)
+trainData <- wineDs[splitIndex, ]
+testData <- wineDs[-splitIndex, ]
+
+# Fit a logistic regression model
+model <- glm(wineType ~ ., data = trainData, family = "binomial")
+
+# Make predictions on the test set
+predictions <- predict(model, newdata = testData, type = "response")
+predictedLabels <- as.factor(ifelse(predictions > 0.5, "white", "red"))
+
+# Ensure consistent factor levels for the actual test data
+actualLabels <- as.factor(testData$wineType)
+
+# Evaluate the model performance
+confMatrix <- confusionMatrix(predictedLabels, actualLabels)
+accuracy <- confMatrix$overall["Accuracy"]
+precision <- confMatrix$byClass["Pos Pred Value"]
+recall <- confMatrix$byClass["Sensitivity"]
+f1Score <- confMatrix$byClass["F1"]
+
+# Display the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Recall:", recall, "\n")
+cat("F1-Score:", f1Score, "\n")
+
+confMatrix
+
+```
+```{r}
+
+library(rpart)
+
+# Fit a decision tree model
+tree_model <- rpart(wineType ~ ., data = trainData, method = "class")
+
+# Make predictions on the test set
+tree_predictions <- predict(tree_model, newdata = testData, type = "class")
+
+# Evaluate the decision tree model performance
+tree_confMatrix <- confusionMatrix(tree_predictions, actualLabels)
+tree_accuracy <- tree_confMatrix$overall["Accuracy"]
+tree_precision <- tree_confMatrix$byClass["Pos Pred Value"]
+tree_recall <- tree_confMatrix$byClass["Sensitivity"]
+tree_f1Score <- tree_confMatrix$byClass["F1"]
+
+# Display the results for the decision tree model
+cat("Decision Tree Model Results:\n")
+cat("Accuracy:", tree_accuracy, "\n")
+cat("Precision:", tree_precision, "\n")
+cat("Recall:", tree_recall, "\n")
+cat("F1-Score:", tree_f1Score, "\n")
+
+tree_confMatrix
+```
+
+```{r}
+library(randomForest)
+
+# Assuming 'wineDs' is your dataset with the 12 columns, and the last column is "wineType"
+# Extracting the relevant columns for clustering
+dataForClustering <- wineDs %>% select(-wineType)
+
+# Choose a suitable distance measure (e.g., Euclidean distance)
+distanceMatrix <- dist(dataForClustering)
+
+# K-means clustering
+kValues <- 2:10  # You can adjust the range based on your needs
+wss <- numeric(length(kValues))
+
+# Determine the suitable number of clusters using the elbow method
+for (k in kValues) {
+  kmeansModel <- kmeans(dataForClustering, centers = k)
+  wss[k - 1] <- sum(kmeansModel$withinss)
+}
+
+# Create a tibble for elbow method plot
+elbowData <- tibble(k = kValues, wss = wss)
+
+# Elbow method plot using ggplot2
+ggplot(elbowData, aes(x = k, y = wss)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Number of clusters (k)", y = "Within-cluster sum of squares (WSS)",
+       title = "Elbow Method for K-means Clustering")
+
+# You can visually inspect the plot to determine the optimal k value
+
+# Based on the optimal k value, perform k-means clustering
+optimalK <-  # Set the value based on the elbow method analysis
+kmeansModel <- kmeans(dataForClustering, centers = optimalK)
+
+# Create a tibble with cluster assignments
+clusterResults <- tibble(cluster = kmeansModel$cluster, wineType = wineDs$wineType)
+
+# Evaluate clusters using silhouette score
+silhouetteScore <- silhouette(clusterResults$cluster, distanceMatrix)
+meanSilhouette <- mean(silhouetteScore[, 3])
+cat("Mean Silhouette Score:", meanSilhouette, "\n")
+
+# Evaluate clusters reflecting red/white classification using cluster purity
+clusterPurity <- cluster.stats(clusterResults$cluster, clusterResults$wineType)
+cat("Cluster Purity:", clusterPurity$purity, "\n")
+
+```
 
 {{< pagebreak >}}
 
 ### c) Clustering:
 
-Use hierarchical or k-means clustering to cluster the wines based on the 11 chemical attributes.
-Choose a suitable distance measure (e.g., Euclidean distance) based on the nature of the data.
-Validate the number of clusters using methods like the elbow method (for k-means) or dendrogram (for hierarchical clustering).
-Evaluate how well the clusters reflect the red/white classification using metrics like silhouette score or cluster purity.
+Use hierarchical or k-means clustering to cluster the wines based on the 11 chemical attributes. Choose a suitable distance measure (e.g., Euclidean distance) based on the nature of the data. Validate the number of clusters using methods like the elbow method (for k-means) or dendrogram (for hierarchical clustering). Evaluate how well the clusters reflect the red/white classification using metrics like silhouette score or cluster purity.
+
+
+```{r}
+library(cluster)
+library(fpc)
+
+# Assuming 'wineDs' is your dataset with the 12 columns, and the last column is "wineType"
+# Extracting the relevant columns for clustering
+dataForClustering <- wineDs %>% select(-wineType)
+
+# Choose a suitable distance measure (e.g., Euclidean distance)
+distanceMatrix <- as.matrix(dist(dataForClustering))
+
+# K-means clustering
+kValues <- 2:10  # You can adjust the range based on your needs
+wss <- numeric(length(kValues))
+
+# Determine the suitable number of clusters using the elbow method
+for (k in kValues) {
+  kmeansModel <- kmeans(dataForClustering, centers = k)
+  wss[k - 1] <- sum(kmeansModel$withinss)
+}
+
+# Create a tibble for elbow method plot
+elbowData <- tibble(k = kValues, wss = wss)
+
+# Elbow method plot using ggplot2
+ggplot(elbowData, aes(x = k, y = wss)) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Number of clusters (k)", y = "Within-cluster sum of squares (WSS)",
+       title = "Elbow Method for K-means Clustering")
+
+# You can visually inspect the plot to determine the optimal k value
+# Once you identify the elbow, set optimalK to the corresponding value
+
+# Example: If the plot suggests an elbow at k = 3
+optimalK <- 3
+
+# Based on the optimal k value, perform k-means clustering
+kmeansModel <- kmeans(dataForClustering, centers = optimalK)
+
+# Create a tibble with cluster assignments
+clusterResults <- tibble(cluster = kmeansModel$cluster, wineType = as.numeric(as.factor(wineDs$wineType)))
+
+# Evaluate clusters using silhouette score
+silhouetteScore <- silhouette(clusterResults$cluster, distanceMatrix)
+meanSilhouette <- mean(silhouetteScore[, 3])
+cat("Mean Silhouette Score:", meanSilhouette, "\n")
+
+# Evaluate clusters reflecting red/white classification using cluster purity
+clusterPurity <- cluster.stats(clusterResults$cluster, clusterResults$wineType)
+cat("Cluster Purity:", clusterPurity$purity, "\n")
+
+
+```
+
 
 {{< pagebreak >}}
-
 
 ## Goal 2: Better understand which of these variables is most important to wine quality (Focus on red wine)
 
-### a) Mean Vectors Comparison:**
+### a) Mean Vectors Comparison:\*\*
 
-   - Similar to the previous goal, calculate mean vectors for each of the 11 chemical attributes, but this time, group the wines based on quality scores (Low, Medium, High).
-   - Perform a statistical test to determine if there is a significant difference in mean vectors between wines of different quality scores.
-   - Identify which attributes show the most significant differences across quality categories.
-
-{{< pagebreak >}}
-
-### b) Classification/Prediction:**
-
-   - Split the dataset into training and testing sets.
-   - Use regression models (e.g., linear regression) to predict wine quality based on the 11 chemical attributes.
-   - Evaluate the model's performance using metrics like Mean Squared Error (MSE) or R-squared.
+-   Similar to the previous goal, calculate mean vectors for each of the 11 chemical attributes, but this time, group the wines based on quality scores (Low, Medium, High).
+-   Perform a statistical test to determine if there is a significant difference in mean vectors between wines of different quality scores.
+-   Identify which attributes show the most significant differences across quality categories.
 
 {{< pagebreak >}}
 
-### c) PCA Analysis:**
+### b) Classification/Prediction:\*\*
 
-   - Perform Principal Component Analysis (PCA) on the 11 chemical attributes.
-   - Plot the wines color-coded by quality score using the first two principal components.
-   - Decide whether to standardize the data before PCA based on the scale of the original features. Standardization is generally recommended for PCA.
-   - Create a new rule for predicting wine quality using only the scores for the first two principal components.
-   - Compare the performance of this new classifier with the one using all predictor variables, using metrics like MSE or R-squared.
+-   Split the dataset into training and testing sets.
+-   Use regression models (e.g., linear regression) to predict wine quality based on the 11 chemical attributes.
+-   Evaluate the model's performance using metrics like Mean Squared Error (MSE) or R-squared.
 
 {{< pagebreak >}}
 
+### c) PCA Analysis:\*\*
 
+-   Perform Principal Component Analysis (PCA) on the 11 chemical attributes.
+-   Plot the wines color-coded by quality score using the first two principal components.
+-   Decide whether to standardize the data before PCA based on the scale of the original features. Standardization is generally recommended for PCA.
+-   Create a new rule for predicting wine quality using only the scores for the first two principal components.
+-   Compare the performance of this new classifier with the one using all predictor variables, using metrics like MSE or R-squared.
 
-
-
-
-
-
+{{< pagebreak >}}
 
 ```{r}
 #| echo: false
@@ -217,4 +414,3 @@ for (col in names(whiteWine)) {
 }
 
 ```
-

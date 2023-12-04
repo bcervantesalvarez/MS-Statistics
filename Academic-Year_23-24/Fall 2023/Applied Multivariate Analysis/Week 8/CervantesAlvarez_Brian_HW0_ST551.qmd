@@ -27,7 +27,6 @@ samp1 <- rnorm(n, mean, sd)
 head(samp1, 50)
 ```
 
-
 {{< pagebreak >}}
 
 ## Part B
@@ -61,6 +60,3 @@ print(paste0("Sample Standard Deviation: ", sdRandomSample))
 hist(samp1)
 hist(samp1,breaks = seq(min(samp1), max(samp1) + 1, by = 1))
 ```
-
-
-
