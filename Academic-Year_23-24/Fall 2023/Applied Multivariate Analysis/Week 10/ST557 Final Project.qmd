@@ -10,7 +10,7 @@ execute:
 editor: visual
 ---
 
-## Read and Glance at Wine Datasets
+# Read and Glance at Wine Datasets
 
 ```{r}
 library(tidyverse)
@@ -32,6 +32,14 @@ summary(whiteWine)
 # Load necessary libraries
 library(tidyverse)
 
+
+# Add a 'wine_type' column to identify the wine type
+redWine$wineType <- "red"
+whiteWine$wineType <- "white"
+
+# Combine the datasets
+wineDs <- bind_rows(redWine, whiteWine)
+
 # Rename columns for better readability and consistency
 wineDs <- wineDs %>% 
   dplyr::mutate(fixedAcidity = `fixed acidity`,
@@ -39,7 +47,8 @@ wineDs <- wineDs %>%
          citricAcid = `citric acid`,
          residualSugar = `residual sugar`,
          freeSulfurDioxide = `free sulfur dioxide`,
-         totalSulferDioxide = `total sulfur dioxide`) %>%
+         totalSulfurDioxide = `total sulfur dioxide`,
+         wineType = factor(wineType, levels = c("red", "white"))) %>%
   dplyr::select(-c(`fixed acidity`,
             `volatile acidity`,
             `citric acid`,
@@ -58,15 +67,11 @@ sum(is.na(wineDs))
 
 ```
 
-## Goal 1: Distinguish white wine from red wine
+# Goal 1: Distinguish white wine from red wine
 
-### a) Mean Vectors Comparison:
+## Mean Vectors Comparison:
 
-Calculate the mean vectors for red and white wines separately for each of the 11 chemical attributes.
-Perform a statistical test ANOVA to determine if there is a significant difference in mean vectors between red and white wines.
-The attributes with significant differences in mean vectors are the ones that differ the most between red and white wine.
-
-
+### Calculate the mean vectors for red and white wines separately for each of the 11 chemical attributes.
 
 ```{r}
 # Calculate the mean vectors for red and white wines separately for each of the 11 chemical attributes
@@ -77,15 +82,47 @@ meanVectors <- wineDs %>%
 # Display the mean vectors
 print("Mean Vectors:")
 print(meanVectors)
+
+
+meanVectors %>%
+  ggplot(aes(x = wineType))
 ```
+
+
+
+### Perform a statistical test ANOVA to determine if there is a significant difference in mean vectors between red and white wines.
+
+The MANOVA results indicate that there is a significant difference in mean vectors between red and white wines for the specified chemical attributes. Here's a breakdown of the key information from the output:
+
+Pillai's Trace: The value is 0.86158, which is a measure of the proportion of variance in the dependent variables explained by the independent variable (wine type). A value close to 1 indicates a strong effect.
+
+Approximate F-statistic: The value is 3669.6, and the associated p-value is very close to zero (< 2.2e-16). This F-statistic is used to test the overall hypothesis that there are no differences between the mean vectors of the groups.
+
+Degrees of Freedom: There is 1 degree of freedom for the wine type factor and 6495 degrees of freedom for residuals.
+
+Pr(>F): The p-value associated with the F-statistic. In this case, it is highly significant (much less than 0.05), suggesting that there are significant differences in mean vectors between red and white wines.
+
+The "***" next to the p-value indicates that the difference is highly significant.
+
+In summary, based on the MANOVA results, there is strong evidence to reject the null hypothesis that there is no difference in mean vectors between red and white wines for the specified chemical attributes.
 
 ```{r}
-# Fit a 2-way ANOVA model
-model <- aov(wineType == "red" ~ chlorides + density + pH + sulphates + alcohol + freeSulfurDioxide + totalSulferDioxide + residualSugar, data = wineDs)
+wineManova <- manova(cbind(chlorides, density, pH, sulphates, 
+                           alcohol, fixedAcidity, volatileAcidity, 
+                           citricAcid, residualSugar, freeSulfurDioxide,
+                           totalSulfurDioxide) ~ wineType, data = wineDs) 
 
-# Print the summary of the ANOVA
-summary(model)
+# Print the summary of the MANOVA
+summary(wineManova)
 ```
+
+
+
+### The attributes with significant differences in mean vectors are the ones that differ the most between red and white wine.
+
+
+### Perform a MANOVA To 
+
 
 
 
