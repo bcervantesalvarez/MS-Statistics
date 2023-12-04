@@ -2,8 +2,8 @@
 title: "ST557: Homework 5"
 author: 
     - "Brian Cervantes Alvarez"
-date: "11-30-2023"
-format: PrettyPDF-pdf
+date: "12-1-2023"
+format: OSULatexTheme-pdf
 execute: 
   warning: false
   message: false
@@ -14,12 +14,11 @@ editor: visual
 
 ## Part A
 
-In the single linkage dendrogram, the main cluster gradually stretches vertically from left to right, hinting that points within it are getting farther apart, possibly because the algorithm is sensitive to small distances. 
+In the single linkage dendrogram, the main cluster gradually stretches vertically from left to right, hinting that points within it are getting farther apart, possibly because the algorithm is sensitive to small distances.
 
-On the flip side, the complete linkage dendrogram shows three nicely leveled clusters, suggesting that it has identified solid groups. These leveled clusters mean that the dissimilarity within each cluster is consistent, and the merging stops when the distances between clusters are at a maximum. 
+On the flip side, the complete linkage dendrogram shows three nicely leveled clusters, suggesting that it has identified solid groups. These leveled clusters mean that the dissimilarity within each cluster is consistent, and the merging stops when the distances between clusters are at a maximum.
 
 Based on these results, the complete linkage dendrogram has successfully grouped the data into three distinct and internally similar clusters, making complete linkage a good choice; especially when dealing with the impact of outliers in this dataset.
-
 
 ```{r}
 library(cluster)
@@ -44,6 +43,7 @@ plot(completeLinkageClusters,
      main = "Complete Linkage Dendrogram",
      xlab = "Countries")
 ```
+
 {{< pagebreak >}}
 
 ## Part B
@@ -85,11 +85,9 @@ clusterLists4
 
 ## Part C
 
+I prefer using K-means clustering for this data because it offers a simpler and more direct way to understand how the data is grouped. To me, K-means provides clear clusters and has made it easier to interpret why certain countries are grouped together. For example, if I took the extra time to figure out relationships between the countries that are grouped, it would be more insightful than the hierarchical system.
 
-I prefer using K-means clustering for this data because it offers a simpler and more direct way to understand how the data is grouped. To me, K-means provides clear clusters and has made it easier to interpret why certain countries are grouped together. For example, if I took the extra time to figure out relationships between the countries that are grouped, it would be more insightful than the hierarchical system. 
-
-Although I considered hierarchical clustering, particularly complete linkage, K-means seemed more straightforward. The method's efficiency makes it a better choice, especially since I don't need the hierarchical relationships captured by methods like complete linkage. Though, that could just be this specific dataset, after all.
-
+I considered hierarchical clustering, particularly complete linkage, but K-means seemed more straightforward. The method's efficiency makes it a better choice, especially since I don't need the hierarchical relationships captured by methods like complete linkage. Though, that could just be this specific dataset, after all.
 
 ```{r}
 # Compare k-means clustering with hierarchical clustering
@@ -108,8 +106,6 @@ print(kMeans2$cluster)
 print(kMeans3$cluster)
 print(kMeans4$cluster)
 ```
-
-
 
 {{< pagebreak >}}
 
@@ -137,5 +133,246 @@ text(mds_result, labels = rownames(mds_result),
      pos = 4, col = "chocolate4")
 ```
 
+{{< pagebreak >}}
 
+# Question 3
 
+## Part A
+
+**Scenario:** Twenty subjects were given each of three diets (in random order) and the subjects' blood pressures were measured at the end of each diet, so there were three blood pressure measurement associated with each subject.
+
+**Question:** Did the different treatments affect the subjects' blood pressure different
+
+-   **Answer:** ANOVA.
+
+{{< pagebreak >}}
+
+## Part B
+
+**Scenario:** Two varieties of chickweed are difficult to distinguish. Measurements on four variables were obtained for chickweed plants whose variety was known.
+
+**Question:** Use these observations to establish a rule for classifying a new candidate plant into one of the two varieties
+
+-   **Answer:** Discriminant Function Analysis/Linear Discriminant Analysis
+
+{{< pagebreak >}}
+
+## Part C
+
+**Scenario:** Each of 50 eight-year-old girls and 50 eight-year-old boys were given a total of 10 tests. Five of these tests had to do with language and five had to do with mathematical reasoning.
+
+**Question:** Do scores differ between boys and girls?
+
+-   **Answer:** Univariate two-sample t-test
+
+**Question:** Combining the boys and girls, what combination of the language tests is most associated with some combination of the math tests
+
+-   **Answer:** MANOVA
+
+{{< pagebreak >}}
+
+## Part D
+
+**Scenario:** Daily measurements of seven pollution-related variables were recorded over an extended period of time at a single location in Los Angeles.
+
+**Question:** Find a low-dimensional representation for these variables that captures most of the variability.
+
+-   **Answer:** Principal Components Analysis
+
+**Question:** Test whether the pollution on weekends differed from that on weekday
+
+-   **Answer:** Univariate two-sample t-test
+
+{{< pagebreak >}}
+
+## Part E
+
+**Scenario:** For each of a sample of 42 new microwaves made by a certain manufacturer, the amount of radiation emitted when the door of the microwave is closed and the amount of radiation emitted when the door of the microwave is opened are measured.
+
+**Question:** Construct a confidence interval for the difference in amount of radiation emitted under these two conditions.
+
+-   **Answer:** Univariate one-sample t-test (paired differences)
+
+{{< pagebreak >}}
+
+## Part F
+
+**Scenario:** A sample of 50 married couples was obtained. The wife and the husband each answered four questions regarding their relationship on a scale of 0 to 10.
+
+**Question:** Do the wife's answers tend to be similar to the husband's answers, and in what way are they most similar? That is, what combination of the wife's answers is most similar to what combination of the husband's answers
+
+-   **Answer:** Canonical Correlation Analysis
+
+{{< pagebreak >}}
+
+## Part G
+
+**Scenario:** The standardized scores for each of the ten events in the decathlon were obtained for each of 50 entrants.
+
+**Question:** Can the variation in the scores be explained by three underlying athletic abilities, and how might these abilities be described
+
+-   **Answer:** Principal Component Analysis
+
+{{< pagebreak >}}
+
+## Part H
+
+**Scenario:** For 15 different species of predator fish, data were gathered on several aspects of their diet.
+
+**Question:** How can these species of fish be grouped based on similarities in their diet
+
+-   **Answer:** Clustering
+
+{{< pagebreak >}}
+
+## Part I
+
+**Scenario:** Calcite content was measured at 25 equally-spaced locations along the leg bone for each of seven Tyrannosaurus Rex skeletons and also for each of five skeletons of a newly-discovered type of dinosaur.
+
+**Question:** Do the calcite concentrations at these locations differ between the two dinosaur species?
+
+-   **Answer:** Hotelling’s two-sample T2 test
+
+**Question:** Combining the dinosaur species, is calcite concentration the same at all of the measured locations in the leg bone?
+
+-   **Answer:** Hotelling’s one-sample T2 test (repeated measures)
+
+**Question:** Based on these measurements, construct a rule for classifying a new bone as coming from a Tyrannosaurus Rex or from the newly-discovered specie
+
+-   **Answer:** Discriminant Function Analysis/Linear Discriminant Analysis
+
+{{< pagebreak >}}
+
+## Part J
+
+**Scenario:** Blood samples from 40 patients were obtained and each divided into six subsamples, which were sent to six different laboratories to have iron content measured.
+
+**Question:** Do the six different laboratory results have the same means?
+
+-   **Answer:** ANOVA
+
+{{< pagebreak >}}
+
+## Part K
+
+**Scenario:** Measurements on six accounting and financial variables were obtained from a sample of insurance companies that were distressed (close to bankrupt) and an independent sample of insurance companies that were solvent.
+
+**Question:** Establish a rule for classifying future insurance companies as solvent or distressed based on these variables
+
+-   **Answer:** Discriminant Function Analysis/Linear Discriminant Analysis
+
+{{< pagebreak >}}
+
+## Part L
+
+**Scenario:** DNA analysis was performed on hair specimens from each of 100 mummies taken from Egyptian pyramids. For each mummy, twenty variables concerning the DNA sequence were measured.
+
+**Question:** Based on the measured variables, identify groups of mummies that are related to each other (have similar values of the variables).
+
+-   **Answer:** Clustering
+
+**Question:** Based on the distances between these variables, construct a two-dimensional plot of the mummies to visualize the grouping
+
+-   **Answer:** Multidimensional Scaling 
+
+{{< pagebreak >}}
+
+## Part M
+
+**Scenario:** SAT subject test scores are obtained for a random sample of 100 12th graders who took Math, Biology, Literature, and World History subject tests.
+
+**Question:** Test whether the average score for all four tests is 500.
+
+-   **Answer:** Univariate one-sample t-test
+
+**Question:** Test whether the average scores are equal for all four tests
+
+-   **Answer:** ANOVA 
+
+{{< pagebreak >}}
+
+## Part N
+
+**Scenario:** A wildlife ecologist measured tail length and wing length for a sample of 45 female hook-billed kites and 45 male hook-billed kites.
+
+**Question:** Are average tail length and wing length the same for female and male hook-billed kites?
+
+-   **Answer:** Univariate two-sample t-test
+
+{{< pagebreak >}}
+
+## Part O
+
+**Scenario:** Several measurements were obtained on chief executive officers (CEO) of companies, regarding the degree to which the officers took risks. Several additional measurements were available on the success of the company under their leadership.
+
+**Question:** What aspects of risk-taking propensity of the CEO are associated with which aspects of company success?
+
+-   **Answer:** Canonical Correlation Analysis
+
+**Question:** What combination of risk-taking propensities displays the greatest variation between CEOs?
+
+-   **Answer:** Discriminant Function Analysis/Linear Discriminant Analysis
+
+{{< pagebreak >}}
+
+## Part P
+
+**Scenario:** The age, diameter, and height were measured for a sample of trees that contained eagle roost sites and for an independent sample of trees that did not contain eagle roost sites.
+
+**Question:** Construct confidence intervals for the difference in age, difference in diameter, and difference in height between roosting trees and non-roosting trees.
+
+-   **Answer:** Bonferroni simultaneous tests
+
+**Question:** Determine a rule for classifying a new tree as a likely roosting site or unlikely roosting site, based on these three variable.
+
+-   **Answer:** Discriminant Function Analysis/Linear Discriminant Analysis
+
+{{< pagebreak >}}
+
+## Part Q
+
+**Scenario:** For all of the NBA rookies who started in 2000, data were collected on their free-throw percentages each year for the first five years of their NBA careers.
+
+**Question:** Does average free-throw percentage change over these five year
+
+-   **Answer:** ANOVA
+
+{{< pagebreak >}}
+
+## Part R
+
+**Scenario:** Twelve measurements were taken on fossilized skull measurements from 20 kinds of squirrels. The goal of the analysis was to order the 20 squirrels chronologically, on the basis of the similarities between the skull measurements for different squirrels.
+
+**Question:** Find a one-dimensional representation of the 20 squirrels that best captures the differences between the measured variables
+
+-   **Answer:** Principal Components Analysis
+
+{{< pagebreak >}}
+
+## Part S
+
+**Scenario:** The protein, fat content, calories, and Vitamin A content were measured for each of ten brands of hot dogs.
+
+**Question:** Group the brands of hot dogs based on their nutritional content.
+
+-   **Answer:** Clustering
+
+**Question:** What combination of these nutritional measurements captures the greatest difference between the hot dog brands?
+
+-   **Answer:** Principal Components Analysis
+
+{{< pagebreak >}}
+
+## Part T
+
+**Scenario:** Measurements were obtained on five pre-college predictor variables and four college performance variables for each of several hundred students.
+
+**Question:** What combination of pre-college variables is most associated with a combination of college performance?
+
+-   **Answer:** Canonical Correlation Analysis
+
+**Question:** Combining the two variable sets, are there a few underlying abilities that explain the pre-college and college performance?
+
+-   **Answer:** Factor Analysis
+
+{{< pagebreak >}}

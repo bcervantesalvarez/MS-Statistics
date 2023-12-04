@@ -1,0 +1,43 @@
+---
+title: "Statistical Tests & Their Uses"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "12-1-2023"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+## Bonferroni Simultaneous Tests
+Applied to control the familywise error rate when conducting multiple comparisons. It's useful after ANOVA or t-tests to maintain an overall alpha level.
+
+## ANOVA (Analysis of Variance)
+When dealing with multiple groups and one dependent variable, ANOVA is suitable. It assesses whether there are any statistically significant differences between the means of three or more independent groups.
+
+## MANOVA (Multivariate Analysis of Variance)
+Extending ANOVA to multiple dependent variables, MANOVA is useful when there are two or more dependent variables and more than two groups. It examines whether the mean vectors differ across groups.
+
+## Multivariate Multiple Regression
+Appropriate when there are multiple dependent variables and multiple independent variables, and we want to understand the relationship between them.
+
+## Principal Components Analysis (PCA)
+PCA is useful for reducing dimensionality in multivariate data by transforming variables into a smaller set of uncorrelated variables (principal components) that retain most of the original variability.
+
+## Factor Analysis
+Similar to PCA, Factor Analysis is employed to identify underlying factors or latent variables that explain the observed patterns of correlations among variables.
+
+## Canonical Correlation Analysis
+Used to explore the relationships between two sets of variables, determining the linear combinations that maximize the correlation between them.
+
+## Discriminant Function Analysis/Linear Discriminant Analysis
+When the goal is to classify observations into predefined groups based on multiple predictor variables, this analysis helps identify the linear combinations of predictors that discriminate between groups.
+
+## Clustering
+Applied when the objective is to group similar observations together. It's useful for identifying natural patterns or subgroups within a dataset.
+
+## Multidimensional Scaling
+When the goal is to represent the similarity between objects in a dataset as distances on a map or in a geometric space, MDS is employed.
+
+Each statistical test or analysis method has its specific use case, and the choice depends on the nature of the data and the research question at hand.

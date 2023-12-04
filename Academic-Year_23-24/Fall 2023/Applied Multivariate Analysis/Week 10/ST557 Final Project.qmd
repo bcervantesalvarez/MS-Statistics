@@ -1,0 +1,183 @@
+---
+title: "ST557: Final Project"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "12-02-2023"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+## Read and Glance at Wine Datasets
+
+```{r}
+library(tidyverse)
+
+
+# Read in the wine datasets
+redWine <- read_csv("winequality-red.csv")
+whiteWine <- read_csv("winequality-white.csv")
+
+# Confirm the structure of the data given the description file
+glimpse(redWine)
+glimpse(whiteWine)
+
+# Run a quick summary for both datasets
+summary(redWine)
+summary(whiteWine)
+```
+```{r}
+# Load necessary libraries
+library(tidyverse)
+
+# Rename columns for better readability and consistency
+wineDs <- wineDs %>% 
+  dplyr::mutate(fixedAcidity = `fixed acidity`,
+         volatileAcidity = `volatile acidity`,
+         citricAcid = `citric acid`,
+         residualSugar = `residual sugar`,
+         freeSulfurDioxide = `free sulfur dioxide`,
+         totalSulferDioxide = `total sulfur dioxide`) %>%
+  dplyr::select(-c(`fixed acidity`,
+            `volatile acidity`,
+            `citric acid`,
+            `residual sugar`,
+            `free sulfur dioxide`,
+            `total sulfur dioxide`))
+
+# Display the column names of the combined dataset
+names(wineDs)
+
+# Display a concise summary of the structure of the dataset
+glimpse(wineDs)
+
+# Check for missing values in the dataset
+sum(is.na(wineDs))
+
+```
+
+## Goal 1: Distinguish white wine from red wine
+
+### a) Mean Vectors Comparison:
+
+Calculate the mean vectors for red and white wines separately for each of the 11 chemical attributes.
+Perform a statistical test ANOVA to determine if there is a significant difference in mean vectors between red and white wines.
+The attributes with significant differences in mean vectors are the ones that differ the most between red and white wine.
+
+
+
+```{r}
+# Calculate the mean vectors for red and white wines separately for each of the 11 chemical attributes
+meanVectors <- wineDs %>% 
+  group_by(wineType) %>%
+  summarize_all(mean)
+
+# Display the mean vectors
+print("Mean Vectors:")
+print(meanVectors)
+```
+
+```{r}
+# Fit a 2-way ANOVA model
+model <- aov(wineType == "red" ~ chlorides + density + pH + sulphates + alcohol + freeSulfurDioxide + totalSulferDioxide + residualSugar, data = wineDs)
+
+# Print the summary of the ANOVA
+summary(model)
+```
+
+
+
+{{< pagebreak >}}
+
+### b) Classification:
+
+Split the dataset into training and testing sets.
+Train a classification model (e.g., logistic regression, decision tree, or random forest) using the 11 chemical attributes as features and the wine type (red or white) as the target variable.
+Evaluate the model's performance using metrics such as accuracy, precision, recall, and F1-score.
+The classification rule would be based on the learned weights or feature importance from the model.
+
+{{< pagebreak >}}
+
+### c) Clustering:
+
+Use hierarchical or k-means clustering to cluster the wines based on the 11 chemical attributes.
+Choose a suitable distance measure (e.g., Euclidean distance) based on the nature of the data.
+Validate the number of clusters using methods like the elbow method (for k-means) or dendrogram (for hierarchical clustering).
+Evaluate how well the clusters reflect the red/white classification using metrics like silhouette score or cluster purity.
+
+{{< pagebreak >}}
+
+
+## Goal 2: Better understand which of these variables is most important to wine quality (Focus on red wine)
+
+### a) Mean Vectors Comparison:**
+
+   - Similar to the previous goal, calculate mean vectors for each of the 11 chemical attributes, but this time, group the wines based on quality scores (Low, Medium, High).
+   - Perform a statistical test to determine if there is a significant difference in mean vectors between wines of different quality scores.
+   - Identify which attributes show the most significant differences across quality categories.
+
+{{< pagebreak >}}
+
+### b) Classification/Prediction:**
+
+   - Split the dataset into training and testing sets.
+   - Use regression models (e.g., linear regression) to predict wine quality based on the 11 chemical attributes.
+   - Evaluate the model's performance using metrics like Mean Squared Error (MSE) or R-squared.
+
+{{< pagebreak >}}
+
+### c) PCA Analysis:**
+
+   - Perform Principal Component Analysis (PCA) on the 11 chemical attributes.
+   - Plot the wines color-coded by quality score using the first two principal components.
+   - Decide whether to standardize the data before PCA based on the scale of the original features. Standardization is generally recommended for PCA.
+   - Create a new rule for predicting wine quality using only the scores for the first two principal components.
+   - Compare the performance of this new classifier with the one using all predictor variables, using metrics like MSE or R-squared.
+
+{{< pagebreak >}}
+
+
+
+
+
+
+
+
+
+```{r}
+#| echo: false
+#| eval: false
+
+# Visualize 
+for (col in names(redWine)) {
+  p <- redWine %>% ggplot(aes(x = !!sym(col))) +
+    labs(title = paste0("Histogram Plot for: ", col)) +
+    geom_histogram(,
+                   bins = 30, 
+                   fill = "#722F37",
+                   color = "black", 
+                   alpha = 0.7) +
+    theme_minimal() 
+  
+  print(p)
+}
+
+
+# Visualize 
+for (col in names(whiteWine)) {
+  p <- redWine %>% ggplot(aes(x = !!sym(col))) +
+    labs(title = paste0("Histogram Plot for: ", col)) +
+    geom_histogram(,
+                   bins = 30, 
+                   fill = "#722F37",
+                   color = "black", 
+                   alpha = 0.7) +
+    theme_minimal() 
+  
+  print(p)
+}
+
+```
+
