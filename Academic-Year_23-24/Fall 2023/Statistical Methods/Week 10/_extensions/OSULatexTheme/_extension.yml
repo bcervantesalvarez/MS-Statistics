@@ -1,12 +1,12 @@
-title: PrettyPDF
-author: Nicola Rennie
-version: 0.0.1
+title: OSULatexTheme
+author: Brian Cervantes Alvarez
+version: 0.0.2
 contributes:
   formats: 
     pdf:
       highlight-style: gruvbox
       include-in-header: 
-       - "PrettyPDF.tex"
+       - "OSULatexTheme.tex"
       include-before-body:
        - "pagestyle.tex"
       toc: false

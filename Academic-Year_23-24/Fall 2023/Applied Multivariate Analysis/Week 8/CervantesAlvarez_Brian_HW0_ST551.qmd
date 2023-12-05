@@ -1,62 +1,367 @@
 ---
-title: "ST551: Homework 0"
+title: "ST551: Homework 6"
 author: 
     - "Brian Cervantes Alvarez"
-date: "10-04-2023"
-format: PrettyPDF-pdf
+date: "12-4-2023"
+format: OSULatexTheme-pdf
 execute: 
   warning: false
   message: false
 editor: visual
 ---
 
+# Question 1
+
+
 ## Part A
 
+
+### i
+
 ```{r}
-# Set random seed for reproducibility
-set.seed(503)
+#| warning: false
+# Create a matrix with the table frequencies
+ptabA <- rbind(c(0.02, 0.04, 0.06, 0.08),
+               c(0.03, 0.06, 0.09, 0.12),
+               c(0.05, 0.10, 0.15, 0.20))
 
-# Parameters
-n = 100
-mean = 12
-sd = 10
+# Perform Chi-squared test
+result <- chisq.test(ptabA, correct=FALSE)
 
-# Generate the random sample 
-samp1 <- rnorm(n, mean, sd)
-# Show first 50 values of the random sample generation
-head(samp1, 50)
+# Print the result
+print(result)
+```
+
+{{< pagebreak >}}
+
+### ii
+
+```{r}
+#| warning: false
+
+# Create the table
+ptabA <- rbind(c(0.02, 0.04, 0.06, 0.08),
+               c(0.03, 0.06, 0.09, 0.12),
+               c(0.05, 0.10, 0.15, 0.20))
+
+# Sample sizes
+sampSizes <- c(50, 100, 500, 1000, 5000)
+
+# Number of simulations
+nSim <- 100
+
+# Initialize matrix for results
+resultMatrix <- matrix(0, nrow = length(sampSizes), ncol = 2)
+
+# Perform tests for each sample size
+for (i in seq_along(sampSizes)) {
+  # Initialize counters for rejection rates
+  chisqRejectCount <- 0
+  fisherRejectCount <- 0
+  
+  # Perform simulations
+  for (j in 1:nSim) {
+    # Generate random sample from the population
+    samp <- matrix(rmultinom(1, sampSizes[i], ptabA), nrow = 3)
+    
+    # Perform Pearson’s Chi-squared Test without continuity correction
+    chisqResult <- try(chisq.test(samp, correct = FALSE), silent = TRUE)
+    if (!inherits(chisqResult, "try-error") && !is.na(chisqResult$p.value) && chisqResult$p.value < 0.05) {
+      chisqRejectCount <- chisqRejectCount + 1
+    }
+    
+    # Perform Fisher’s Exact Test
+    fisherResult <- try(fisher.test(samp), silent = TRUE)
+    if (!inherits(fisherResult, "try-error") && fisherResult$p.value < 0.05) {
+      fisherRejectCount <- fisherRejectCount + 1
+    }
+  }
+  
+  # Calculate rejection rates and store in the result matrix
+  resultMatrix[i, 1] <- chisqRejectCount / nSim
+  resultMatrix[i, 2] <- fisherRejectCount / nSim
+}
+
+# Add results to resultDs
+resultDs <- data.frame(sampSize = sampSizes,
+                       ChiSqRejectRate = resultMatrix[, 1],
+                       FisherRejectRate = resultMatrix[, 2])
+
+resultDs
 ```
 
 {{< pagebreak >}}
 
 ## Part B
 
-```{r}
 
-# Calculate the sample mean
-meanRandomSample <- mean(samp1)
-# Show sample mean
-print(paste0("Sample Mean: ", meanRandomSample))
+### i
+
+```{r}
+#| warning: false
+# Create the table
+ptabB <- rbind(c(0.02, 0.04, 0.05, 0.09),
+               c(0.02, 0.07, 0.10, 0.11),
+               c(0.06, 0.09, 0.15, 0.20))
+
+# Perform Chi-squared test
+result <- chisq.test(ptabB, correct=FALSE)
+
+# Print the result
+print(result)
+```
+
+{{< pagebreak >}}
+
+### ii
+
+```{r}
+#| warning: false
+# Create the table
+ptabB <- rbind(c(0.02, 0.04, 0.05, 0.09),
+               c(0.02, 0.07, 0.10, 0.11),
+               c(0.06, 0.09, 0.15, 0.20))
+
+# Sample sizes
+sampSizes <- c(50, 100, 500, 1000, 5000)
+
+# Number of simulations
+nSim <- 100
+
+# Initialize matrix for results
+resultMatrix <- matrix(0, nrow = length(sampSizes), ncol = 2)
+
+# Perform tests for each sample size
+for (i in seq_along(sampSizes)) {
+  # Initialize counters for rejection rates
+  chisqRejectCount <- 0
+  fisherRejectCount <- 0
+  
+  # Perform simulations
+  for (j in 1:nSim) {
+    # Generate random sample from the population
+    samp <- matrix(rmultinom(1, sampSizes[i], ptabB), nrow = 3)
+    
+    # Perform Pearson’s Chi-squared Test without continuity correction
+    chisqResult <- try(chisq.test(samp, correct = FALSE), silent = TRUE)
+    if (!inherits(chisqResult, "try-error") && !is.na(chisqResult$p.value) && chisqResult$p.value < 0.05) {
+      chisqRejectCount <- chisqRejectCount + 1
+    }
+    
+    # Perform Fisher’s Exact Test
+    fisherResult <- try(fisher.test(samp), silent = TRUE)
+    if (!inherits(fisherResult, "try-error") && fisherResult$p.value < 0.05) {
+      fisherRejectCount <- fisherRejectCount + 1
+    }
+  }
+  
+  # Calculate rejection rates and store in the result matrix
+  resultMatrix[i, 1] <- chisqRejectCount / nSim
+  resultMatrix[i, 2] <- fisherRejectCount / nSim
+}
+
+# Add results to resultDs
+resultDs <- data.frame(sampSize = sampSizes,
+                       ChiSqRejectRate = resultMatrix[, 1],
+                       FisherRejectRate = resultMatrix[, 2])
+
+resultDs
+```
+
+{{< pagebreak >}}
+
+
+
+# Question 2
+
+
+## Part A
+
+No, the Wilcoxon Rank-sum Test is not an asymptotically exact test of equality of medians. An example of distributions F and G with the same median where the test will always reject too often, regardless of the sample size, is when F and G are identical distributions. Even though they have the same median, the test may still reject due to tied ranks.
+
+```{r}
+library(MASS)
+# Set parameters
+sample_sizes <- c(50, 100, 200, 500)
+nSim <- 1000
+
+# Loop through different sample sizes
+for (n in sample_sizes) {
+  rejection_count <- 0
+  
+  for (i in 1:nSim) {
+    # Simulate random samples from multivariate normal distributions with the same median
+    median_value <- rnorm(1)  # generate a random median
+    sample1 <- mvrnorm(n, mu = median_value * rep(1, n), Sigma = diag(n))
+    sample2 <- mvrnorm(n, mu = median_value * rep(1, n), Sigma = diag(n))
+    
+    # Apply Wilcoxon Rank-sum Test
+    wilcox_test <- wilcox.test(sample1, sample2)
+    
+    # Check if the test rejects the null hypothesis
+    if (wilcox_test$p.value < 0.05) {
+      rejection_count <- rejection_count + 1
+    }
+  }
+  
+  # Print rejection rate for each sample size
+  cat("Rejection rate for n =", n, ":", rejection_count/nSim, "\n")
+}
 
 ```
 
 {{< pagebreak >}}
 
-## Part C
+# Part B
+
+No, the Wilcoxon Rank-sum Test is not a consistent test of $H_0: F = G$. An example of $F \neq G$ for which the test will not have power tending to one, no matter how large the sample size, is when the distributions have overlapping tails.
 
 ```{r}
-# Calculate the sample standard deviation
-sdRandomSample <- sd(samp1)
-# Show sample standard deviation
-print(paste0("Sample Standard Deviation: ", sdRandomSample))
+
+sample_size_large <- 500
+rejection_count_large <- 0
+
+for (i in 1:n_samples) {
+  # Simulate random samples with overlapping tails
+  sample1 <- rnorm(sample_size_large)
+  sample2 <- rnorm(sample_size_large) + 1
+  
+  # Apply Wilcoxon Rank-sum Test
+  wilcox_test_large <- wilcox.test(sample1, sample2)
+  
+  # Check if the test rejects the null hypothesis
+  if (wilcox_test_large$p.value < 0.05) {
+    rejection_count_large <- rejection_count_large + 1
+  }
+}
+
+# Print rejection rate for large sample sizes
+cat("Rejection rate for distributions with overlapping tails:", rejection_count_large/n_samples, "\n")
+
+
 ```
 
 {{< pagebreak >}}
 
-## Part D
+
+# Part C
+
+No, the Wilcoxon Rank-sum Test is not an asymptotically exact test of $H_0: P(X > Y) = 0.5$ for independent observations X ~ F and Y ~ G. An example of distributions F and G with $P(X > Y) = 0.5$ for which the test will not reject at the target level is when both distributions are identical.
 
 ```{r}
-# Plot the random sample
-hist(samp1)
-hist(samp1,breaks = seq(min(samp1), max(samp1) + 1, by = 1))
+rejection_count_identical <- 0
+
+for (i in 1:n_samples) {
+  # Simulate random samples from identical distributions
+  sample1 <- rnorm(50)
+  sample2 <- rnorm(50)
+  
+  # Apply Wilcoxon Rank-sum Test
+  wilcox_test_identical <- wilcox.test(sample1, sample2)
+  
+  # Check if the test rejects the null hypothesis
+  if (wilcox_test_identical$p.value < 0.05) {
+    rejection_count_identical <- rejection_count_identical + 1
+  }
+}
+
+# Print rejection rate for identical distributions
+cat("Rejection rate for identical distributions (testing P(X > Y) = 0.5):", rejection_count_identical/n_samples, "\n")
 ```
+
+{{< pagebreak >}}
+
+
+# Part D
+
+   - Construct three distributions F, G, and H such that $P(X > Y) > 0.5$, $P(Y > Z) > 0.5$, and $P(Z > X) > 0.5$. One way to accomplish this is to have G skewed one way, H skewed the other way, and F in between.
+
+   - For instance, you can choose F as a standard normal distribution, G as a right-skewed distribution (e.g., Chi-squared with 3 degrees of freedom), and H as a left-skewed distribution (e.g., -Chi-squared with 3 degrees of freedom). Adjust the constants to shift them along the line.
+
+```{r}
+n_large <- 10000
+
+# F as a standard normal distribution
+F <- rnorm(n_large)
+
+# G as a right-skewed distribution (Chi-squared with 3 degrees of freedom)
+G <- rchisq(n_large, df = 3) + 1
+
+# H as a left-skewed distribution (-Chi-squared with 3 degrees of freedom)
+H <- -rchisq(n_large, df = 3) - 1
+
+# Calculate probabilities
+prob_X_Y <- mean(F > G)
+prob_Y_Z <- mean(G > H)
+prob_Z_X <- mean(H > F)
+
+# Print probabilities
+cat("P(X > Y):", prob_X_Y, "\n")
+cat("P(Y > Z):", prob_Y_Z, "\n")
+cat("P(Z > X):", prob_Z_X, "\n")
+```
+
+{{< pagebreak >}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Question 3
+
+
+## Part A
+
+```{r}
+
+```
+
+{{< pagebreak >}}
+
+# Part B
+
+```{r}
+
+```
+
+{{< pagebreak >}}
+
+
+# Part C
+
+```{r}
+
+```
+
+{{< pagebreak >}}
+
+
+# Part D
+
+```{r}
+
+```
+
+{{< pagebreak >}}
