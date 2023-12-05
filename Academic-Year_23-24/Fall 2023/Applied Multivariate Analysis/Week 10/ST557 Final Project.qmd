@@ -15,7 +15,6 @@ editor: visual
 ```{r}
 library(tidyverse)
 
-
 # Read in the wine datasets
 redWine <- read_csv("winequality-red.csv")
 whiteWine <- read_csv("winequality-white.csv")
@@ -210,80 +209,57 @@ cat("F1-Score:", f1Score, "\n")
 confMatrix
 
 ```
-```{r}
 
+```{r}
 library(rpart)
 
+set.seed(123)
+
 # Fit a decision tree model
-tree_model <- rpart(wineType ~ ., data = trainData, method = "class")
+rpartModel <- rpart(wineType ~ ., data = trainData, method = "class")
 
 # Make predictions on the test set
-tree_predictions <- predict(tree_model, newdata = testData, type = "class")
+rpartPred <- predict(rpartModel, newdata = testData, type = "class")
 
 # Evaluate the decision tree model performance
-tree_confMatrix <- confusionMatrix(tree_predictions, actualLabels)
-tree_accuracy <- tree_confMatrix$overall["Accuracy"]
-tree_precision <- tree_confMatrix$byClass["Pos Pred Value"]
-tree_recall <- tree_confMatrix$byClass["Sensitivity"]
-tree_f1Score <- tree_confMatrix$byClass["F1"]
+confMatrix <- confusionMatrix(rpartPred, actualLabels)
+accuracy <- confMatrix$overall["Accuracy"]
+precision <- confMatrix$byClass["Pos Pred Value"]
+recall <- confMatrix$byClass["Sensitivity"]
 
 # Display the results for the decision tree model
-cat("Decision Tree Model Results:\n")
-cat("Accuracy:", tree_accuracy, "\n")
-cat("Precision:", tree_precision, "\n")
-cat("Recall:", tree_recall, "\n")
-cat("F1-Score:", tree_f1Score, "\n")
-
-tree_confMatrix
+print(paste("Decision Tree Model Results"))
+print(paste("Accuracy:", accuracy))
+print(paste("Precision:", precision))
+print(paste("Recall:", recall))
+confMatrix
 ```
 
 ```{r}
 library(randomForest)
+library(randomForestExplainer)
 
-# Assuming 'wineDs' is your dataset with the 12 columns, and the last column is "wineType"
-# Extracting the relevant columns for clustering
-dataForClustering <- wineDs %>% select(-wineType)
+set.seed(123)
 
-# Choose a suitable distance measure (e.g., Euclidean distance)
-distanceMatrix <- dist(dataForClustering)
+# Fit a random forest model
+rfModel <- randomForest(wineType ~ ., data = trainData, localImp = TRUE)
 
-# K-means clustering
-kValues <- 2:10  # You can adjust the range based on your needs
-wss <- numeric(length(kValues))
+# Make predictions on the test set
+rfPred <- predict(rfModel, newdata = testData)
 
-# Determine the suitable number of clusters using the elbow method
-for (k in kValues) {
-  kmeansModel <- kmeans(dataForClustering, centers = k)
-  wss[k - 1] <- sum(kmeansModel$withinss)
-}
+# Evaluate the random forest model performance
+confMatrix <- confusionMatrix(rfPred, actualLabels)
+accuracy <- confMatrix$overall["Accuracy"]
+precision <- confMatrix$byClass["Pos Pred Value"]
+recall <- confMatrix$byClass["Sensitivity"]
 
-# Create a tibble for elbow method plot
-elbowData <- tibble(k = kValues, wss = wss)
+# Display the results for the decision tree model
+print(paste("Decision Tree Model Results"))
+print(paste("Accuracy:", accuracy))
+print(paste("Precision:", precision))
+print(paste("Recall:", recall))
+confMatrix
 
-# Elbow method plot using ggplot2
-ggplot(elbowData, aes(x = k, y = wss)) +
-  geom_point() +
-  geom_line() +
-  labs(x = "Number of clusters (k)", y = "Within-cluster sum of squares (WSS)",
-       title = "Elbow Method for K-means Clustering")
-
-# You can visually inspect the plot to determine the optimal k value
-
-# Based on the optimal k value, perform k-means clustering
-optimalK <-  # Set the value based on the elbow method analysis
-kmeansModel <- kmeans(dataForClustering, centers = optimalK)
-
-# Create a tibble with cluster assignments
-clusterResults <- tibble(cluster = kmeansModel$cluster, wineType = wineDs$wineType)
-
-# Evaluate clusters using silhouette score
-silhouetteScore <- silhouette(clusterResults$cluster, distanceMatrix)
-meanSilhouette <- mean(silhouetteScore[, 3])
-cat("Mean Silhouette Score:", meanSilhouette, "\n")
-
-# Evaluate clusters reflecting red/white classification using cluster purity
-clusterPurity <- cluster.stats(clusterResults$cluster, clusterResults$wineType)
-cat("Cluster Purity:", clusterPurity$purity, "\n")
 
 ```
 
@@ -295,58 +271,27 @@ Use hierarchical or k-means clustering to cluster the wines based on the 11 chem
 
 
 ```{r}
-library(cluster)
-library(fpc)
+# Clustering
+library(cluster) 
+library(factoextra)
 
-# Assuming 'wineDs' is your dataset with the 12 columns, and the last column is "wineType"
-# Extracting the relevant columns for clustering
-dataForClustering <- wineDs %>% select(-wineType)
+set.seed(123)
 
-# Choose a suitable distance measure (e.g., Euclidean distance)
-distanceMatrix <- as.matrix(dist(dataForClustering))
+ds <- wineDs %>%
+  select(-wineType)
 
-# K-means clustering
-kValues <- 2:10  # You can adjust the range based on your needs
-wss <- numeric(length(kValues))
+ds <- scale(ds)
 
-# Determine the suitable number of clusters using the elbow method
-for (k in kValues) {
-  kmeansModel <- kmeans(dataForClustering, centers = k)
-  wss[k - 1] <- sum(kmeansModel$withinss)
-}
-
-# Create a tibble for elbow method plot
-elbowData <- tibble(k = kValues, wss = wss)
-
-# Elbow method plot using ggplot2
-ggplot(elbowData, aes(x = k, y = wss)) +
-  geom_point() +
-  geom_line() +
-  labs(x = "Number of clusters (k)", y = "Within-cluster sum of squares (WSS)",
-       title = "Elbow Method for K-means Clustering")
-
-# You can visually inspect the plot to determine the optimal k value
-# Once you identify the elbow, set optimalK to the corresponding value
-
-# Example: If the plot suggests an elbow at k = 3
-optimalK <- 3
-
-# Based on the optimal k value, perform k-means clustering
-kmeansModel <- kmeans(dataForClustering, centers = optimalK)
-
-# Create a tibble with cluster assignments
-clusterResults <- tibble(cluster = kmeansModel$cluster, wineType = as.numeric(as.factor(wineDs$wineType)))
-
-# Evaluate clusters using silhouette score
-silhouetteScore <- silhouette(clusterResults$cluster, distanceMatrix)
-meanSilhouette <- mean(silhouetteScore[, 3])
-cat("Mean Silhouette Score:", meanSilhouette, "\n")
-
-# Evaluate clusters reflecting red/white classification using cluster purity
-clusterPurity <- cluster.stats(clusterResults$cluster, clusterResults$wineType)
-cat("Cluster Purity:", clusterPurity$purity, "\n")
+fviz_nbclust(ds, kmeans, method='silhouette')
 
 
+km.final <- kmeans(ds, 2, nstart = 30)
+
+fviz_cluster(km.final, data = ds,
+             palette = c("#2E9FDF", "#E7B800"), 
+             geom = "point",
+             ellipse.type = "convex", 
+             ggtheme = theme_bw())
 ```
 
 
