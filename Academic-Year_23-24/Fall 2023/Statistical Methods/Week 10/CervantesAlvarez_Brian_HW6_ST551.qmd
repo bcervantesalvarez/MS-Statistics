@@ -1,55 +1,268 @@
 ---
-title: "ST551: Homework 0"
+title: "ST551: Homework 6"
 author: 
     - "Brian Cervantes Alvarez"
-date: "10-04-2023"
-format: PrettyPDF-pdf
+date: "12-08-2023"
+format: OSULatexTheme-pdf
 execute: 
   warning: false
   message: false
 editor: visual
 ---
 
+# Question 1
+
 ## Part A
 
 ```{r}
-# Set random seed for reproducibility
-set.seed(503)
+#| warning: false
+tableA <- matrix(c(0.02, 0.04, 0.06, 0.08, 
+                   0.03, 0.06, 0.09, 0.12,
+                   0.05, 0.10, 0.15, 0.20), 
+                 nrow = 3,
+                 byrow = TRUE)
 
-# Parameters
-n = 100
-mean = 12
-sd = 10
+# Perform Chi-squared test
+chi2Result <- chisq.test(tableA, correct = FALSE)
 
-# Generate the random sample 
-samp1 <- rnorm(n, mean, sd)
-# Show first 50 values of the random sample generation
-head(samp1, 50)
+# Results
+pval <- chi2Result$p.value
+print(paste0("p-val: ",pval, " Conclusion: ", 
+             ifelse(pval<0.5, "Reject Null", "Fail to reject Null")))
 ```
 
+
+
+In terms of performance, Pearson's Chi-Squared Test performed really well compared to Fisher's Exact test. It may be due to my fault with implementing fisher's exact test that I keep getting missing values for the samples above 500. I tried everything to avoid getting that error and I think it just may be due to the data itself. I may be wrong though. 
+
+```{r}
+#| warning: false
+performTests <- function(sampleSize, table) {
+  rejChi2 <- rejFisher <- numeric(0)
+  
+  for (i in 1:10000) {
+    # Simulate data
+    simDatasets <- matrix(rmultinom(1, sampleSize, table), nrow = 3)
+    
+    # Pearson's Chi-squared test
+    chi2Result <- try(chisq.test(simDatasets, correct = FALSE), silent = TRUE)
+    if (!inherits(chi2Result, "try-error")) {
+      rejChi2 <- c(rejChi2, as.numeric(chi2Result$p.value < 0.05))
+    }
+    
+    # Fisher's Exact test
+    fisherResult <- try(fisher.test(simDatasets), silent = TRUE)
+    if (!inherits(fisherResult, "try-error") && !is.na(fisherResult$p.value)) {
+      rejFisher <- c(rejFisher, as.numeric(fisherResult$p.value < 0.05))
+    }
+  }
+  
+  # Calculate rej rates
+  rejRateChi2 <- mean(rejChi2, na.rm = TRUE)
+  rejRateFisher <- mean(rejFisher, na.rm = TRUE)
+  
+  return(c(rejRateChi2, rejRateFisher))
+}
+
+# Sample sizes
+sampleSizes <- c(50, 100, 500, 1000, 5000)
+
+# Perform tests for each sample size
+results <- t(sapply(sampleSizes, function(n) performTests(n, tableA)))
+
+# Display results
+colnames(results) <- c("Pearson's Rejection Rate", "Fisher's Rejection Rate")
+rownames(results) <- paste("n =", sampleSizes)
+print(results)
+```
+
+
+{{< pagebreak >}}
+
+# Part B
+
+```{r}
+#| warning: false
+tableB <- matrix(c(0.02, 0.04, 0.06, 0.08, 
+                   0.03, 0.06, 0.09, 0.12,
+                   0.05, 0.10, 0.15, 0.20), 
+                 nrow = 3,
+                 byrow = TRUE)
+
+# Perform Chi-squared test on table B
+chi2Result <- chisq.test(tableB, correct = FALSE)
+# Results
+pval <- chi2Result$p.value
+print(paste0("p-val: ",pval, " Conclusion: ", 
+             ifelse(pval<0.5, "Reject Null", "Fail to reject Null")))
+```
+
+Again, Pearson's Chi-Squared Test performed really well compared to Fisher's Exact test. The "NAN" or missing values could my mistake. If it is, please let me know so I can fix it.
+
+```{r}
+#| warning: false
+performTests <- function(sampleSize, table) {
+  rejChi2 <- rejFisher <- numeric(0)
+  
+  for (i in 1:10000) {
+    # Simulate data
+    simDatasets <- matrix(rmultinom(1, sampleSize, table), nrow = 3)
+    
+    # Pearson's Chi-squared test
+    chi2Result <- try(chisq.test(simDatasets, correct = FALSE), silent = TRUE)
+    if (!inherits(chi2Result, "try-error")) {
+      rejChi2 <- c(rejChi2, as.numeric(chi2Result$p.value < 0.05))
+    }
+    
+    # Fisher's Exact test
+    fisherResult <- try(fisher.test(simDatasets), silent = TRUE)
+    if (!inherits(fisherResult, "try-error") && !is.na(fisherResult$p.value)) {
+      rejFisher <- c(rejFisher, as.numeric(fisherResult$p.value < 0.05))
+    }
+  }
+  
+  # Calculate rejection rates
+  rejRateChi2 <- mean(rejChi2, na.rm = TRUE)
+  rejRateFisher <- mean(rejFisher, na.rm = TRUE)
+  
+  return(c(rejRateChi2, rejRateFisher))
+}
+
+sampleSizes <- c(50, 100, 500, 1000, 5000)
+
+# Perform tests for each sample size
+results <- t(sapply(sampleSizes, function(n) performTests(n, tableB)))
+
+# Display results
+colnames(results) <- c("Pearson's Rejection Rate", "Fisher's Rejection Rate")
+rownames(results) <- paste("n =", sampleSizes)
+print(results)
+```
+
+
+{{< pagebreak >}}
+
+
+# Question 2
+
+## Part A
+
+The Wilcoxon Rank-sum Test isn't a precise test for comparing medians over large sample sizes. I illustrate this using distributions $F$ and $G$ with identical medians. As a result, the test consistently rejects the null hypothesis, indicating a mismatch. My code reveals that this rejection rate increases with larger sample sizes. Reducing the sample size doesn't make the test suitable for distributions with smaller samples.
+
+```{r}
+# Different sample sizes
+sampSizes <- c(50, 100, 500, 1000)
+
+for (n in sampSizes) {
+  rejCount <- 0
+  
+  # Simulate the test for same median distributions
+  for (i in 1:1000) {
+    X <- rnorm(n, mean = 1)
+    Y <- rexp(n, rate = 1)
+
+    result <- wilcox.test(X, Y, alternative = "two.sided")
+    
+    if (result$p.value < 0.05) {
+      rejCount <- rejCount + 1
+    }
+  }
+  
+  # Calculate rejection rate
+  rejRate <- rejCount / 1000
+  print(paste0("Rejection rate for equal medians (n = ", n, "): ",
+               rejRate*100, "%"))
+}
+```
 
 {{< pagebreak >}}
 
 ## Part B
 
-```{r}
+The Rank-Sum test lacks consistency for the null hypothesis $H_0: F = G$, meaning its power doesn't consistently approach 1 as the sample size increases. I showed the result in the graph below.
 
-# Calculate the sample mean
-meanRandomSample <- mean(samp1)
-# Show sample mean
-print(paste0("Sample Mean: ", meanRandomSample))
+```{r}
+library(ggplot2)
+
+wilcoxonPowerSimulation <- function(sampleSize, numSimulations = 1000) {
+  power <- numeric(numSimulations)
+  
+  for (i in 1:numSimulations) {
+    # Generate samples from two different distributions
+    X <- rnorm(sampleSize)
+    Y <- rt(sampleSize, df = 2)
+    
+    # Perform Test
+    result <- wilcox.test(X, Y, alternative = "two.sided")
+    
+    # Store the power of the test
+    power[i] <- result$p.value < 0.05
+  }
+  
+  # Calculate power
+  return(mean(power))
+}
+
+# Simulate power for different sample sizes
+sampleSizes <- c(50, 100, 200, 500, 1000, 2000, 5000)
+powerResults <- sapply(sampleSizes, wilcoxonPowerSimulation)
+
+ds <- data.frame(sampleSize = sampleSizes, power = powerResults)
+ggplot(ds, aes(x = sampleSize, y = power)) +
+  geom_line(color = "#D73F09", size = 2) +
+  geom_point(color = "black", size = 2) +
+  labs(x = "Sample Size", y = "Power", 
+       title = "Power of Wilcoxon Rank-Sum Test") +
+  theme_minimal()
 
 ```
 
 {{< pagebreak >}}
 
+
 ## Part C
 
+The rejection rates vary across different sample sizes, demonstrating that the test may not have sufficient power to consistently detect the true difference in this scenario. This behavior is shows that the Wilcoxon Rank-sum Test is not guaranteed to be asymptotically exact, especially under specific conditions or when sample sizes are not large enough.
+
+
 ```{r}
-# Calculate the sample standard deviation
-sdRandomSample <- sd(samp1)
-# Show sample standard deviation
-print(paste0("Sample Standard Deviation: ", sdRandomSample))
+set.seed(42)
+
+# Set up parameters
+numSimulations <- 1000
+sampleSizes <- seq(10, 200, by = 10)
+
+# Perform simulations
+rejRates <- numeric(length(sampleSizes))
+
+for (i in seq_along(sampleSizes)) {
+  nX <- sampleSizes[i]
+  nY <- round(nX / 2)
+
+  rejectCount <- 0
+
+  for (j in 1:numSimulations) {
+    X <- rexp(nX, rate = 1)
+    Y <- rexp(nY, rate = 1)
+
+    # Perform Test
+    result <- wilcox.test(X, Y, alternative = "two.sided")
+    if (result$p.value < 0.05) {
+      rejectCount <- rejectCount + 1
+    }
+  }
+
+  # Calculate rejection rate
+  rejRates[i] <- rejectCount / numSimulations
+}
+
+ds <- data.frame(sampleSize = sampleSizes, rejectionRate = rejRates)
+ggplot(ds, aes(x = sampleSize, y = rejectionRate)) +
+  geom_line(color = "#D73F09", size = 2) +
+  geom_point(color = "black", size = 2) +
+  labs(x = "Sample Size", y = "Rejection Rate", 
+       title = "Rejection Rate of Wilcoxon Rank-Sum Test") +
+  theme_minimal()
 ```
 
 {{< pagebreak >}}
@@ -57,10 +270,98 @@ print(paste0("Sample Standard Deviation: ", sdRandomSample))
 ## Part D
 
 ```{r}
-# Plot the random sample
-hist(samp1)
-hist(samp1,breaks = seq(min(samp1), max(samp1) + 1, by = 1))
+# Params
+n <- 100000
+const <- 1
+X <- rnorm(n, sd = 4)
+Y <- rchisq(n, df = 3) + const
+Z <- -rchisq(n, df = 3) + const
+
+# Calculate probs
+probXY <- mean(X > Y)
+probYZ <- mean(Y > Z)
+probZX <- mean(Z > X)
+
+print(paste("P(X > Y):", probXY))
+print(paste("P(Y > Z):", probYZ))
+print(paste("P(Z > X):", probZX))
+```
+
+{{< pagebreak >}}
+
+# Question 3
+
+## Part A
+
+Test stat => $Z = 0.54002$. What does this mean? Given the p-value of 0.5892 and significance level of 0.05, there is not enough evidence to reject the null hypothesis. Despite having test statistic of 0.54, which measures the difference in variances, we cannot go with the alternative given the high pval.
+
+```{r}
+# Diet Data
+mediterranean <- c(-6.7, -1.9, -0.6, 
+                   0.3, 0.9, 1.0, 2.4, 
+                   4.7, 7.8, 9.7, 10.3, 12.0)
+lowCarb <- c(-5.6, 0.3, 2.0, 2.0, 4.6, 5.0, 6.5, 7.5, 11.8, 17.0)
+
+# Perform Mood's test
+result <- mood.test(mediterranean, lowCarb)
+print(result)
 ```
 
 
+{{< pagebreak >}}
 
+### Part B
+
+In this case, there is no evidence to reject the null hypothesis where there is a difference in diets, where one is greater than the other. In other words, the shift is not greater than 0 in this case.
+
+```{r}
+# Perform Wilcoxon Signed-Rank test
+result <- wilcox.test(mediterranean, 
+                      lowCarb, 
+                      alternative = "greater")
+print(result)
+```
+
+
+{{< pagebreak >}}
+
+## Part C
+
+Again, we fail to reject the null hypothesis given the p-val of 0.9686 in my case. 
+
+```{r}
+permTStat <- function(x, y) {
+  return(abs(mean(x) - mean(y)))
+}
+
+obsStat <- permTStat(mediterranean, lowCarb)
+
+nPerm <- 10000
+
+results <- replicate(nPerm, {
+  samp <- sample(c(mediterranean, lowCarb))
+  permTStat(samp[1:length(mediterranean)], 
+               samp[(length(mediterranean)+1):(length(mediterranean)
+                                               +length(lowCarb))])
+})
+
+pvalPerm <- mean(results >= obsStat) * 2
+
+print(paste0("p-val = ", pvalPerm))
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+We fail to reject the null hypothesis, indicating that there is no significant evidence to suggest a difference in variances between the two groups. Again, very similar results compared to the other 3 tests. 
+
+```{r}
+library(car)
+# Perform Levene's test
+result <- leveneTest(c(mediterranean, lowCarb),
+                            group = rep(c("Mediterranean", "LowCarb"), 
+                                        times = c(length(mediterranean), 
+                                                  length(lowCarb))))
+print(result)
+```
