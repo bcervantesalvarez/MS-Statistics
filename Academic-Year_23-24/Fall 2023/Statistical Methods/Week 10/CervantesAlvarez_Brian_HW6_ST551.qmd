@@ -31,37 +31,32 @@ print(paste0("p-val: ",pval, " Conclusion: ",
              ifelse(pval<0.5, "Reject Null", "Fail to reject Null")))
 ```
 
-
-
-In terms of performance, Pearson's Chi-Squared Test performed really well compared to Fisher's Exact test. It may be due to my fault with implementing fisher's exact test that I keep getting missing values for the samples above 500. I tried everything to avoid getting that error and I think it just may be due to the data itself. I may be wrong though. 
+In terms of performance, both tests are about the same. You can argue that Fisher's does the best at smaller sample sizes and Pearson with higher sample sizes.
 
 ```{r}
 #| warning: false
 performTests <- function(sampleSize, table) {
-  rejChi2 <- rejFisher <- numeric(0)
-  
+  rejChi2 <-  numeric(0)
+  rejFisher <- numeric(0)
+
   for (i in 1:10000) {
     # Simulate data
     simDatasets <- matrix(rmultinom(1, sampleSize, table), nrow = 3)
     
     # Pearson's Chi-squared test
-    chi2Result <- try(chisq.test(simDatasets, correct = FALSE), silent = TRUE)
-    if (!inherits(chi2Result, "try-error")) {
-      rejChi2 <- c(rejChi2, as.numeric(chi2Result$p.value < 0.05))
-    }
+    chi2Result <- chisq.test(simDatasets, correct = FALSE)
+    rejChi2[i] <- chi2Result$p.value
     
     # Fisher's Exact test
-    fisherResult <- try(fisher.test(simDatasets), silent = TRUE)
-    if (!inherits(fisherResult, "try-error") && !is.na(fisherResult$p.value)) {
-      rejFisher <- c(rejFisher, as.numeric(fisherResult$p.value < 0.05))
+    fisherResult <- fisher.test(simDatasets, simulate.p.value = TRUE)
+    rejFisher[i] <- fisherResult$p.value
     }
-  }
   
-  # Calculate rej rates
-  rejRateChi2 <- mean(rejChi2, na.rm = TRUE)
-  rejRateFisher <- mean(rejFisher, na.rm = TRUE)
+  # Calculate rejection rates
+  rejChi2 <- mean(rejChi2 < 0.05, na.rm = TRUE)
+  rejFisher <- mean(rejFisher < 0.05, na.rm = TRUE)
   
-  return(c(rejRateChi2, rejRateFisher))
+  return(c(rejChi2,rejFisher))
 }
 
 # Sample sizes
@@ -75,7 +70,6 @@ colnames(results) <- c("Pearson's Rejection Rate", "Fisher's Rejection Rate")
 rownames(results) <- paste("n =", sampleSizes)
 print(results)
 ```
-
 
 {{< pagebreak >}}
 
@@ -97,41 +91,39 @@ print(paste0("p-val: ",pval, " Conclusion: ",
              ifelse(pval<0.5, "Reject Null", "Fail to reject Null")))
 ```
 
-Again, Pearson's Chi-Squared Test performed really well compared to Fisher's Exact test. The "NAN" or missing values could my mistake. If it is, please let me know so I can fix it.
+In terms of performance, both tests are about the same. You can argue that Fisher's does the best at smaller sample sizes and Pearson with higher sample sizes.
 
 ```{r}
 #| warning: false
 performTests <- function(sampleSize, table) {
-  rejChi2 <- rejFisher <- numeric(0)
-  
+  rejChi2 <-  numeric(0)
+  rejFisher <- numeric(0)
+
   for (i in 1:10000) {
     # Simulate data
     simDatasets <- matrix(rmultinom(1, sampleSize, table), nrow = 3)
     
     # Pearson's Chi-squared test
-    chi2Result <- try(chisq.test(simDatasets, correct = FALSE), silent = TRUE)
-    if (!inherits(chi2Result, "try-error")) {
-      rejChi2 <- c(rejChi2, as.numeric(chi2Result$p.value < 0.05))
-    }
+    chi2Result <- chisq.test(simDatasets, correct = FALSE)
+    rejChi2[i] <- chi2Result$p.value
     
     # Fisher's Exact test
-    fisherResult <- try(fisher.test(simDatasets), silent = TRUE)
-    if (!inherits(fisherResult, "try-error") && !is.na(fisherResult$p.value)) {
-      rejFisher <- c(rejFisher, as.numeric(fisherResult$p.value < 0.05))
+    fisherResult <- fisher.test(simDatasets, simulate.p.value = TRUE)
+    rejFisher[i] <- fisherResult$p.value
     }
-  }
   
   # Calculate rejection rates
-  rejRateChi2 <- mean(rejChi2, na.rm = TRUE)
-  rejRateFisher <- mean(rejFisher, na.rm = TRUE)
+  rejChi2 <- mean(rejChi2 < 0.05, na.rm = TRUE)
+  rejFisher <- mean(rejFisher < 0.05, na.rm = TRUE)
   
-  return(c(rejRateChi2, rejRateFisher))
+  return(c(rejChi2,rejFisher))
 }
 
+# Sample sizes
 sampleSizes <- c(50, 100, 500, 1000, 5000)
 
 # Perform tests for each sample size
-results <- t(sapply(sampleSizes, function(n) performTests(n, tableB)))
+results <- t(sapply(sampleSizes, function(n) performTests(n, tableA)))
 
 # Display results
 colnames(results) <- c("Pearson's Rejection Rate", "Fisher's Rejection Rate")
@@ -139,9 +131,7 @@ rownames(results) <- paste("n =", sampleSizes)
 print(results)
 ```
 
-
 {{< pagebreak >}}
-
 
 # Question 2
 
@@ -219,11 +209,9 @@ ggplot(ds, aes(x = sampleSize, y = power)) +
 
 {{< pagebreak >}}
 
-
 ## Part C
 
 The rejection rates vary across different sample sizes, demonstrating that the test may not have sufficient power to consistently detect the true difference in this scenario. This behavior is shows that the Wilcoxon Rank-sum Test is not guaranteed to be asymptotically exact, especially under specific conditions or when sample sizes are not large enough.
-
 
 ```{r}
 set.seed(42)
@@ -293,7 +281,7 @@ print(paste("P(Z > X):", probZX))
 
 ## Part A
 
-Test stat => $Z = 0.54002$. What does this mean? Given the p-value of 0.5892 and significance level of 0.05, there is not enough evidence to reject the null hypothesis. Despite having test statistic of 0.54, which measures the difference in variances, we cannot go with the alternative given the high pval.
+Test stat =\> $Z = 0.54002$. What does this mean? Given the p-value of 0.5892 and significance level of 0.05, there is not enough evidence to reject the null hypothesis. Despite having test statistic of 0.54, which measures the difference in variances, we cannot go with the alternative given the high pval.
 
 ```{r}
 # Diet Data
@@ -306,7 +294,6 @@ lowCarb <- c(-5.6, 0.3, 2.0, 2.0, 4.6, 5.0, 6.5, 7.5, 11.8, 17.0)
 result <- mood.test(mediterranean, lowCarb)
 print(result)
 ```
-
 
 {{< pagebreak >}}
 
@@ -322,12 +309,11 @@ result <- wilcox.test(mediterranean,
 print(result)
 ```
 
-
 {{< pagebreak >}}
 
 ## Part C
 
-Again, we fail to reject the null hypothesis given the p-val of 0.9686 in my case. 
+Again, we fail to reject the null hypothesis given the p-val of 0.9686 in my case.
 
 ```{r}
 permTStat <- function(x, y) {
@@ -354,7 +340,7 @@ print(paste0("p-val = ", pvalPerm))
 
 ## Part D
 
-We fail to reject the null hypothesis, indicating that there is no significant evidence to suggest a difference in variances between the two groups. Again, very similar results compared to the other 3 tests. 
+We fail to reject the null hypothesis, indicating that there is no significant evidence to suggest a difference in variances between the two groups. Again, very similar results compared to the other 3 tests.
 
 ```{r}
 library(car)

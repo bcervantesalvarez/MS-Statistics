@@ -1,0 +1,46 @@
+---
+title: "ST557: Final Project"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "12-14-2023"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+  echo: false
+editor: visual
+---
+
+
+\begin{align*}
+&H_0: \bar{\mu}_{\text{red}} = \bar{\mu}_{\text{white}} \\
+&H_A: \bar{\mu}_{\text{red}} \neq \bar{\mu}_{\text{white}}
+\end{align*}
+
+
+## Perform MANOVAs to determine if there are a significant difference in mean vectors between wines with different quality/quality groups at a siginificance level of $\alpha = 0.05$?
+
+\begin{align*}
+&H_0: \mu_2 = \mu_3 = \mu_4 = \mu_5 = \mu_6 = \mu_7 = \mu_8 \\
+&H_A: \text{At least one of } \mu_2, \mu_3, \mu_4, \mu_5, \mu_6, \mu_7, \text{ or } \mu_8 \text{ is different}
+\end{align*}
+
+
+\begin{align*}
+&H_0: \mu_{\text{Low}} = \mu_{\text{Medium}} = \mu_{\text{High}} \\
+&H_A: \text{At least one of } \mu_{\text{Low}}, \mu_{\text{Medium}}, \text{ or } \mu_{\text{High}} \text{ is different}
+\end{align*}
+
+
+### MANOVA for Quality Levels 3, 4, 5, 6, 7, 8
+
+In the first analysis, we looked at the Original Quality Scores, and the results were highly significant. The p-value was super close to zero, less than $2.2 x 10^{-16}$. This means there are big differences in the average chemical properties for different quality scores. Therefore, the mean vectors for each quality level varied, providing strong support for rejecting the null hypothesis.
+
+### MANOVA for Quality Groups [Low, Medium, High]
+
+In the second analysis, we focused on Quality Groups (Low, Medium, High), and the results were also highly significant. The p-value was very close to zero, less than $2.2 x 10^{-16}$. This indicates significant differences in the average chemical properties across different quality groups. We have strong evidence that the mean vectors between each quality group differed. Therefore, we have evidence to reject the null and be in favor of the alternative.
+
+### Overall MANOVA Test Conclusion
+
+To summarize, our MANOVA tests reveal significant differences in average values for both original quality scores and quality groups. For original scores, statistics like Pillai's trace and Wilks' lambda had extremely low p-values $p < 2.2 x 10^{-16}$. Quality groups exhibited similar results.
+

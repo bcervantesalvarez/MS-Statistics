@@ -1,0 +1,19 @@
+---
+title: "ST557: Final Project"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "12-02-2023"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+
+
+
+
+## Tests by hand:
+
+t test, ks one sample, ks two sample, mood's test, pearson's chi-square, wilcoxon signed-rank test and wilcoxon rank-sum test
