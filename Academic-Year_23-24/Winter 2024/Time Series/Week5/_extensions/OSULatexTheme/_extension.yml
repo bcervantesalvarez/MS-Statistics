@@ -7,8 +7,6 @@ contributes:
       highlight-style: gruvbox
       include-in-header: 
        - "OSULatexTheme.tex"
-      include-before-body:
-       - "pagestyle.tex"
       toc: false
       code-block-border-left: "#000000"
       linkcolor: highlight

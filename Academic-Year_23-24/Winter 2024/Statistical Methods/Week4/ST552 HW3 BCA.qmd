@@ -1,0 +1,215 @@
+---
+title: "Homework 3"
+subtitle: "ST552 Statistical Methods"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "01-19-2023"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Problem 1
+
+## Part A
+
+The design matrix $X$ for $J = 3$ and $K = 3$ is as follows:
+
+$$
+X = \begin{bmatrix}
+1 & 0 & 0 \\
+1 & 0 & 0 \\
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 1 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 1 \\
+0 & 0 & 1 \\
+0 & 0 & 1 \\
+\end{bmatrix}
+$$
+
+## Part B 
+
+```{r}
+#| echo: false
+#| output: false
+X <- matrix(c(
+  1, 0, 0,
+  1, 0, 0,
+  1, 0, 0,
+  0, 1, 0,
+  0, 1, 0,
+  0, 1, 0,
+  0, 0, 1,
+  0, 0, 1,
+  0, 0, 1
+), nrow = 9, byrow = TRUE)
+X
+```
+
+
+```{r}
+y <- rnorm(9)
+beta_hat <- solve(t(X) %*% X) %*% t(X) %*% y
+beta_hat
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+```{r}
+sigma2 <- var(y) 
+var_beta_hat <- sigma2 * solve(t(X) %*% X)
+var_beta_hat
+```
+
+{{< pagebreak >}}
+
+# Problem 2
+
+## Part A
+
+Given $X$ is all 1’s, the ordinary least squares estimations of $\beta_0$ and $\beta_1$ are obtained by minimizing the sum of squared residuals:
+
+$$
+\sum_{i=1}^{n} e_i^2 = \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 = \sum_{i=1}^{n} (y_i - (\hat{\beta}_0 + \hat{\beta}_1x_i))^2
+$$
+
+The condition for the minimum requires that the partial derivatives of this sum with respect to $\hat{\beta}_0$ and $\hat{\beta}_1$ are zero:
+
+$$
+\frac{\partial}{\partial \hat{\beta}_0} \sum (y_i - (\hat{\beta}_0 + \hat{\beta}_1x_i))^2 = -2 \sum (y_i - \hat{y}_i) = -2 \sum e_i = 0
+$$
+
+Hence, $\sum_{i=1}^{n} e_i = 0$.
+
+## Part B
+
+The fitted values are given by $\hat{y} = X\hat{\beta}$, and the residuals are $e = y - \hat{y}$.
+
+The OLS estimation aims to minimize the sum of squared residuals, $e^Te$. The condition for the minimum is obtained by setting the derivative of $e^Te$ with respect to $\hat{\beta}$ to zero:
+
+$$
+\frac{\partial}{\partial \hat{\beta}} e^Te = \frac{\partial}{\partial \hat{\beta}} (y - X\hat{\beta})^T(y - X\hat{\beta}) = X^T(y - X\hat{\beta}) = 0
+$$
+
+Since the first column of $X$ is all 1’s, this implies the first row of $X^T$ will be multiplied by all residuals, summing them:
+
+$$
+\sum_{i=1}^{n} e_i = 0
+$$
+
+## Part C
+
+The condition that the total true error term $\epsilon_i$ sums to zero is not guaranteed in population regression. This is because $\epsilon_i$ represents the random and unobserved variations in the data, unlike the residuals $e_i$ in OLS regression, which are forced to sum to zero to minimize error. The true errors' sum not equaling zero reflects the inherent randomness in the data, rather than a model's accuracy.
+
+{{< pagebreak >}}
+
+# Problem 3 
+
+## Part A
+
+To find the $\hat{\sigma}$ we can use this formula where 
+$n$ is the number of observations, $k$ is the number of predictors including the intercept, and $e_i$ are the residuals:
+
+$$
+\hat{\sigma} = \sqrt{\frac{\sum_{i=1}^{n} e_i^2}{n - k}}
+$$
+```{r}
+library(IRdisplay)
+library(faraway)
+data(teengamb)
+
+xMatrix <- as.matrix(cbind(1, teengamb$sex, teengamb$status, teengamb$income, teengamb$verbal))
+
+yVector <- teengamb$gamble
+
+betaHat <- solve(t(xMatrix) %*% xMatrix) %*% t(xMatrix) %*% yVector
+
+yPredicted <- xMatrix %*% betaHat
+
+residualsVector <- yVector - yPredicted
+
+# Calculate the estimator
+nObservations <- length(yVector)  
+kPredictors <- 5  
+sigmaHat <- sqrt(sum(residualsVector^2) / (nObservations - kPredictors))
+print(sigmaHat)
+```
+$$\hat{\sigma} = 22.69$$
+
+
+
+In the context of the data, it provides a measure of the typical amount by which the actual gambling expenditures (gamble) deviate from the values predicted by the model based on sex, status, income, and verbal score.
+
+{{< pagebreak >}}
+
+## Part B
+
+```{r}
+library(faraway)
+data(teengamb)
+
+model <- lm(gamble ~ sex + status + income + verbal, data = teengamb)
+summary(model)
+```
+
+The Residual standard Error = 22.69 which matches what we got from part a.
+
+{{< pagebreak >}}
+
+## Part C
+
+$$
+\text{Var}(\hat{\beta}) = \hat{\sigma}^2 (X^TX)^{-1}
+$$
+
+
+```{r}
+vcov(model)
+```
+
+This function returns the covariance matrix of the model's coefficient estimates.
+
+{{< pagebreak >}}
+
+# Problem 4
+
+## Part A
+
+
+\begin{align*}
+\text{Energy} &= \beta_0 + \beta_1\text{Mass} + \beta_2I_{\text{noEchoBat}} + \beta_3I_{\text{noEchoBird}} + \beta_4(\text{Mass} \times I_{\text{noEchoBat}}) \\
+&\quad + \beta_5(\text{Mass} \times I_{\text{noEchoBird}}) + \beta_6I_{\text{echoBat}} + \beta_7(\text{Mass} \times I_{\text{echoBat}}) + \epsilon
+\end{align*}
+
+
+{{< pagebreak >}}
+
+## Part B
+
+```{r}
+# Load necessary packages
+library(Sleuth3)
+library(dplyr)
+library(ggplot2)
+
+data(case1002, package = "Sleuth3")
+
+case1002$Type <- as.factor(case1002$Type)
+unique(case1002$Type)
+model <- lm(Energy ~ Mass * Type, data = case1002)
+summary(model)
+```
+
+To calculate the mean Energy expenditure for each type when Mass is held at 0: For non-echolocating bats, it is $\beta_0 + 10.73340 = 0.49398 + 10.73340 = 11.22738$. For non-echolocating birds, it is $\beta_0 + 2.82276 = 0.49398 + 2.82276 = 3.31674$. For echolocating bats (assuming they are the reference category), it is simply $\beta_0 = 0.49398$.
+
+{{< pagebreak >}}
+
+## Part C
+
+The interaction term between Mass and non-echolocating bats, with a coefficient of $\hat{\beta}_{j} = -0.04959$, indicates that the relationship between Mass and Energy expenditure for non-echolocating bats decreases by 0.04959 units for each unit increase in Mass, compared to the reference category. This suggests that for non-echolocating bats, as their mass increases, the expected increase in energy expenditure is slightly less than what is observed for the baseline category (presumed to be echolocating bats) by this amount. Essentially, this term quantifies the unique influence of Mass on Energy expenditure among non-echolocating bats, differentiating it from the pattern seen in the reference group.

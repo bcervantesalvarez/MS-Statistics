@@ -1,0 +1,302 @@
+---
+title: "ST565 Homework 1"
+subtitle: "ST565: Time Series"
+author: "Brian Cervantes Alvarez"
+date: "01-31-2023"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Question 1
+
+## Part A
+
+### Finding $E(\bar{x})$
+- $E(\bar{x}) = E\left(\frac{x_1 + x_2}{2}\right)$
+- This becomes $\frac{E(x_1) + E(x_2)}{2}$.
+- Given $E(x_1) = E(x_2) = \mu$, it simplifies to $E(\bar{x}) = \frac{\mu + \mu}{2} = \mu$.
+
+### Finding $\text{Var}(\bar{x})$
+
+- $\text{Var}(\bar{x}) = \text{Var}\left(\frac{x_1 + x_2}{2}\right)$
+- The variance becomes $\frac{1}{4}\text{Var}(x_1 + x_2)$
+- Since $\text{Var}(x_1 + x_2) = \text{Var}(x_1) + \text{Var}(x_2) + 2\text{Cov}(x_1, x_2)$ and $\text{Cov}(x_1, x_2) = 0$ because $\text{cor}(x_1, x_2) = 0$, it simplifies to $\frac{1}{4}(2\sigma^2)$ because $\text{Var}(x_1) = \text{Var}(x_2) = \sigma^2$.
+- Thus, $\text{Var}(\bar{x}) = \frac{\sigma^2}{2}$.
+
+## Part B
+
+### Finding $E(\bar{x})$
+- $E(\bar{x})$ does not depend on the correlation; hence, $E(\bar{x}) = \mu$.
+
+### Finding $\text{Var}(\bar{x})$
+
+- $\text{Var}(\bar{x}) = \frac{1}{4}\text{Var}(x_1 + x_2)$ still holds.
+- Now, $\text{Var}(x_1 + x_2) = \text{Var}(x_1) + \text{Var}(x_2) + 2\text{Cov}(x_1, x_2)$, but $\text{Cov}(x_1, x_2) \neq 0$.
+- Given $\text{Cov}(x_1, x_2) = \rho\sigma^2$ because $\text{cor}(x_1, x_2) = \rho$ and $\text{Cov}(x_1, x_2) = \text{cor}(x_1, x_2) \cdot \sigma_{x_1} \cdot \sigma_{x_2}$, the variance becomes $\frac{1}{4}(2\sigma^2 + 2\rho\sigma^2)$.
+- Therefore, $\text{Var}(\bar{x}) = \frac{\sigma^2}{2}(1 + \rho)$.
+
+## Part C
+
+### Effect of Correlation on Variance of Sample Mean
+- When $\text{cor}(x_1, x_2) = 0$, the variance of the sample mean is $\frac{\sigma^2}{2}$.
+- When $\text{cor}(x_1, x_2) = \rho$, the variance of the sample mean becomes $\frac{\sigma^2}{2}(1 + \rho)$.
+- The correlation affects the variance of the sample mean. Positive correlation increases the variance, whereas negative correlation decreases it.
+- Ignoring correlation in inference can lead to underestimating or overestimating the variability in the data.
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part A
+
+### Show $n = 3, 4$
+- For $n = 3, 4$, can be described by the formula $x_t = \delta t + \sum_{j=1}^{t} w_j$ for $t = 1, \ldots, n$.
+- Let's show it for $t = 1, 2, 3, 4$:
+    - When $t = 1$, $x_1 = \delta + x_0 + w_1 = \delta + w_1$.
+    - When $t = 2$, $x_2 = \delta + x_1 + w_2 = \delta + (\delta + w_1) + w_2 = 2\delta + w_1 + w_2$.
+    - When $t = 3$, $x_3 = \delta + x_2 + w_3 = \delta + (2\delta + w_1 + w_2) + w_3 = 3\delta + w_1 + w_2 + w_3$.
+    - When $t = 4$, $x_4 = \delta + x_3 + w_4 = \delta + (3\delta + w_1 + w_2 + w_3) + w_4 = 4\delta + w_1 + w_2 + w_3 + w_4$.
+
+## Part B
+
+### Determining the Mean
+- $E[x_t] = E[\delta + x_{t-1} + w_t]$.
+- Since $E[w_t] = 0$ for white noise, $E[x_t] = \delta + E[x_{t-1}]$.
+- If you continue the pattern, the mean becomes $\delta t$.
+
+### Determining the Variance
+- $\text{Var}(x_t) = \text{Var}(\delta + x_{t-1} + wt)$.
+- Since $\text{Var}(w_t) = \sigma_w^2$ and $w_t$ is independent, the variance converges to $t\sigma_w^2$.
+
+### Determining Stationarity
+- The process is not stationary as the mean and variance depend on time $t$.
+
+## Part C
+
+- Autocovariance function is given as $\gamma(s, t)$ of $x_t$ for $\delta = 0$ where $\gamma(s, t) = \text{Cov}(x_s, x_t)$.
+- For $\delta = 0$, $x_t = \sum_{j=1}^{t} w_j$.
+- $\gamma(s, t)$ depends on the overlap of the sums of $w_j$. This means that if $s \leq t$, then the ACF is $\gamma(s, t) = s\sigma_w^2$.
+
+## Part D
+
+- The autocovariance function does the following compared to the random walk and moving average processes:
+    - In the random walk process, the autocovariance function increases with time lag.
+    - In a moving average process, the autocovariance function usually becomes zero after a certain lag, indicating no correlation beyond a specific period.
+    
+    
+{{< pagebreak >}}
+    
+# Question 3
+
+## Part A: $x_t = w_t - w_{t-3}$
+
+### Stationarity
+- The process is stationary. 
+- Each $w_t$ is independent and identically distributed, and the structure of $x_t$ does not change over time.
+
+### Mean
+- The mean is $E[x_t] = E[w_t - w_{t-3}] = E[w_t] - E[w_{t-3}] = 0 - 0 = 0$.
+
+### Autocovariance Function
+- The autocovariance function depends on the lag $k$: 
+    - For $k = 0$, $\text{Cov}(x_t, x_t) = \text{Var}(w_t - w_{t-3}) = \text{Var}(w_t) + \text{Var}(w_{t-3}) = 2$.
+    - For $k = 3$ or $k = -3$, $\text{Cov}(x_t, x_{t-3}) = -1$.
+    - Otherwise, it is $0$.
+
+## Part B: $x_t = w_1^3$
+
+### Stationarity
+- The process is not stationary.
+- $x_t$ is constant over time, which violates the requirement for stationarity that the mean and variance must not depend on time.
+
+## Part C: $x_t = t + w_1^3$
+
+### Stationarity
+- The process is not stationary.
+- The term $t$ introduces a time-dependent trend.
+
+## Part D: $x_t = w_t^2$
+
+### Stationarity
+- The process is stationary.
+- Each $w_t^2$ follows a Chi-squared distribution with 1 degree of freedom and is independent of time $t$.
+
+### Mean
+- The mean is $E[w_t^2] = 1$ (since the variance of $w_t$ is $1$).
+
+### Autocovariance Function
+- The autocovariance function depends on the lag $k$:
+    - For $k = 0$, it is the variance of $w_t^2$, which is $2$.
+    - For $k \neq 0$, it is $0$ since $w_t$ are independent.
+
+## Part E: $x_t = w_t w_{t-2}$
+
+### Stationarity
+- The process is stationary.
+- The multiplication of two independent, identically distributed normal random variables at different times does not depend on time $t$.
+
+### Mean
+- The mean is $E[w_t w_{t-2}] = E[w_t] \cdot E[w_{t-2}] = 0$.
+
+### Autocovariance Function
+- The autocovariance function depends on the lag $k$:
+    - For $k = 2$ or $k = -2$, $\text{Cov}(x_t, x_{t-2}) = 1$.
+    - Otherwise, it is $0$.
+
+
+{{< pagebreak >}}
+
+# Question 4
+
+## Part A
+
+```{r}
+#| echo: false
+
+library(extrafont)
+
+extrafont::loadfonts(quiet = TRUE)
+
+# Custom Theme Function
+theme_osu <- function(base_size = 12, base_family = "Georgia") {
+  theme_minimal(base_size = base_size, base_family = base_family) +
+    theme(
+      # Color and fill elements with OSU's colors
+      plot.background = element_rect(fill = "white", color = NA),
+      panel.background = element_rect(fill = "white", color = NA),
+      legend.background = element_rect(fill = "white", color = NA),
+      plot.title = element_text(color = "#DC4405", size = rel(1.2)),
+      plot.subtitle = element_text(color = "#DC4405", margin = margin(b = 10)),
+      plot.caption = element_text(color = "black"),
+      axis.title = element_text(color = "black"),
+      axis.text = element_text(color = "black"),
+      legend.text = element_text(color = "black"),
+      legend.title = element_text(color = "black")
+      # Add any other elements you wish to customize
+    )
+}
+```
+
+
+
+
+```{r}
+#| echo: false
+
+library(tidyverse)
+library(lubridate)
+
+leagueDs <- read.csv("leagueWorlds.csv", header = FALSE)
+anitaDs <- read.csv("anitamaxwynn.csv", header = FALSE)
+palworldDs <- read.csv("palworld.csv", header = FALSE)
+
+
+# Remove incorrect rows
+
+leagueDs <- leagueDs[-c(1,2),]
+anitaDs <- anitaDs[-c(1,2),]
+palworldDs <- palworldDs[-c(1,2),]
+
+# Fix Column Headers
+
+leagueDs <- leagueDs %>% 
+  mutate(YearMonth = ym(V1),
+         SearchCount = as.numeric(ifelse(V2 %in% "<1", 0, V2))) %>%
+  select(-c(V1, V2))
+
+anitaDs <- anitaDs %>% 
+  mutate(Month = ymd(V1),
+         SearchCount = as.numeric(ifelse(V2 %in% "<1", 0, V2))) %>%
+  select(-c(V1, V2))
+
+palworldDs <- palworldDs %>% 
+  mutate(Day = ymd(V1),
+         SearchCount = as.numeric(ifelse(V2 %in% "<1", 0, V2))) %>%
+  select(-c(V1, V2))
+
+
+#head(leagueDs)
+#head(anitaDs)
+#head(palworldDs)
+```
+
+```{r}
+#| echo: false
+
+p1 <- leagueDs %>% 
+  ggplot(aes(x = YearMonth, y = SearchCount)) +
+  geom_line() +
+  labs(title = "Google Trends - Search Term: 'League of Legends Worlds'",
+       subtitle = "From Jan 1st, 2011 to Feb 1st, 2021", 
+       x = NULL,
+       y = "Search Popularity (Scale 0-100)") +
+  theme_osu()
+
+p2 <- anitaDs %>% 
+  ggplot(aes(x = Month, y = SearchCount)) +
+  geom_line() +
+  labs(title = "Google Trends - Search Term: 'Anita Max Wynn'",
+       subtitle = "From Dec 17th, 2011 to Jan 28th, 2024", 
+       x = NULL ,
+       y = "Search Popularity (Scale 0-100)") +
+  theme_osu()
+
+p3 <- palworldDs %>% 
+  ggplot(aes(x = Day, y = SearchCount)) +
+  geom_line() +
+  labs(title = "Google Trends - Search Term: 'Palworld'",
+       subtitle = "From Jan 1st, 2024 to Jan 28th, 2024", 
+       x = NULL,
+       y = "Search Popularity (Scale 0-100)") +
+  theme_osu()
+```
+
+
+#### Initial Popularity (2011-2013):
+   - **Low Baseline Interest:** During this period, the interest in "League of Legends Worlds" was considerably low, reflecting poor interest early on. 
+   
+#### Growth Phase (2014 Onwards):
+   - **Rapid Increase in Popularity:** This could be attributed to several factors, including the rising popularity of esports, increased marketing efforts by Riot Games, and the event's growing reputation as a premier competitive gaming spectacle.
+   - **Annual Peaks:** These peaks are likely more pronounced and have a higher amplitude compared to earlier years, indicating heightened anticipation and engagement from the global gaming community.
+
+```{r}
+#| echo: false
+p1 + scale_x_date(date_labels = "%Y", 
+                  date_breaks = "2 year")
+```
+
+
+{{< pagebreak >}}
+
+## Part B
+
+- **Here's Some Context:**  Palworld, a video game blending elements from Ark: Survival Evolved, Legend of Zelda: Breath of the Wild, and incorporating Pokémon-like mechanics, saw exponential growth in search interest post its early access launch starting on January 19th 2024, showcasing a dramatic spike in public attention.
+
+- **Potential Cause in Popularity:** Top streamers from Twitch began to stream Palworld, causing a major influx of gamer attention. Even a few of my friends started playing it. In other words, they got on board of what I like to call the "current streamer game train". 
+
+- **Where it is trending?** After the initial surge, the game stabilized and then entered a phase of steady linear growth from January 22, 2024, onwards, reflecting a sustained interest in the game's unique gameplay experience. Maybe it's a good Pokémon-like game?
+
+
+```{r}
+#| echo: false
+p3 + scale_x_date(date_labels = "%b %d", 
+                  date_breaks = "week")
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+- **Event-Driven Spike:** A sharp increase in search interest for "Anita Max Wynn" was triggered by a mention from rapper Drake, peaking sharply on December 25th due to viral spread and memeing.
+- **Rapid Decline and Leveling Off:** After peaking, interest in the term quickly declined from late January, showing the nature of viral meme culture, yet it leveled off slightly above pre-spike levels, indicating some residual interest-probably due to streamers referencing that meme joke.
+- **Absence of Seasonality and Trend:** It does not follow predictable seasonal patterns or a long-term trend, highlighting its dependence on being a viral meme.
+
+```{r}
+#| echo: false
+p2 + scale_x_date(date_labels = "%b %d", 
+                  date_breaks = "week")
+```
+
