@@ -1,0 +1,367 @@
+---
+title: "ST552 Homework 5"
+author: 
+    - "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Problem 1
+
+```{r}
+library(faraway)  
+library(car)      
+library(ggplot2)
+
+data(prostate)
+prostateModel <- lm(lpsa ~ ., data = prostate)
+summary(prostateModel)
+```
+
+## Part A
+
+**Does this follow Homoscedasticity?**: The plot of residuals versus fitted values does not show significant deviations from constant variance. Although there is a slight increase in variance between fitted values of 1 and 2, it levels off close to 0. This slight fluctuation may not be substantial enough to invalidate the model but warrants a closer inspection. Overall, the data appears to follow the homoscedasticity assumption.
+
+```{r}
+plot(prostateModel, which = 1)
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+**Are the residuals following normality?**: According to the Q-Q plot, we can safely suggest that the residuals are following normality. While the tails deviate slightly from normality, the majority of the residuals appear to follow a normal distribution.
+
+```{r}
+plot(prostateModel, which = 2)
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+**Are there any extreme predictor values in our leverage plot?**: After standardizing the residuals, we can see that there appears to be a predictor value, specifically 32, that is influencing the regression line. Since this point has high leverage, it may be distorting the outcome and interpretation of the regression model. We need to look into this data value and determine if we should or should not remove it. We would need to look at cook's distance next.
+
+```{r}
+plot(prostateModel, which = 5)
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+**Similar to leverage, are there any outliers using Cook's Distance?**: If we consider the 3 largest cook's distance observations, we can notice that data value 32 is persistent in being a potential outlier. Given that observation 32 showed up in the residual vs leverage plot, it would be proper practice to fully investigate this value. While observations 47, and 69 have second and third highest cook's distance, they would be included in the model since they did appear to be that influential in the residual vs leverage plot.
+
+```{r}
+plot(prostateModel, which = 4)
+```
+
+{{< pagebreak >}}
+
+## Part E
+
+**Cook's Distance vs Leverage, which data values should we narrow down?**: When we look at this plot, we need to consider the high leverage and high influence points. Clearly, there sits on point which has a concerning one and is observation 32. Given that it has both high leverage (far to the right) and high influence (higher up), we can set our exceptions straight and consider removing observation 32 from the model. While observations 69 and 47 have moderately low leverage, but high influence, I would still consider leaving them in the model. The reasoning behind this is those values are not that influential compared to observation 32. Additionally, there could be loss of information and those points could be valid variances. Therefore, we must be careful in deciding the removal of this points.
+
+```{r}
+plot(prostateModel, which = 6)
+```
+
+{{< pagebreak >}}
+
+## Part F
+
+**Looking at the pairs plots for correlation**: From the pairs plots, we can see that we have strong linear correlation between the response variable, **lpsa**, and predictors **lacavol**, **lcp and svi**. We have moderate correlation with **lpsa** vs. **gleason, pgg45** and **lweight.** We have weak correlation for **Ipsa** vs. **age** and **lbph.** I used ggpairs from the ggsally package so it can give me their correlation values and their distributions. You can clearly see the normally distributed and non-normal distributions for a few of the predictors. One of them is binary and the other categorical which can give insight into their distributions and correlation to the response variable. Generally, if we noticed that most of the these predictors did not behave in a linear sense, then we would have to change our modeling technique to fit the data in a more appropriate manner.
+
+```{r}
+library("GGally")
+ggpairs(prostate, 
+        columns = c("lpsa", "lcavol", "lweight", "age", "lbph"),
+        progress = FALSE)
+ggpairs(prostate, 
+        columns = c("lpsa", "svi", "lcp", "gleason", "pgg45"),
+        progress = FALSE)
+# Base R
+pairs(~ lpsa + lcavol + lweight + age + lbph, 
+      data = prostate,
+      upper.panel = NULL, 
+      lower.panel = panel.smooth) 
+
+pairs(~ lpsa + svi + lcp + gleason + pgg45, 
+      data = prostate, 
+      upper.panel = NULL, 
+      lower.panel = panel.smooth)
+
+```
+
+{{< pagebreak >}}
+
+# Problem 2
+
+## Part A
+
+Here is our model design:
+
+$$
+\text{lcavol} = \beta_0 + \beta_1 \times \text{lweight} + \epsilon
+$$
+
+```{r}
+ds <- prostate
+
+lcavol <- ds$lcavol
+lweight <- ds$lweight
+
+model <- lm(lcavol ~ lweight, data = ds)
+summary(model)
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+A scatterplot is drawn with **lweight** on the x-axis and **lcavol** on the y-axis. Observations 13 and 39 are highlighted in the color `chocalate4` (yes, it's a good color), and the center of the data in color `blue2`.
+
+```{r}
+library(ggplot2)
+
+# Calculate the means
+mean_lcavol <- mean(ds$lcavol)
+mean_lweight <- mean(ds$lweight)
+
+pointsOfInterest <- subset(ds, row.names(ds) %in% c('13', '39'))
+
+# Create scatterplot
+ggplot(ds, aes(x = lweight, y = lcavol)) +
+  geom_point(alpha = 0.2) +
+  geom_point(data = pointsOfInterest, color = 'chocolate4') +
+  geom_point(aes(x = mean_lweight, y = mean_lcavol), color = 'blue2', size = 2) + 
+  theme_minimal()
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+-   **Low Leverage:** Both observations have minimal influence on the regression line fit.
+
+-   **Squared Euclidean Distance:** Observation 13 is centrally located, suggesting typicality, while observation 39 is much further away, potentially hinting at outlier status.
+
+-   **Squared Mahalanobis Distance:** Observation 13's low value indicates close alignment with the overall data distribution. In contrast, observation 39's high value flags it as a potential multivariate outlier.
+
+Now, while both observations have low influence, observation 39 raises concerns as a potential outlier based on its distance from the data's center.
+
+```{r}
+# Leverage calculations by hand
+X <- as.matrix(cbind(1, ds[, c("lcavol", "lweight")])) 
+H <- X %*% solve(t(X) %*% X) %*% t(X) 
+leverages <- diag(H) 
+
+# Calculating squared Euclidean distances
+meanVals <- colMeans(X) 
+cX <- X - meanVals
+euclidDist <- rowSums(cX^2) 
+
+# Calculating squared Mahalanobis distances
+covInv <- solve(cov(cX)) 
+mahalanobisDist <- apply(cX, 1, function(row) t(row) %*% covInv %*% row)
+
+# Extracting specific observations
+leveragesObs <- leverages[c(13, 39)]
+euclideanObs <- euclidDist[c(13, 39)]
+mahalanobisObs <- mahalanobisDist[c(13, 39)]
+
+observations <- list(leverage = leveragesObs, 
+                     euclideanSq = euclideanObs, 
+                     mahalanobisSq = mahalanobisObs)
+
+print(observations)
+
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+This measure adjusts the squared Mahalanobis distance by adding a term that accounts for the size of the dataset. This adjustment does not increase the mahalanobis squared distance of observations 13 and 39 but a siginficant amount. The increase is very minimal and does not drastically change the values. It also shows that this adjustment distance is not zero which could be useful in a non-zero baseline context.
+
+```{r}
+n <- nrow(X)
+mahalanobisAdj <- 1/n + mahalanobisObs
+list(mahalanobisAdj = mahalanobisAdj)
+```
+
+{{< pagebreak >}}
+
+# Problem 3
+
+## Part A
+
+We know that the condition number assesses the multicollinearity of the predictors. The condition number is $824.4962$, which is significantly above $30$. This heavily suggests that there is severe multicollinearity, which can affect the stability and interpretability of the regression coefficients.
+
+```{r}
+model <- lm(lpsa ~ ., data = ds)
+# Compute condition number
+cn <- kappa(model.matrix(model))
+cn
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+The correlation matrix shows varying degrees of association between different variables. First, **lcavol** and **lcp** have a relatively high correlation $(0.675)$, suggesting potential *multicollinearity*. Similarly, **lcp** and **pgg45** $(0.632)$, as well as **gleason** and **pgg45** $(0.752)$, show significant correlations, indicating strong relationships. However, other pairs, like **lweight** and **gleason** or **lbph** and **svi**, show very low correlations, indicating that not all variables are strongly associated. This mixed pattern indicates that we should be careful when selecting the variables to include in our models. That would help to minimize and/or avoid multicollinearity issues in the regression analysis.
+
+```{r}
+# Compute correlations between predictors
+predCor <- cor(ds[, -which(names(ds) == "lpsa")])
+predCor
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+```{r}
+vifVals <- vif(model)  
+vifDs <- data.frame(Predictor = names(vifVals), VIF = unname(vifVals))
+print(vifDs)
+```
+The Variance Inflation Factors for the predictors show differing levels of multicollinearity. Specifically, **lcp** has the highest VIF value of $3.097954$, suggesting moderate multicollinearity with other predictors. In contrast, **age** has the lowest VIF value of $1.323599$, showing minimal multicollinearity. However, all VIF values are below the common threshold of $10$, which means that while there is some multicollinearity present, it may not severely impact the regression estimates.
+
+{{< pagebreak >}}
+
+# Problem 4
+
+## Part A
+
+The predictor **Lactic** is statistically significant in the model, with a p-value of 0.03108, indicating a significant association with response variable **taste**.
+
+```{r}
+data(cheddar)
+model <- lm(taste ~ ., data = cheddar)
+summary(model)
+```
+{{< pagebreak >}}
+
+## Part B
+
+```{r}
+pval <- summary(model)$coefficients["Lactic", 4]
+pval
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+By adding normally distributed errors, $\epsilon = N(0, 0.01)$, to the **Lactic** predictor may enhance the model's fit by introducing slight variability that could align more closely with the inherent noise in the response variable **taste**. This can potentially decrease the residual variance, improving the precision of the estimated relationship between **Lactic** and **taste** and possibly leading to a lower p-value, albeit with variability across different simulations. To ascertain the stability and significance of this effect, a comprehensive simulation would be necessary to observe the distribution and convergence of the p-values.
+
+```{r}
+ds <- cheddar
+ds$LacticWithError <- ds$Lactic + rnorm(n = nrow(cheddar), mean = 0, sd = 0.01)
+modelWithError <- lm(taste ~ LacticWithError + Acetic + H2S, data = ds)
+summary(modelWithError)
+summary(modelWithError)$coefficients["LacticWithError", 4]
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+Upon running the simulation, we observed an average p-value of 0.03142896, which closes aligns with the original p-value of 0.03108 without error modification for the **Lactic** predictor. This outcome suggests adding a negligible level of measurement error, characterized by a standard deviation of 0.01, does not substantively alter the statistical significance of the **Lactic** predictor within the context of taste as the response variable. Therefore, the robustness of Lactic as a significant predictor in the model remains effectively unchallenged by such minimal measurement variability.
+
+```{r}
+ds <- cheddar
+
+pvals <- numeric(1000) 
+
+for(i in 1:1000) {
+  ds$LacticWithError <- ds$Lactic + rnorm(n = nrow(ds), mean = 0, sd = 0.01)
+  modelWithError <- lm(taste ~ LacticWithError + Acetic + H2S, data = ds)
+  pvals[i] <- summary(modelWithError)$coefficients["LacticWithError", 4]
+}
+
+meanPval <- mean(pvals)
+meanPval
+```
+
+{{< pagebreak >}}
+
+## Part E
+
+In this situation where the standard deviation is 0.1 and introduced to the **Lactic** variable, the resulting p-values range from 0.06 to 0.07. This variability indicates a significant deviation from the initial analysis, suggesting that the **Lactic** variable's statistical significance in predicting taste is compromised. This shows that by having an increased level of measurement error, the **Lactic** predictor's reliability and influence on the taste outcome are brought into question, reflecting the impact substantial measurement errors can have on the conclusions drawn from regression analysis. That is why if we know the measurement error or have a rough estimate of it, that can impact the final conclusions of regression analysis.
+
+```{r}
+ds <- cheddar
+
+pvals <- numeric(1000)  
+
+for(i in 1:1000) {
+  ds$LacticError2 <- ds$Lactic + rnorm(n = nrow(ds), mean = 0, sd = 0.1)
+  modelwithHighError <- lm(taste ~ LacticError2 + Acetic + H2S, data = ds)
+  pvals[i] <- summary(modelwithHighError)$coefficients["LacticError2", 4]
+}
+
+meanPvals <- mean(pvals)
+meanPvals
+```
+
+
+{{< pagebreak >}}
+
+# Problem 5
+
+## Part A
+
+The high condition number, $91752.66$ suggests that the model's numerical computations are highly sensitive to small changes in the data, which can make the estimates of the coefficients unreliable. The VIF results reveal significant multicollinearity in the fat dataset; Particularly, with **weight**, **siri**, and **density** showing exceptionally high VIF values, indicating these predictors share substantial linear relationships with other variables. In contrast, variables like **age**, **height**, and **ankle** display lower VIFs, suggesting they are less mixed up with the remaining predictors.
+
+```{r}
+data(fat)
+fatModel <- lm(brozek ~ ., data = fat)
+# Compute condition numbers
+cn <- kappa(model.matrix(fatModel))
+cn
+# Compute variance inflation factors
+vif <- vif(fatModel)
+vif
+```
+{{< pagebreak >}}
+
+## Part B
+
+After removing cases $39$ and $42$, the condition number slightly decreased from $91,752.66$ to $85,317.34$, showing a minor reduction in multicollinearity. Despite this, the VIF values for **weight** and **adipos** significantly increased, creating new multicollinearity issues for these variables compared to the original model, while **height** also showed a notable rise in its VIF value, suggesting increased collinearity concerns post-removal.
+
+```{r}
+# Exclude cases 39 and 42
+fatReduced <- fat[-c(39, 42), ]
+fatModelReduced <- lm(brozek ~ ., data = fatReduced)
+# Recompute condition numbers
+cn <- kappa(model.matrix(fatModelReduced))
+cn
+# Recompute variance inflation factors
+vif <- vif(fatModelReduced)
+vif
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+Comparing the simplified to the original model, the condition number drastically reduces to $2,965.58$ compared to $91752.66$, indicating a significant decrease in multicollinearity. Additionally, VIF values for **age**, **weight**, and **height** are all near 1, again, demonstrating a substantial reduction in multicollinearity compared to the comprehensive model.
+
+```{r}
+# Fit the model with limited predictors
+fatModelLimited <- lm(brozek ~ age + weight + height, data = fat)
+
+# Compute condition numbers
+cn <- kappa(model.matrix(fatModelLimited))
+cn
+
+# Compute variance inflation factors
+vif <- vif(fatModelLimited)
+vif
+```
+

@@ -1,0 +1,271 @@
+---
+title: "ST552 Homework 7"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Problem 1
+
+## Part A
+
+Given the generalized regression model: $$
+Y_{n \times 1} = X_{n \times p}\beta_{p \times 1} + \varepsilon_{n \times 1}
+$$
+
+where $Var(\varepsilon) = \sigma^2 \Sigma_{n \times n}$ and $\Sigma$ is known and positive definite.
+
+The least squares estimate of $\hat{\beta}_{OLS}$ is defined as follows:
+
+$$
+\hat{\beta}_{OLS} = (X^TX)^{-1}X^TY
+$$
+
+We know that the OLS estimator is unbiased when the expectation of the error terms is zero and the errors are uncorrelated, meaning $E[\varepsilon] = 0$ and $Var(\varepsilon) = \sigma^2I$.
+
+In our case, since $Var(\varepsilon) = \sigma^2 \Sigma$ and $\Sigma \neq I$, the assumption of constant variance and independence is violated. Nevertheless, the expectation of $\hat{\beta}_{OLS}$ is equal to $\beta$.
+
+Here is the proof: $$
+E[\hat{\beta}_{OLS}] = E[(X^TX)^{-1}X^T(Y)] = E[(X^TX)^{-1}X^T(X\beta + \varepsilon)] = \beta + (X^TX)^{-1}X^TE[\varepsilon]
+$$
+
+Since $E[\varepsilon] = 0$, this simplifies to: $$
+E[\hat{\beta}_{OLS}] = \beta
+$$
+
+Despite the clear violation of constant variance and independence, the OLS estimate of $\beta$ remains unbiased.
+
+{{< pagebreak >}}
+
+# Part B
+
+The GLS estimator is: $$
+\hat{\beta}_{GLS} = (X^T \Sigma^{-1}X)^{-1}X^T \Sigma^{-1}Y
+$$
+
+To show that $\hat{\beta}_{GLS}$ is unbiased, consider the expectation: $$
+\begin{aligned}
+E[\hat{\beta}_{\text{GLS}}] &= E\left[\left(X^T \Sigma^{-1}X\right)^{-1}X^T \Sigma^{-1}(X\beta + \varepsilon)\right] \\
+&= \left(X^T \Sigma^{-1}X\right)^{-1}X^T \Sigma^{-1}X\beta + \left(X^T \Sigma^{-1}X\right)^{-1}X^T \Sigma^{-1}E[\varepsilon]
+\end{aligned}
+$$
+
+Since $E[\varepsilon] = 0$, this reduces to:
+
+$$E[\hat{\beta}_{GLS}] = (X^T \Sigma^{-1}X)^{-1}(X^T \Sigma^{-1}X)\beta = I\beta = \beta$$
+
+Hence, $\hat{\beta}_{GLS}$ is an unbiased estimate of $\beta$.
+
+{{< pagebreak >}}
+
+# Part C
+
+To demonstrate that the least squares estimate of $\beta$ for the new regression model is $\hat{\beta}_{\text{GLS}} = (X^T \Sigma^{-1}X)^{-1}X^T \Sigma^{-1}Y$, we begin by considering the transformed linear regression model: $$S^{-1}Y = S^{-1}X\beta + S^{-1}\varepsilon.$$
+
+Let's define the transformations directly:
+
+1.  $Y^* = S^{-1}Y$,
+2.  $X^* = S^{-1}X$, and
+3.  $\varepsilon^* = S^{-1}\varepsilon$.
+
+$Y^* = X^*\beta + \varepsilon^*.$ Next,to minimize the sum of squared residuals we can apply: $$X^{*T}Y^* = X^{*T}X^*\hat{\beta}_{\text{GLS}}.$$
+
+Plugging in the expressions for $X^*$ and $Y^*$, we get: $$(S^{-1}X)^T(S^{-1}Y) = (S^{-1}X)^T(S^{-1}X)\hat{\beta}_{\text{GLS}}.$$
+
+This simplifies to: $$X^T(S^{-1})^TS^{-1}Y = X^T(S^{-1})^TS^{-1}X\hat{\beta}_{\text{GLS}}.$$
+
+Given that $\Sigma = SS^T$, so $\Sigma^{-1} = (S^{-1})(S^{-1})^T$, we can rewrite the equation as: $$X^T \Sigma^{-1}Y = X^T \Sigma^{-1}X\hat{\beta}_{\text{GLS}}.$$
+
+Solving this equation for $\hat{\beta}_{\text{GLS}}$, we get: $$(X^T \Sigma^{-1}X)^{-1}(X^T \Sigma^{-1}Y) = (X^T \Sigma^{-1}X)^{-1}(X^T \Sigma^{-1}X) \hat{\beta}_{\text{GLS}} = (X^T \Sigma^{-1}X)^{-1}(X^T \Sigma^{-1}Y) = I\hat{\beta}_{\text{GLS}}$$ $$\hat{\beta}_{\text{GLS}} = (X^T \Sigma^{-1}X)^{-1}X^T \Sigma^{-1}Y.$$
+
+This demonstrates that the least squares estimate of $\beta$ for the new regression equation is indeed $\hat{\beta}_{\text{GLS}} = (X^T \Sigma^{-1}X)^{-1}X^T \Sigma^{-1}Y$.
+
+{{< pagebreak >}}
+
+# Problem 2
+
+## Part A
+
+When we run the `colSums(is.nan(summary(model)$coefficients))` we find out that 60 predictors converge. This demonstates that we cannot fit all the predictors as it's leading to perfect multicollinearity and/or will result in an overfitted model.
+
+```{r}
+library(pls)
+library(olsrr)
+library(glmnet)
+library(dplyr)
+library(faraway)
+
+data(gasoline)
+gasoline$NIR <- unclass(gasoline$NIR)
+ds <- as.data.frame(gasoline$NIR)
+ds$octane <- gasoline$octane
+model <- lm(octane ~ ., data = ds)
+
+colSums(is.nan(summary(model)$coefficients))
+#summary(model)
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+Here are the best explanatory variables using the forward selection method: `1208 nm` + `1196 nm` + `976 nm` + `1692 nm` + `970 nm` + `1206 nm` + `1056 nm` + `1074 nm` + `1098 nm`
+
+```{r}
+fSelectionModel <- ols_step_forward_p(model, p_val = 0.05)
+summary(fSelectionModel$model)
+selectedVariables <- names(coef(fSelectionModel$model))
+print(selectedVariables[-1])
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+Here are the best explanatory variables using the lasso selection method: `900 nm` + `914 nm` + `1208 nm` + `1210 nm` + `1220 nm` + `1226 nm` + `1230 nm` + `1232 nm` + `1362 nm` + `1364 nm` + `1368 nm` + `1636 nm` + `1638 nm` + `1640 nm` + `1688 nm` + `1692 nm` + `1694 nm`
+
+```{r}
+X <- as.matrix(ds[, -ncol(ds)])
+Y <- ds[, ncol(ds)]
+cvFit <- cv.glmnet(X, Y, alpha = 1)
+minLambda <- cvFit$lambda.min
+lassoModel <- glmnet(X, Y, alpha = 1, lambda = minLambda)
+lassoCoefs <- coef(lassoModel)
+nonZeroCoefs <- which(lassoCoefs != 0)
+selectedVars <- colnames(X)[nonZeroCoefs]
+print(selectedVars)
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+When comparing linear regression models from forward and lasso selection methods, we can see the differences in their complexity and how they value predictors. The forward selection model is simpler, using fewer but statistically significant variables to predict octane, suggesting a more effective and straightforward approach. In contrast, the lasso model uses more predictors but fails to show their significant impact at the standard level, raising concerns about overfitting and its real-world usefulness.
+
+```{r}
+# Forward Selection Model
+modelForward <- lm(octane ~ `1208 nm` + `1196 nm` + `976 nm` + 
+                     `1692 nm` + `970 nm` + `1206 nm` + `1056 nm` + 
+                     `1074 nm` + `1098 nm`, data = ds)
+summary(modelForward)
+# Lasso Selection Model
+modelLasso <- lm(octane ~ `900 nm` + `914 nm` + `1208 nm` + `1210 nm` +
+                   `1220 nm` + `1226 nm` + `1230 nm` + `1232 nm` + 
+                   `1362 nm` + `1364 nm` + `1368 nm` + `1636 nm` + 
+                   `1638 nm` + `1640 nm` + `1688 nm` + `1692 nm` + 
+                   `1694 nm`, data = ds)
+summary(modelLasso)
+```
+
+{{< pagebreak >}}
+
+# Problem 3
+
+## Part A
+
+First PC explains $\approx$ $90\%$ of the variance
+
+```{r}
+data(kanga)
+kangaClean <- na.omit(kanga)
+numericCols <- sapply(kangaClean, is.numeric)
+ds <- kangaClean[, numericCols]
+# Perform PCA on numeric dataset
+pcaResult <- prcomp(ds, center = TRUE, scale = FALSE)
+# Calculate explained variance of first principal component
+varExplained <- summary(pcaResult)$importance[2, 1] * 100
+varExplained
+
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+After setting an absolute loading threshold of 0.25, the prominent variables for the first principal component are `basilar.length`, `occipitonasal.length`, `palate.length`, and `mandible.length`.
+
+```{r}
+# Loadings for the first principal component
+loadingsOne <- pcaResult$rotation[, 1]
+loadingsOne
+prominentVars <- names(loadingsOne[abs(loadingsOne) > 0.25])
+prominentVars
+
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+After running PCA with scaling, our new key variables influencing the first principal component include:`basilar.length`, `occipitonasal.length`, `squamosal.depth`, `lacrymal.width`, `orbital.width`, `rostral.width`, `foramina.length`, `mandible.depth`, and `ramus.height`. Again, I used a threshold of 0.25 to select these variables, indicating their significant contribution to the principal component analysis.
+
+```{r}
+# Perform PCA on the cleaned dataset with scaling
+pcaScaled <- prcomp(ds[,-1], center = TRUE, scale. = TRUE)
+varExplained <- summary(pcaScaled)$importance[2, 1] * 100
+varExplained
+loadingsOneScaled <- pcaScaled$rotation[, 1]
+loadingsOneScaled
+prominentVars <- names(loadingsOne[abs(loadingsOneScaled) > 0.25])
+prominentVars
+```
+
+{{< pagebreak >}}
+
+## Part F
+
+In the scatterplots of the three species, PCA 1 vs PCA 2 effectively separates male and female specimens for fuliginosus. However, for giganteus, additional PCA components are needed to clearly distinguish between sexes. Melanops shows partial separation, but adding more components could improve sex determination clarity.
+
+```{r}
+library(ggplot2)
+pcaDs <- data.frame(PC1 = pcaScaled$x[,1], PC2 = pcaScaled$x[,2], 
+                    Sex = kangaClean$sex, 
+                    Species = kangaClean$species)
+ggplot(pcaDs, aes(x = PC1, y = PC2, color = Sex, shape = Sex)) + 
+  geom_point() + 
+  facet_wrap(~ Species) +  
+  theme_minimal() +
+  labs(shape = "Sex")
+unique(kangaClean$species)
+```
+
+{{< pagebreak >}}
+
+## Problem 4
+
+## Part A
+
+Given the presence of heteroscedasticity in the residuals and high autocorrelation observed in the ACF plot, the linear regression assumptions are violated, potentially leading to biased parameter estimates and unreliable inference with our highly significant estimators.
+
+```{r}
+data(divusa)
+lm_model <- lm(divorce ~ unemployed + femlab + marriage + birth + military,
+               data = divusa)
+summary(lm_model)
+# Residual Plot
+plot(lm_model, which = 1)
+# ACF Plot
+acf(resid(lm_model))
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+In contrast to the lm model, GLS considers both heteroscedasticity and autocorrelation, resulting in more reliable parameter estimates and valid inference. In our case, the GLS model objectively outperforms the lm model by addressing observed issues and strengthening the significance of our findings.
+
+```{r}
+library(nlme)
+gls_model <- gls(divorce ~ unemployed + femlab + marriage + birth + military, 
+                 data = divusa, correlation = corAR1(form = ~ 1), method = "ML")
+summary(gls_model)
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+Given the presence of a year column in the dataset, it suggests a time series structure. The correlation observed in the errors could stem from various factors such as seasonal patterns, trends, or other time-dependent phenomena not fully captured by the predictors. Additionally, external factors that evolve over time might also contribute to the correlation in the errors.

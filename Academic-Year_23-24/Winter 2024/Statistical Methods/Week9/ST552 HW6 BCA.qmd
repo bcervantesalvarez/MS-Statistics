@@ -1,0 +1,286 @@
+---
+title: "ST552 Homework 6"
+author: 
+    - "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Problem 1
+
+```{r}
+library(faraway)
+library(tidyverse)
+data(kanga)
+
+missingByCase <- kanga %>%
+  rowwise() %>%
+  summarise(missingValues = sum(is.na(c_across(where(is.numeric)))))
+missingCaseSummary <- missingByCase %>%
+  count(missingValues) %>%
+  as.data.frame()
+missingByVariable <- kanga %>%
+  summarise(across(where(is.numeric), ~ sum(is.na(.)))) %>%
+  as.data.frame()
+print(missingCaseSummary)
+print(missingByVariable)
+```
+
+{{< pagebreak >}}
+
+# Problem 2
+
+## Part A
+
+```{r}
+library(faraway)
+library(mice)
+
+data(gala)
+data(galamiss)
+
+modelA <- lm(Species ~ Area + Elevation + Nearest + Scruz + Adjacent, 
+             data = gala)
+summary(modelA)
+```
+{{< pagebreak >}}
+
+## Part B
+
+Comparison of using the deletion method for handling missing values in the linear model reveals slight differences in model fit. Retaining missing values yields an adjusted $R^2$ of $0.7171$, while employing deletion reduces it to $0.702$. Although coefficients remain relatively consistent, the deletion method increases the model's standard error, indicating slightly decreased precision.
+
+```{r}
+galaMissDeleted <- na.omit(galamiss)
+modelB <- lm(Species ~ Area + Elevation + Nearest + Scruz + Adjacent,
+             data = galaMissDeleted)
+summary(modelB)
+```
+{{< pagebreak >}}
+
+## Part C
+
+Looking at both models, the mean imputation model exhibits a lower adjusted $R^2$ of $0.5774$ compared to $0.7171$ in Part A, indicating reduced explanatory power. Additionally, while some coefficients remain consistent, others vary notably, suggesting potential bias introduced by mean imputation. Moreover, the mean imputation model shows a higher residual standard error of $74.52$, implying increased uncertainty in predictions compared to the original model.
+
+```{r}
+galaMissMean <- galamiss
+galaMissMean[] <- lapply(galaMissMean, 
+                         function(x) ifelse(is.na(x), 
+                                            mean(x, na.rm = TRUE), x))
+modelC <- lm(Species ~ Area + Elevation + Nearest + Scruz + Adjacent, 
+             data = galaMissMean)
+summary(modelC)
+```
+{{< pagebreak >}}
+
+## Part D
+
+This model reveals minor differences in model fit. The regression imputation model shows a slightly higher adjusted $R^2$ of $0.7315$ compared to $0.7171$ in Part A, suggesting slight improvement in explanatory power. While coefficients mostly align, subtle variations suggest some influence from the imputation method, yet the residual standard error remains comparable at 59.4, indicating similar prediction uncertainty. Nevertheless, the regression-based imputation may introduce bias into the dataset if the relationship between predictors and missing values is complex or nonlinear. It worked here, but it is imperative to understand this potential bias that may be introduced.
+
+```{r}
+galaMissRegImpute <- mice(galamiss, method = "norm.predict", m = 1)
+galaMissComplete <- complete(galaMissRegImpute, action = "long", 
+                             include = FALSE)
+modelD <- lm(Species ~ Area + Elevation + Nearest + Scruz + Adjacent, 
+             data = galaMissComplete)
+summary(modelD)
+```
+{{< pagebreak >}}
+
+## Part E
+
+By using multiple imputation, this model reveals similar adjusted $R^2$ values, with Model E showing an adjusted $R^2$ of $0.7665$ compared to $0.7171$ in Part A. While most coefficients align closely between the two models, minor variations exist, potentially attributed to the imputation process. Overall, the multiple imputation approach provides comparable model fit to the original model, suggesting its effectiveness in handling missing values without substantial loss of explanatory power. However, caution should be exercised regarding the assumption of missing data mechanism and the potential impact of imputation on parameter estimates, particularly if the missingness is not completely at random or if the imputation model fails to adequately capture the true data generation process.
+
+```{r}
+galaMissMultiImpute <- mice(galamiss, m = 5)
+modelE <- with(galaMissMultiImpute, 
+               lm(Species ~ Area + Elevation + Nearest + Scruz + Adjacent))
+
+summary(pool(modelE))
+pool.r.squared(modelE)
+```
+
+
+{{< pagebreak >}}
+
+# Problem 3
+
+## Part A
+
+```{r}
+data(prostate)
+backModel <- step(lm(lpsa ~ ., data = prostate), direction = "backward")
+summary(backModel)
+```
+{{< pagebreak >}}
+
+## Part B
+
+```{r}
+aicMod <- step(lm(lpsa ~ ., data = prostate), direction = "both", k = 2)
+summary(aicMod)
+```
+{{< pagebreak >}}
+
+## Part C
+
+```{r}
+# (c) Adjusted R^2
+adjR2Mod <- step(lm(lpsa ~ ., data = prostate), direction = "both", trace = 0)
+summary(adjR2Mod)
+```
+{{< pagebreak >}}
+
+## Part D
+
+```{r}
+library(leaps)
+mallowsMod <- regsubsets(lpsa ~ ., data = prostate, nvmax = ncol(prostate))
+summaryMallows <- summary(mallowsMod)
+bestCp <- which.min(summaryMallows$cp)
+summary(mallowsMod)$which[bestCp, ]
+```
+
+{{< pagebreak >}}
+
+## Part E
+
+```{r}
+library(leaps)
+forwardModel <- regsubsets(lpsa ~ ., data = prostate, method = "forward")
+bestModel <- which.max(summary(forwardModel)$adjr2)
+selectedPreds <- names(coef(forwardModel, id = bestModel))
+summary(forwardModel)
+```
+{{< pagebreak >}}
+
+# Problem 4
+
+## Part A
+
+The model indicates that leg length does not have a statistically significant effect on hipcenter in the regression model. The coefficient for leg length is not significant (p = 0.1824), suggesting that after accounting for other variables, leg length may not strongly influence hipcenter. However, we it may still have some influence through model selection.
+
+```{r}
+library(MASS)
+data(seatpos)
+
+modelAll <- lm(hipcenter ~ Age + Weight + HtShoes + Ht + 
+                 Seated + Arm + Thigh + Leg, data = seatpos)
+summary(modelAll)
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+```{r}
+predictorsMean <- colMeans(seatpos[, c("Age", "Weight", "HtShoes",
+                                       "Ht", "Seated", "Arm", 
+                                       "Thigh", "Leg")], na.rm = TRUE)
+predMean <- as.data.frame(t(predictorsMean))
+predictionInterval <- predict(modelAll, newdata = predMean, 
+                              interval = "prediction", level = 0.95)
+print(predictionInterval)
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+The model selection process using $\text{AIC}$, identified a final model for predicting hipcenter, by using the predictors $\text{Age}$, $\text{HtShoes}$, and $\text{Leg}$ as predictors. With the lowest AIC value of 274.26, this selection indicates optimal balance between model simplicity and predictive accuracy. Additionally, the final selected model exhibits a prediction interval of $(-237.21, -92.56)$, indicating improved precision compared to the original model's interval of $(-243.04, -86.73)$ with point estimates of $-164.88$.. Hence, the chosen model provides the most effective framework for predicting hipcenter based on the given variables.
+
+```{r}
+modelAIC <- step(modelAll, direction = "both")
+summary(modelAIC)
+
+predictorsMeanAIC <- colMeans(seatpos[, c("Age", "HtShoes", "Leg")], 
+                              na.rm = TRUE)
+predMeanAIC <- as.data.frame(t(predictorsMeanAIC))
+predictionIntervalAIC <- predict(modelAIC, newdata = predMeanAIC, 
+                                 interval = "prediction", level = 0.95)
+print(predictionIntervalAIC)
+```
+
+{{< pagebreak >}}
+
+# Problem 5
+
+## Train-Test Split Set up
+
+```{r}
+library(faraway)
+library(glmnet)
+library(MASS)
+
+set.seed(123) 
+data(fat)
+fat <- fat[, setdiff(names(fat), c("brozek", "density"))]
+
+# Split the data into training and test sets
+n <- nrow(fat)
+test_index <- seq(1, n, by = 10)
+train_index <- setdiff(1:n, test_index)
+
+# Data Prep
+trainDs <- fat[train_index, ] 
+testDs <- fat[test_index, ]
+
+predictors <- setdiff(names(fat), "siri") 
+X_train <- trainDs[, predictors]
+y_train <- trainDs$siri
+X_test <- testDs[, predictors]
+y_test <- testDs$siri
+```
+
+## Part A
+
+```{r}
+# Linear regression using all predictors
+fullRegModel <- lm(siri ~ ., data = trainDs)
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+```{r}
+# Linear regression with variables selected using BIC
+BICModel <- stepAIC(fullRegModel, direction = "both", 
+                    k = log(nrow(trainDs)), trace = FALSE)
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+```{r}
+# Ridge regression with lambda = 0.005
+lambda <- 0.005
+ridgeModel <- glmnet(X_train, y_train, alpha = 0, lambda = lambda)
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+In evaluating these three regression models, where $siri$ represents the response and the remaining variables (excluding $brozek$ and $density$) are predictors, we found different performance among them. The basic (insert my beloved linear regression) lm model yielded an RMSE of $1.946023$, bringing solid predictive accuracy. However, the model using BIC, which tends towards simplicity due to its penalty on complexity, demonstrated poorer performance with an RMSE of $2.049515$ (Sus); this suggests it might not have sufficiently captured the data's variance. In contrast, the Ridge regression model, set with $\lambda = 0.005$, achieved the best result, presenting the lowest RMSE of $1.926002$. These results indicate that Ridge regression, which uses the approach to balance bias and variance, may offer enhanced predictive accuracy in scenarios involving complex data or when dealing with multiple predictor variables. Henceforth, I will vote out the BIC model and consider the normal regression and ridge regression models (since they are not sus). 
+
+```{r}
+predFullModel <- predict(fullRegModel, newdata = X_test)
+predBICModel <- predict(BICModel, newdata = X_test)
+predRidgeModel <- predict(ridgeModel, s = lambda, newx = as.matrix(X_test))
+
+# Calculate RMSE
+rmseLm <- sqrt(mean((predFullModel - y_test)^2))
+rmseBic <- sqrt(mean((predBICModel - y_test)^2))
+rmseRidge <- sqrt(mean((predRidgeModel - y_test)^2))
+
+rmseDataFrame <- data.frame(
+  Model = c("LM", "BIC", "Ridge"),
+  RMSE = c(rmseLm, rmseBic, rmseRidge)
+)
+print(rmseDataFrame)
+```
+

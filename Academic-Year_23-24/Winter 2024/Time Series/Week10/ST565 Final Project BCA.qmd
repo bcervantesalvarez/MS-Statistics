@@ -1,0 +1,208 @@
+---
+title: "ST565 Final Project Proposal & Early Insights"
+author: 
+    - "Brian Cervantes Alvarez"
+date: "03-10-2023"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+
+### Research Question:
+
+Are there identifiable patterns in the frequency and severity of traffic accidents during the winter months and holiday seasons, particularly in terms of variations in fatal, serious, and minor accidents?
+
+{{< pagebreak >}}
+
+
+
+{{< pagebreak >}}
+
+## Data Wrangling
+
+```{r}
+library(lubridate)
+library(dplyr)
+library(readr)
+
+accidentDs <- read_csv("fullAccidentRecord.csv")
+glimpse(accidentDs)
+
+# Clean the dataset by filtering out irrelevant rows 
+# and converting certain columns to factors
+ds <- accidentDs %>%
+  mutate(
+    severity = factor(Accident_Severity, levels = c("Fatal", "Serious", "Slight"), labels = c("Fatal", "Serious", "Minor")),  # Corrected the factor renaming
+    Day = as.Date(Accident_Date), 
+    Month = floor_date(Accident_Date, "month"),
+    Week = floor_date(Accident_Date, "week"),
+    Quarterly = floor_date(Accident_Date, "quarter"),
+    Yearly = floor_date(Accident_Date, "year")) %>%
+  dplyr::select(-Vehicle_Type,
+                -Weather_Conditions,
+                -Number_of_Vehicles,
+                -Road_Surface_Conditions,
+                -Road_Type,
+                -Longitude,
+                -Latitude,
+                -Light_Conditions,
+                -Accident_Date,
+                -District_Area,
+                -Accident_Severity)  
+
+
+
+ds <- na.omit(ds)
+
+
+glimpse(ds)
+
+```
+
+## Exploratory Data Analysis
+
+### Daily Trends
+
+The observation of a decrease in the number of daily accidents during winter, contrary to what might be expected given the potential hazards of winter driving conditions, is intriguing and warrants further discussion. 
+
+```{r}
+library(ggplot2)
+library(lubridate)
+
+# Define the start of winter for each year in your dataset
+# Adjust these dates according to your dataset's time range
+winter_starts <- as.Date(c("2019-12-01", "2020-12-06", "2021-12-05", "2022-12-04")) # Example dates
+
+# Aggregate data by Week and Accident Severity
+weeklyData <- ds %>%
+  group_by(Day, severity) %>%
+  summarise(Accidents = n(), .groups = 'drop')
+
+# Plot trends over time for different accident severities using ggplot
+ggplot(weeklyData, aes(x = Day, y = Accidents)) +
+  geom_line(aes(color = severity), show.legend = FALSE) +
+  labs(title = "Daily Accidents by Severity Level in the United Kingdom", x = "Day", y = "Number of Accidents") +
+  theme_minimal() +
+  scale_x_date(date_breaks = "3 month", date_labels = "%b %Y") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_grid(severity ~ ., scales = "free_y") +
+  geom_vline(xintercept = as.numeric(winter_starts), linetype = "dashed", color = "burlywood4", alpha = 0.6)  
+```
+
+### Weekly Trends
+
+```{r}
+library(ggplot2)
+library(lubridate)
+
+# Define the start of winter for each year in your dataset
+# Adjust these dates according to your dataset's time range
+winter_starts <- as.Date(c("2019-12-01", "2020-12-06", "2021-12-05", "2022-12-04")) # Example dates
+
+# Aggregate data by Week and Accident Severity
+weeklyData <- ds %>%
+  group_by(Week, severity) %>%
+  summarise(Accidents = n(), .groups = 'drop')
+
+# Plot trends over time for different accident severities using ggplot
+ggplot(weeklyData, aes(x = Week, y = Accidents)) +
+  geom_line(aes(color = severity), show.legend = FALSE) +
+  labs(title = "Weekly Accidents by Severity Level in the United Kingdom", x = "Week", y = "Number of Accidents") +
+  theme_minimal() +
+  scale_x_date(date_breaks = "3 month", date_labels = "%b %Y") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_grid(severity ~ ., scales = "free_y") +
+  geom_vline(xintercept = as.numeric(winter_starts), linetype = "dashed", color = "burlywood4", alpha = 0.4)  
+```
+
+
+## Methodology:
+
+### Daily Accident Analysis
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(tseries)
+library(forecast)
+library(lmtest)
+library(ggplot2) # Ensure all necessary libraries are loaded
+
+# Define the severity levels
+severity_levels <- c("Fatal", "Serious", "Minor")
+
+# Set up the plotting area outside the loop for a 3x2 layout
+
+# Loop through each severity level
+for(severity_level in severity_levels) {
+  
+  par(mfrow = c(3, 2), mar = c(4, 4, 3, 2))  # Adjust margins as needed
+
+  # Data Preparation and Filtering
+  assumptionsDs <- ds %>%
+      filter(severity == severity_level) %>%
+      group_by(Day) %>%
+      summarise(Accidents = n(), .groups = 'drop')
+  
+  # Trend Analysis and Detrending
+  time_index <- 1:length(assumptionsDs$Accidents)
+  trend_model <- lm(assumptionsDs$Accidents ~ time_index)
+  trend_component <- fitted(trend_model)
+  detrended_series <- assumptionsDs$Accidents - trend_component
+  
+  # Plot the original series
+  plot(assumptionsDs$Accidents, type = 'l', main = paste('Original Series -', severity_level))
+  
+  # Plot the detrended series
+  plot(detrended_series, type = 'l', main = paste('Detrended Series -', severity_level))
+  abline(h = 0, col = "red")
+  
+  # Stationarity Check
+  adf_test <- adf.test(detrended_series, alternative = "stationary")
+  print(paste(severity_level, "Severity:"))
+  print(adf_test)
+  
+  # ACF and PACF Analysis
+  Acf(detrended_series, main=paste("Autocorrelation Function -", severity_level))
+  Pacf(detrended_series, main=paste("Partial Autocorrelation Function -", severity_level))
+  
+  # Seasonality Plot
+  # This will be the fifth plot, so place it accordingly
+  seasonplot(ts(assumptionsDs$Accidents, frequency = 365), main=paste("Seasonality Plot -", severity_level), year.labels = TRUE, year.labels.left = TRUE)
+
+  par(mfrow = c(1, 1)) # Reset to default single plot setting
+}
+
+```
+
+
+
+## Discussion
+
+### Explanatory Visualization of Daily Accidents
+
+Your exploratory plot provides a valuable visualization of daily accidents by severity level in the United Kingdom over time. The observation of a decrease in the number of daily accidents during winter, contrary to what might be expected given the potential hazards of winter driving conditions, is intriguing and warrants further discussion. Here are some points you could include to explain this phenomenon and explore possible confounding variables:
+
+Weather Conditions: While winter is typically associated with poor driving conditions (e.g., snow, ice, reduced visibility), these conditions might actually lead to more cautious driving behavior. Additionally, adverse weather might reduce the overall number of trips made, thus decreasing exposure to risk.
+
+Public Awareness and Seasonal Campaigns: There may be increased public awareness campaigns during winter months aimed at reducing accidents. This could include promoting safer driving practices, which might contribute to the observed dip in accidents.
+
+Holiday Effect: The winter months coincide with major holidays, during which there might be a significant change in traffic patterns. For example, people might travel less for work and more for visiting family, potentially reducing rush hour traffic but increasing travel at other times. The overall effect could vary based on the balance of these factors.
+
+School Holidays: Winter marks a period where schools are often closed for extended holidays. This could lead to a reduction in daily commuting, especially during peak hours, thus possibly contributing to the observed decrease in accidents.
+
+Variable Enforcement of Traffic Laws: There might be changes in the enforcement of traffic laws during the winter months. For instance, law enforcement agencies might increase patrols or checkpoints to deter drunk driving during the holiday season, which could influence accident rates.
+
+Data Collection and Reporting Biases: Consider whether there could be seasonal biases in how accidents are reported or recorded. For instance, minor accidents might be less likely to be reported during winter months due to adverse conditions or other priorities.
+
+Changes in Population Dynamics: Winter months might see an influx of tourists in certain areas, leading to drivers who are unfamiliar with local roads and conditions. Alternatively, locals who travel during winter might reduce traffic in certain areas. These shifts could affect accident rates.
+
+Transportation Modal Shifts: During winter, individuals might opt for public transportation over driving due to the weather conditions, potentially reducing the number of vehicles on the road and thereby the number of accidents.
+
+
+# Reference
+
+Gibin, W. O., & Sheen. (2023). *Road Accident Casualties*. Kaggle. https://doi.org/10.34740/KAGGLE/DSV/7292741

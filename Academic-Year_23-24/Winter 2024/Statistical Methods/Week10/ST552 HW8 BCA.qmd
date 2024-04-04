@@ -1,0 +1,96 @@
+---
+title: "ST552 Homework 8"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+
+# Problem 3
+
+Given all these transformed models, the log-transformed model appears to be the best model for predicting volume from girth and height in the trees dataset. It has the highest explanatory power (highest R-squared) and the predictions are closest to the actual data (lowest RSE). Hence, compared to the original model, I would favor the log-transformed model. However, I would proceed with caution when using a transformed model, as it may require me to adjust my original research question, especially if that question was based on a different assumption or form of analysis.
+
+```{r}
+library(faraway)
+data(trees)
+
+# Linear model with original variables
+model1 <- lm(Volume ~ Girth + Height, data = trees)
+# Linear model with logarithmic transformation
+logTrees <- log(trees)
+model2 <- lm(Volume ~ Girth + Height, data = logTrees)
+# Linear model with square root transformation
+sqrtTrees <- sqrt(trees)
+model3 <- lm(Volume ~ Girth + Height, data = sqrtTrees)
+# Linear model with cube root transformation 
+cubeRootTrees <- (trees)^(1/3)
+model4 <- lm(Volume ~ Girth + Height, data = cubeRootTrees)
+# Compare model summaries
+summary(model1)
+summary(model2)
+summary(model3)
+summary(model4)
+```
+
+{{< pagebreak >}}
+
+# Problem 4
+
+## Part A
+
+In the additive model, H2S and Lactic were significant predictors with an R-squared value of 0.6518, indicating that about 65.18% of taste variability was explained. I applied data transformations logarithmic, square root, and cube root: the logarithmic transformation decreased explanatory power (R-squared = 0.4924), while square and cube root transformations maintained significance for H2S and Lactic with R-squared values of 0.6327 and 0.6015, respectively. The square root model appeared most effective, balancing high explanatory power with reduced residual variance, thus potentially improving model fit while preserving the significance of key predictors.
+
+
+```{r}
+data(cheddar)
+model <- lm(taste ~ Acetic + H2S + Lactic, data = cheddar)
+summary(model)
+# Log-Transformed Model
+logCheddar <- log(cheddar)
+model2 <- lm(taste ~ Acetic + H2S + Lactic, data = logCheddar)
+summary(model2)
+# Square Root Model
+sqrtCheddar <- sqrt(cheddar)
+model3 <- lm(taste ~ Acetic + H2S + Lactic, data = sqrtCheddar)
+summary(model3)
+# Linear model with cube root transformation 
+cubeCheddar <- (cheddar)^(1/3)
+model4 <- lm(taste ~ Acetic + H2S + Lactic, data = cubeCheddar)
+summary(model4)
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+Based on the Box-Cox plot, which indicates a clear peak around $\lambda = (0.6, 0.7)$, I recommend transforming the response variable using the Box-Cox method with the optimal $\lambda$ in this range. This transformation is advised because the optimal $\lambda$ is significantly different from $1$, suggesting that the original data do not follow a normal distribution closely enough. This could also address our issue with our wide spread of residuals.
+
+```{r}
+library(MASS)
+boxcoxResults <- boxcox(model)
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+The optimized model demonstrates a better fit with smaller residuals and a lower residual standard error compared to the original model, indicating more accurate predictions. Both models have similar R-squared values, suggesting they explain a comparable amount of variability in taste, though significant predictors have larger effect sizes in the original model. The direction of the `Acetic` acid coefficient differs between models, highlighting potential differences in underlying processes between the two types of cheese.
+
+```{r}
+maxLogLik <- max(boxcoxResults$y) 
+optimalLambdaIndex <- which(boxcoxResults$y == maxLogLik)  
+optimalLambda <- boxcoxResults$x[optimalLambdaIndex]
+print(paste0("Optimal Lambda = ", optimalLambda))
+
+# Linear model with optimal root transformation 
+optimalCheddar <- (cheddar)^(optimalLambda)
+model5 <- lm(taste ~ Acetic + H2S + Lactic, data = optimalCheddar)
+summary(model5)
+```
+
+
+
+

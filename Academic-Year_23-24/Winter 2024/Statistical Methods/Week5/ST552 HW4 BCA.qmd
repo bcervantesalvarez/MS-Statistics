@@ -1,0 +1,550 @@
+---
+title: "Homework 4"
+subtitle: "ST552: Statistical Methods"
+author: "Brian Cervantes Alvarez"
+date: "02-09-2023"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: visual
+---
+
+# Question 1
+
+## Part A
+
+From the model, we can see that "sex" and "income" are significant in the model, with a higher significance for "income". This may imply that depending on your income and what your sex is, they represent strong indicators for the response variable, which is gambling spending.
+
+```{r}
+options(scipen = 3)
+library(faraway)
+data(teengamb)
+fullModel <- lm(gamble ~ ., data = teengamb)
+summary(fullModel)
+```
+
+{{< pagebreak >}}
+
+# Question 1
+
+## Part B
+
+The F-test comparing the two models yielded an F-statistic of 4.1338 with a p-value of 0.01177, suggesting that adding the other variables (e.g. "sex") to the model will increase the explanatory power. Hence, it is important to test the other variables and determine which one is the weakest of the bunch. From part a, we can suggest adding "sex" as the second predictor since it was statistically significant when compared "status" and "verbal." 
+
+```{r}
+# Models
+fullModel <- lm(gamble ~ ., data = teengamb)
+nullModel <- lm(gamble ~ income, data = teengamb)
+
+# Doing it by hand, version 1
+RSSfull <- sum(fullModel$residuals^2)
+RSSnull <- sum(nullModel$residuals^2)
+n <- as.numeric(nrow(teengamb))
+pfull <- 5
+pnull <- 2
+Fstat <- ((RSSnull - RSSfull)/(pfull - pnull)) / (RSSfull/(n - pfull))
+pval <- 1-pf(Fstat, df1 = pfull-pnull, df2 = n-pfull)
+# Print the ds frame
+ds <- data.frame(
+  Description = c("RSS Full", "RSS Null", "Sum of Sq", 
+                  "n", "Full Parms", 
+                  "Null Parms", "DF", 
+                  "F", "[Pr(>F)]"),
+  Value = c(RSSfull, RSSnull, RSSnull - RSSfull, 
+            n, pfull, pnull, pfull - pnull, 
+            Fstat, pval)
+)
+ds
+# Doing it by hand, generalized version 2
+K <- matrix(c(0, 1, 0, 0, 0,
+              0, 0, 1, 0, 0,
+              0, 0, 0, 0, 1), byrow = TRUE, nrow = 3)
+betahat <- fullModel$coefficients
+X <- model.matrix(fullModel)
+m <- 3 # Number of hypotheses
+sigmahat2 <- summary(fullModel)$sigma^2
+n <- as.numeric(nrow(teengamb)) # Number of observations 
+Fstat <- (t(K %*% betahat) %*% 
+            solve(K %*% solve(t(X) %*% X) %*% t(K)) %*% 
+            (K %*% betahat) / m) / sigmahat2
+pval <- 1 - pf(Fstat, df1 = m, df2 = n - length(betahat))
+Fstat
+pval
+# Anova Method to verify
+anova(nullModel, fullModel)
+```
+{{< pagebreak >}}
+
+# Question 1
+
+## Part C
+
+We can see that income, again, is a very strong predictor for the response variable. This can be some by the p-value, which is highly significant. Oh, the t-value and f-stat have a relationship where if you square the t-statistic then you get your F-statistic. For example, 
+
+$$
+t_{stat} = 5.330 \Rightarrow (5.330)^2 \approx 28.41 = F_{stat}
+$$
+
+```{r}
+summary(nullModel)
+```
+
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part A
+
+None of the individual predictors are statistically significant at a $5\%$ level. However, if we notice the F-test's output, we can see that the model has a p-value of 0.019024, which is significant at the $5\%$ level. This suggests that the combination of predictors significantly predicts the response variable better than a model without these predictors. In other words, there could be multicollinearity affecting the individual significance tests.
+
+```{r}
+library(faraway)
+data(punting)
+
+nullModel <- lm(Distance ~ RStr + LStr + RFlex + LFlex, data = punting)
+summary(nullModel)
+```
+{{< pagebreak >}}
+
+# Question 2
+
+## Part B
+
+Based on the F-test results, we can conclude that, collectively, these four predictors (RStr, LStr, RFlex, LFlex) do not have a statistically significant relationship to the response variable based on this sample.
+
+```{r}
+# Models
+fullModel <- lm(Distance ~., data = punting) 
+nullModel <- lm(Distance ~ RStr + LStr + RFlex + LFlex, data = punting)
+
+# Doing it by hand, version 1
+RSSfull <- sum(fullModel$residuals^2)
+RSSnull <- sum(nullModel$residuals^2)
+n <- as.numeric(nrow(punting))
+pfull <- 7
+pnull <- 5
+Fstat <- ((RSSnull - RSSfull)/(pfull - pnull)) / (RSSfull/(n - pfull))
+pval <- 1-pf(Fstat, df1 = pfull-pnull, df2 = n-pfull)
+# Print the ds frame
+ds <- data.frame(
+  Description = c("RSS Full", "RSS Null", "Sum of Sq", 
+                  "n", "Full Parms", 
+                  "Null Parms", "DF", 
+                  "F", "[Pr(>F)]"),
+  Value = c(RSSfull, RSSnull, RSSnull - RSSfull, 
+            n, pfull, pnull, pfull - pnull, 
+            Fstat, pval)
+)
+ds
+# Doing it by hand, generalized version 2
+K <- matrix(c(0, 1, 0, 0, 0, 0, 0, 
+              0, 0, 0, 0, 0, 0, 1), byrow = TRUE, nrow = 2)
+betahat <- fullModel$coefficients
+X <- model.matrix(fullModel)
+m <- 2 # Number of hypotheses
+sigmahat2 <- summary(fullModel)$sigma^2
+n <- nrow(punting) # Number of observations (13)
+Fstat <- (t(K %*% betahat) %*% 
+            solve(K %*% solve(t(X) %*% X) %*% t(K)) %*% 
+            (K %*% betahat) / m) / sigmahat2
+pval <- 1 - pf(Fstat, df1 = m, df2 = n - length(betahat))
+Fstat
+pval
+# Anova Method to verify
+anova(nullModel, fullModel)
+```
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part C
+
+After running the F-test again, we conclude that the interaction term between RStr and LStr serves a significant purpose in the model. It indicates that the effect of one predictor on the response variable is dependent on the level of the other predictor. This interaction term captures the combined effect of RStr and LStr on Distance that is not simply additive, suggesting a more complex relationship between the variables and the response.
+
+```{r}
+# Future Reference, when you create interaction terms, 
+# they are placed at the end of the vector. In other words, RStr:LStr is 
+# would be referenced by the K-matrix as [c(0,0,0,0,0,1)]. If I added another 
+# intereaction term, then you would reference both with the K-matrix as
+# K = [c(0,0,0,0,0,1,1), byrow = TRUE, nrow = 1]
+fullModel <- lm(Distance ~ RStr + LStr +  RFlex + LFlex + RStr:LStr,
+                data = punting)
+nullModel <- lm(Distance ~ RStr + LStr + RFlex + LFlex, data = punting)
+
+# ------------------------ Doing it by hand, version 1 ------------------------
+RSSfull <- sum(fullModel$residuals^2)
+RSSnull <- sum(nullModel$residuals^2)
+n <- as.numeric(nrow(punting))
+pfull <- 6
+pnull <- 5
+Fstat <- ((RSSnull - RSSfull)/(pfull - pnull)) / (RSSfull/(n - pfull))
+pval <- 1-pf(Fstat, df1 = pfull-pnull, df2 = n-pfull)
+
+ds <- data.frame(
+  Description = c("RSS Full", "RSS Null", "Sum of Sq", 
+                  "n", "Full Parms", 
+                  "Null Parms", "DF", 
+                  "F", "[Pr(>F)]"),
+  Value = c(RSSfull, RSSnull, RSSnull - RSSfull, 
+            n, pfull, pnull, pfull - pnull, 
+            Fstat, pval)
+)
+ds
+# ----------------- Doing it by hand, generalized version 2 ----------------- 
+K <- matrix(c(0, 0, 0, 0, 0, 1), byrow = TRUE, nrow = 1)
+betahat <- fullModel$coefficients
+X <- model.matrix(fullModel)
+
+m <- 1 # Number of hypotheses
+sigmahat2 <- summary(fullModel)$sigma^2
+n <- nrow(punting) # Number of observations (13)
+
+Fstat <- (t(K %*% betahat) %*% 
+            solve(K %*% solve(t(X) %*% X) %*% t(K)) %*% 
+            (K %*% betahat) / m) / sigmahat2
+pval <- 1 - pf(Fstat, df1 = m, df2 = n - length(betahat))
+
+
+
+print(paste0("F-statistic: ", Fstat))
+print(paste0("P-value: ", pval))
+
+
+# Anova Method for verification *,*
+anova(nullModel, fullModel)
+```
+
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part D
+
+The F-test from $\text{part c}$ showed us that the way $RStr$ and $LStr$ work together really matters for predicting the response. The confidence region we drew for their effects helps us see this more clearly. It doesn't just show us where the true effects of $RStr$ and $LStr$ might lie based on our ds, but it also shows how these two are linked together. This tells us that the interaction between $RStr$ and $LStr$ is a key part of understanding our model.
+
+```{r}
+library(ellipse)
+
+betahat <- coef(fullModel)
+X <- model.matrix(fullModel)
+sigmahat2 <- summary(fullModel)$sigma^2
+K <- matrix(c(0, 1, 0, 0, 0, 0,
+              0, 0, 1, 0, 0, 0), byrow = TRUE, nrow = 2)
+fCrit <- qf(0.95, 2, nrow(punting) - length(betahat))
+covM <- K %*% solve(t(X) %*% X) %*% t(K)
+covM
+betaRStr <- betahat["RStr"]
+betaLStr <- betahat["LStr"]
+seRStr <- sqrt(covM[1, 1])
+seLStr <- sqrt(covM[2, 2])
+radiusRStr <- sqrt(fCrit) * seRStr
+radiusLStr <- sqrt(fCrit) * seLStr
+CREllipsiod <- ellipse(covM, centre = c(betaRStr, betaLStr), level = 0.95)
+
+# Ellipse Confidence Region
+plot(CREllipsiod, type = 'l', xlab = expression(beta[RStr]), ylab = expression(beta[LStr]),
+     main = "95% Confidence Region for RStr and LStr")
+points(betaRStr, betaLStr, pch = 19, col = 'darkorange2') # Mark the center
+text(betaRStr, betaLStr, labels = "Center", pos = 4)
+```
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part E
+
+```{r}
+ds <- punting
+ds$TStr <- punting$LStr + punting$RStr
+
+fullModel <- lm(Distance ~ LStr + RStr, data = ds)
+nullModel <- lm(Distance ~ TStr, data = ds)
+#summary(nullModel)
+
+# ------------------------ Doing it by hand, version 1 ------------------------
+RSSfull <- sum(fullModel$residuals^2)
+RSSnull <- sum(nullModel$residuals^2)
+n <- as.numeric(nrow(punting))
+pfull <- 3
+pnull <- 2
+Fstat <- ((RSSnull - RSSfull)/(pfull - pnull)) / (RSSfull/(n - pfull))
+pval <- 1-pf(Fstat, df1 = pfull-pnull, df2 = n-pfull)
+
+ds <- data.frame(
+  Description = c("RSS Full", "RSS Null", "Sum of Sq", 
+                  "n", "Full Parms", 
+                  "Null Parms", "DF", 
+                  "F", "[Pr(>F)]"),
+  Value = c(RSSfull, RSSnull, RSSnull - RSSfull, 
+            n, pfull, pnull, pfull - pnull, 
+            Fstat, pval)
+)
+ds
+# Anova Method for verification *,*
+anova(nullModel, fullModel)
+```
+
+
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part F
+
+```{r}
+fullModel <- lm(Distance ~ RStr + LStr + RFlex + LFlex, data = punting)
+nullModel <- lm(Distance ~ RFlex + LFlex, data = punting)
+
+# ------------------------ Doing it by hand, version 1 ------------------------
+RSSfull <- sum(fullModel$residuals^2)
+RSSnull <- sum(nullModel$residuals^2)
+n <- as.numeric(nrow(punting))
+pfull <- 5
+pnull <- 3
+Fstat <- ((RSSnull - RSSfull)/(pfull - pnull)) / (RSSfull/(n - pfull))
+pval <- 1-pf(Fstat, df1 = pfull-pnull, df2 = n-pfull)
+
+ds <- data.frame(
+  Description = c("RSS Full", "RSS Null", "Sum of Sq", 
+                  "n", "Full Parms", 
+                  "Null Parms", "DF", 
+                  "F", "[Pr(>F)]"),
+  Value = c(RSSfull, RSSnull, RSSnull - RSSfull, 
+            n, pfull, pnull, pfull - pnull, 
+            Fstat, pval)
+)
+ds
+# Anova Method for verification *,*
+anova(nullModel, fullModel)
+
+```
+
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part G
+
+```{r}
+ds <- punting
+
+ds$diffStr <- (ds$RStr - ds$LStr)
+ds$diffFlex <- (ds$RFlex - ds$LFlex)
+
+# Full model with differences to test symmetry
+fullModelSymmetry <- lm(Distance ~ LStr + 
+                          RStr + LFlex + RFlex + diffStr + diffFlex, data = ds)
+# Null model without differences
+nullModelSymmetry <- lm(Distance ~ LStr + RStr + LFlex + RFlex, data = ds)
+# Compare models
+anova(nullModelSymmetry, fullModelSymmetry)
+```
+
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part H
+
+Comparing models with different response variables using ANOVA is statistically invalid because ANOVA assumes the same response variable across models, making direct comparisons inappropriate. To evaluate predictor significance across models for $\text{Distance}$ and $\text{Hang}$, we must assess each model independently, as they analyze distinct aspects of punting performance.
+
+```{r}
+hangModel <- lm(Hang ~ LStr + RStr + LFlex + RFlex, data = punting)
+summary(hangModel)
+```
+
+
+
+{{< pagebreak >}}
+
+# Question 3
+
+## Part A
+
+
+Here are the models being used:
+
+- Acetic:
+    - Full model: $\text{taste}_i = \beta_0 + \beta_{1}\text{Acetic}_i + \epsilon_i$
+    - Reduced model: $\text{taste}_i = \beta_0 + \epsilon_i$
+- H2S:
+    - Full model: $\text{taste}_i = \beta_0 + \beta_{1}\text{Acetic}_i + \beta_2 \text{H2S}_i + \epsilon_i$
+    - Reduced model: $\text{taste}_i = \beta_0 + \epsilon_i$
+- Lactic:
+    - Full model: $\text{taste}_i = \beta_0 + \beta_{1}\text{Acetic}_i + \beta_2 \text{H2S}_i + \beta_3 \text{Lactic}_i + \epsilon_i$
+    - Reduced model: $\text{taste}_i = \beta_0 + \beta_{1}\text{Acetic}_i + \beta_2 \text{H2S}_i + \epsilon_i$
+
+
+```{r}
+library(faraway)
+data(cheddar)
+fit <- lm(taste ~ ., data = cheddar)
+anova(fit)
+```
+
+{{< pagebreak >}}
+
+# Question 3
+
+## Part B
+
+```{r}
+# Fit the full model
+fullModel <- lm(taste ~ Acetic + H2S + Lactic, data = cheddar)
+
+# Fit the reduced models
+reducedModelLactic <- lm(taste ~ Acetic + H2S, data = cheddar)
+reducedModelH2S <- lm(taste ~ Acetic, data = cheddar)
+interceptOnlymodel <- lm(taste ~ 1, data = cheddar)
+
+# Perform ANOVA calls
+anova(interceptOnlymodel, reducedModelH2S) # Compares intercept only to Acetic
+anova(reducedModelH2S, reducedModelLactic) # Compares Acetic to Acetic + H2S
+anova(reducedModelLactic, fullModel) # Compares Acetic + H2S to Acetic + H2S + Lactic
+
+```
+
+{{< pagebreak >}}
+
+# Question 3
+
+## Part C
+
+The F-values and p-values do not match between the original ANOVA output and the separate ANOVA calls because the F-statistic's denominator changes. In the original output, it's based on the residual variance from the full model. In the separate calls, it's based on the variance from the reduced models. That's the important distinction when viewing either version.
+
+```{r}
+ssEffectAcetic = 2314.1
+dfEffectAcetic = 1
+rssModelAcetic = 5348.7
+dfResidualAcetic = 28
+
+# Calculate the F-statistic for the Acetic comparison using the correct values
+fStatAcetic = (ssEffectAcetic / dfEffectAcetic) / (rssModelAcetic / dfResidualAcetic)
+fStatAcetic
+```
+
+{{< pagebreak >}}
+
+# Question 4
+
+## Part A
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+ds <- read.csv("HW4simulation.csv")
+
+# Number of iterations
+iterations <- 5000
+n <- nrow(ds)
+
+# Storage for estimates
+betaEstimates <- matrix(NA, nrow = iterations, ncol = 4) 
+sigmaHat2 <- numeric(iterations)
+
+# Simulation Loop
+for(i in 1:iterations) {
+  epsilon <- rnorm(n, mean = 0, sd = sqrt(5))
+  Y <- 1 + 4 * ds$X1 - 3 * ds$X2 + epsilon
+  model <- lm(Y ~ X1 + X2 + X3, data = ds)
+
+  betaEstimates[i,] <- coef(model)
+  sigmaHat2[i] <- sum(resid(model)^2) / (n - length(coef(model)))
+}
+# Data Wrangling
+resultsDs <- data.frame(betaEstimates, sigmaHat2 = sigmaHat2)
+colnames(resultsDs)[1:4] <- paste0("beta", 0:3)
+longDs <- pivot_longer(resultsDs, cols = everything(), names_to = "estimate", values_to = "value")
+
+
+# Plot density plots for beta estimates with theoretical distribution curves overlaid
+betaPlots <- function(data, betaType, expectedMean, variance, title) {
+  ggplot(data %>% filter(estimate == betaType), aes(x = value)) +
+    geom_histogram(aes(y = ..density..), color = "cornsilk4", fill = "azure3", alpha = 0.3, bins = 30) +
+    stat_function(fun = dnorm, args = list(mean = expectedMean, sd = sqrt(variance)),
+                  color = "red", linetype = "dashed") +
+    labs(title = title, x = betaType, y = "Density") +
+    theme_classic()
+}
+
+# For sigma^2, assuming the theoretical distribution is a scaled chi-square distribution
+# which can be approximated or transformed into a Gamma distribution
+sigma2Plot <- function(data, sigmaHat, n, p, variance) {
+  # Degrees of freedom for the chi-square distribution
+  df <- n - p
+  # Scale parameter for the chi-square distribution transformed to Gamma distribution
+  scale <- 2 * variance / df
+
+  ggplot(data %>% filter(estimate == sigmaHat), aes(x = value)) +
+    geom_density(color = "limegreen", fill = "cyan4", alpha = 0.3) +
+    stat_function(fun = dgamma, 
+                  args = list(shape = df / 2, scale = scale),
+                  color = "red", 
+                  linetype = "dashed") +
+    labs(title = "Density plot of sigma^2 with Gamma(13, 5/13)",
+         x = "sigma^2", y = "Density") +
+    theme_classic()
+}
+
+variance = 5/30
+
+betaPlots(longDs, "beta0", 1, variance, "Histogram of Beta0 with Normal(1,5)")
+
+betaPlots(longDs, "beta1", 4, variance, "Histogram of Beta1 with Normal(4,5)")
+
+betaPlots(longDs, "beta2", -3, variance, "Histogram of Beta2 with Normal(-3,5)")
+
+betaPlots(longDs, "beta3", 0, variance, "Histogram of Beta3 with Normal(0,5)")
+
+sigma2Plot(longDs, "sigmaHat2", 30, 4, 5)
+
+
+```
+
+{{< pagebreak >}}
+
+### Theoretical Distributions:
+
+-  The coefficient estimates $\hat{\beta}_i$ are normally distributed, i.e., $\hat{\beta}_i \sim N(\beta_i, \sigma^2 (X^TX)^{-1})$, where $X$ is the design matrix including a column of $1$s for the intercept.
+
+-  The estimator $\hat{\sigma}^2$ follows a scaled chi-squared distribution. Specifically, if $\epsilon \sim N(0, \sigma^2 I_n)$, then $\frac{(n-p)\hat{\sigma^{2}}}{\sigma^2} \sim \chi^2_{n-p}$, where $n$ is the number of observations, $p$ is the number of parameters (including the intercept), and $n-p$ are the degrees of freedom. By rearranging, we get that $\hat{\sigma}^2 \sim \frac{\sigma^2}{n-p} \chi^2_{n-p}$, which can be represented as $Gamma\left(\frac{n-p}{2}, \frac{2\sigma^2}{n-p}\right)$.
+
+- $(\hat{\beta}_1 - \beta_1)/SE(\hat{\beta}_1)$ follows a standard normal distribution, $N(0,1)$, under the null hypothesis that the true coefficient $\beta_1$ is as specified.
+
+
+{{< pagebreak >}}
+
+# Question 4
+
+## Part B
+
+The histogram of $(\hat{\beta}_1 - \beta_1)/SE(\hat{\beta}_1)$ will be centered around $0$ with a standard deviation of $1$
+```{r}
+beta1_estimates <- betaEstimates[, 2] 
+
+error_variance <- 5
+SE_beta1 <- sqrt(error_variance / n)  
+
+# Standardize beta1 estimates
+standardized_beta1 <- (beta1_estimates - 4) / SE_beta1  # Assuming beta1 true value is 4
+
+# Plot histogram with theoretical distribution 
+ggplot(data.frame(standardized_beta1), aes(x = standardized_beta1)) +
+  geom_histogram(aes(y = ..density..), bins = 30, fill = "cornsilk4", color = "black", alpha = 0.7) +
+  stat_function(fun = dnorm, args = list(mean = 0, sd = 1), color = "red", size = 1, linetype = "dashed") +
+  labs(title = "Standardized Beta1 Estimates",
+       x = NULL,
+       y = "Density") +
+  theme_classic()
+
+```
