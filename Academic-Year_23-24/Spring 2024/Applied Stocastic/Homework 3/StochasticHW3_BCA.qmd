@@ -1,0 +1,279 @@
+---
+title: "Homework 3"
+subtitle: "ST 543 Applied Stochastic Models"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+---
+
+
+# Question 1
+
+### Solution
+
+We can use a Markov chain with $2^3 = 8$ states, each representing a possible combination of rainy $(1)$ or not rainy $(0)$ days over the three-day period.
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Solution
+
+The states are:
+
+- State 0: $(N, N, N)$
+- State 1: $(N, N, R)$
+- State 2: $(N, R, N)$
+- State 3: $(N, R, R)$
+- State 4: $(R, N, N)$
+- State 5: $(R, N, R)$
+- State 6: $(R, R, N)$
+- State 7: $(R, R, R)$
+
+### Transition Probability Matrix $\mathbf{P}$
+
+$$
+\mathbf{P} = \left[
+\begin{array}{cccccccc}
+0.8 & 0 & 0 & 0 & 0 & 0 & 0 & 0.2 \\
+0.6 & 0 & 0 & 0 & 0 & 0 & 0 & 0.4 \\
+0.6 & 0 & 0 & 0 & 0 & 0 & 0 & 0.4 \\
+0 & 0.6 & 0 & 0.4 & 0 & 0 & 0 & 0 \\
+0.6 & 0 & 0 & 0 & 0 & 0 & 0 & 0.4 \\
+0 & 0 & 0.6 & 0 & 0 & 0.4 & 0 & 0 \\
+0 & 0 & 0.6 & 0 & 0 & 0 & 0.4 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0.2 & 0.8 \\
+\end{array}
+\right]
+$$
+
+{{< pagebreak >}}
+
+# Question 3
+
+## Solution
+
+Given $P(X_0 = 0) = P(X_0 = 1) = 0.25$ and $P(X_0 = 2) = 0.5$, we can calculate $E[X_3]$:
+
+$$
+E[X_3] = 0 \times p_{30} + 1 \times p_{31} + 2 \times p_{32},
+$$
+
+where $p_{3i}$ are the probabilities of being in state $i$ at time 3.
+
+First, compute $\mathbf{P}^3$:
+$$
+\mathbf{P}^3 = \mathbf{P} \cdot \mathbf{P} \cdot \mathbf{P}
+$$
+$$
+\mathbf{P} = \left[
+\begin{array}{ccc}
+\frac{1}{2} & \frac{1}{3} & \frac{1}{6}\\
+0 & \frac{1}{3} & \frac{2}{3}\\
+\frac{1}{2} & 0 & \frac{1}{2} 
+\end{array} \right] \cdot
+\left[
+\begin{array}{ccc}
+\frac{1}{2} & \frac{1}{3} & \frac{1}{6}\\
+0 & \frac{1}{3} & \frac{2}{3}\\
+\frac{1}{2} & 0 & \frac{1}{2} 
+\end{array} \right] \cdot
+\left[
+\begin{array}{ccc}
+\frac{1}{2} & \frac{1}{3} & \frac{1}{6}\\
+0 & \frac{1}{3} & \frac{2}{3}\\
+\frac{1}{2} & 0 & \frac{1}{2} 
+\end{array} \right]
+$$
+
+$$
+\mathbf{P^3} = \left[
+\begin{array}{ccc}
+0.3611 & 0.2037 & 0.4325\\
+0.4444 & 0.1481 & 0.4074\\
+0.4167 & 0.2222 & 0.3611 
+\end{array} \right]
+$$
+
+Since we know our probability states:
+
+$$
+v_0 = 
+\left[
+\begin{array}{c}
+0.25 \\
+0.25 \\
+0.5 
+\end{array} \right]
+$$
+We can compute:
+
+$$
+v_0\mathbf{P^3} = 
+\left[
+\begin{array}{c}
+0.25 \\
+0.25 \\
+0.5 
+\end{array} \right] \cdot
+\left[
+\begin{array}{ccc}
+0.3611 & 0.2037 & 0.4325\\
+0.4444 & 0.1481 & 0.4074\\
+0.4167 & 0.2222 & 0.3611 
+\end{array} \right]
+$$
+
+
+The state distribution at $n = 3$, denoted $\mathbf{v}_3$, is computed as:
+
+$$
+\mathbf{v}_3 = [0.4097, 0.1991, 0.3912]
+$$
+
+
+As a result, the expected value $E[X_3]$ is:
+
+$$
+E[X_3] = 0 \times 0.4097 + 1 \times 0.1991 + 2 \times 0.3912 \approx 0.9815
+$$
+
+Therefore, the expected state of the Markov chain at time 3, $E[X_3]$, is approximately 0.9815.
+
+{{< pagebreak >}}
+
+# Question 4
+
+## Solution
+
+### Part A
+
+Let $C_t$ be the coin used on day $t$. We can model the coin flip process as a Markov chain where $C_t = 1$ if coin 1 is used and $C_t = 2$ if coin 2 is used. Given the initial condition $P(C_0 = 1) = P(C_0 = 2) = 0.5$, we calculate $P(C_3 = 1)$.
+
+We have the following transition probabilities based on the outcome of each flip:
+
+- $P(C_{t+1} = 1 | C_t = 1) = 0.7$ (if coin 1 is used and it comes up heads)
+- $P(C_{t+1} = 1 | C_t = 2) = 0.6$ (if coin 2 is used and it comes up heads)
+- $P(C_{t+1} = 2 | C_t = 1) = 0.3$ (if coin 1 is used and it comes up tails)
+- $P(C_{t+1} = 2 | C_t = 2) = 0.4$ (if coin 2 is used and it comes up tails)
+
+We calculate $P(C_1 = 1)$:
+$$
+\begin{aligned}
+&P(C_{t+1} = 1) = P(C_t = 1) \cdot P(\text{heads} | C_t = 1) + P(C_t = 2) \cdot P(\text{heads} | C_t = 2) \\
+&P(C_1 = 1) = 0.5 \cdot 0.7 + 0.5 \cdot 0.6 = 0.65 \\
+&P(C_2 = 1) = 0.65 \cdot 0.7 + 0.35 \cdot 0.6 = 0.665 \\
+&P(C_3 = 1) = 0.665 \cdot 0.7 + 0.335 \cdot 0.6 = 0.6665 \\
+\end{aligned}
+$$
+Hence, the probability that the coin flipped on the third day after the initial flip is
+coin 1 is $0.6665$.
+
+
+
+{{< pagebreak >}}
+
+### Part B
+
+Given the coin flipped on Monday comes up heads, coin 1 is used on Tuesday. This leads to a sequence of daily decisions:
+
+- Heads on Monday leads to using coin 1 on Tuesday.
+- If Tuesday (coin 1) is heads, use coin 1 on Wednesday.
+- If Wednesday (coin 1) is heads, use coin 1 on Thursday.
+- If Thursday (coin 1) is heads, use coin 1 on Friday.
+
+The probability of heads from coin 1 is 0.7. Assuming heads occur each day and we follow the rules of coin 1:
+$$
+\begin{aligned}
+&P(\text{heads on } C_{\text{Tuesday}}) = 0.7 \\
+&P(\text{heads on } C_{\text{Wednesday}} | \text{heads on } C_{\text{Tuesday}}) = 0.7 \\
+&P(\text{heads on } C_{\text{Thursday}} | \text{heads on } C_{\text{Wednesday}}) = 0.7 \\
+&P(\text{heads on } C_{\text{Friday}} | \text{heads on } C_{\text{Thursday}}) = 0.7 \\
+\end{aligned}
+$$
+
+Therefore, the probability that the coin flipped on Friday also comes up heads is therefore $0.7$, as it is independent of the outcomes from previous days due to the specified pattern of heads leading to the use of coin 1 each day.
+
+{{< pagebreak >}}
+
+# Question 5
+
+## Solution
+
+### Part A
+Matrix $P_1$ is a single communicating class because every state in the matrix can be reached from any other state, either directly in one step or indirectly in two steps. This connectivity means that all states in the matrix are recurrent, as there is always a way to return to any given state from any other state.
+
+$$
+P_1 = \left[ 
+\begin{array}{ccc}
+0 & \frac{1}{2} & \frac{1}{2} \\
+\frac{1}{2} & 0 & \frac{1}{2} \\
+\frac{1}{2} & \frac{1}{2} & 0 
+\end{array}
+\right]
+$$
+
+
+{{< pagebreak >}}
+
+### Part B
+Matrix $P_2$ includes one absorbing state, which is state 4, and three transient states, which are states 1, 2, and 3. States 1, 2, and 3 are considered transient because they all eventually lead to state 4. Once in state 4, it is not possible to move to any other state, making state 4 an absorbing state from which there is no exit.
+
+$$
+P_2 = \left[ 
+\begin{array}{cccc}
+0 & 0 & 0 & 1 \\
+0 & 0 & 0 & 1 \\
+\frac{1}{2} & \frac{1}{2} & 0 & 0 \\
+0 & 0 & 1 & 0 
+\end{array}
+\right]
+$$
+
+{{< pagebreak >}}
+
+### Part C
+Matrix $P_3$ has two communicating classes. The first class includes states 1 and 3, which are recurrent because they can reach each other. The second class includes states 4 and 5, which are also recurrent because they form a closed loop, meaning each state in this class can be reached from any other state within the same class.
+
+$$
+P_3 = \left[ 
+\begin{array}{ccccc}
+0.5 & 0 & 0.5 & 0 & 0 \\
+0.25 & 0.5 & 0.25 & 0 & 0 \\
+0.5 & 0 & 0.5 & 0 & 0 \\
+0 & 0 & 0 & 0.5 & 0.5\\
+0 & 0 & 0 & 0.5 & 0.5\\
+\end{array}
+\right]
+$$
+
+{{< pagebreak >}}
+
+### Part D
+Matrix $P_4$ includes several classes. State 3 is recurrent because it always leads back to itself with a probability of 1. States 4 and 5 create a closed communicating class, making them recurrent as they can reach each other. States 1 and 2 are transient since they neither communicate with the recurrent states 3, 4, and 5 nor return to themselves with a certainty.
+
+$$
+P_4 = \left[ 
+\begin{array}{ccccc}
+\frac{1}{4} & \frac{3}{4} & 0 & 0 & 0 \\
+\frac{1}{2} & \frac{1}{2} & 0 & 0 & 0 \\
+0 & 0 & 1 & 0 & 0 \\
+0 & 0 & \frac{1}{3} & \frac{2}{3} & 0 \\
+0 & 0 & 0 & 0.5 & 0.5\\
+\end{array}
+\right]
+$$
+{{< pagebreak >}}
+
+# Question 6
+
+## Proof
+Consider a Markov chain with $M$ states, and assume state $j$ can be reached from state $i$.
+
+   - If $j$ is reachable from $i$, there exists a sequence of transitions from $i$ to $j$. Then, a path of more than $M$ steps would imply at least one state is revisited, indicating a cycle.
+   - Additionally, any cycle in the path can be removed without affecting the reachability of $j$ from $i$. Thus, the path can always be shortened to at most $M$ steps by excluding unnecessary cycles.
+   - Since removing cycles results in a path of at most $M$ steps, state $j$ can be reached from state $i$ within $M$ steps or fewer. This is the maximum since it considers each state being visited at most once on the way to $j$.
+
+Hence, a Markov chain with $M$ states, if state $j$ is reachable from state $i$, it can be done within $M$ steps.

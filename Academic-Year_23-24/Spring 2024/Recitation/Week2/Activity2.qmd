@@ -1,0 +1,165 @@
+---
+title: "Week 2: Sampling and Descriptive Statistics"
+format: 
+   revealjs:
+     footer: "ST 243Z Recitation (April 12, 2024)"
+     multiplex: true
+     preview-links: true
+     theme: "OSUTheme.scss"
+     scrollable: true
+     logo: "OSULogo.png"
+     smooth-scroll: true
+     chalkboard: true
+     html-math-method: "katex"
+     incremental: true
+     slide-number: "c/t"
+     transition: "slide"
+---
+
+## How to reach your TA 
+
+. . .
+
+Contact information
+
+  - Email: **cervantb@oregonstate.edu**
+  
+. . .
+
+Office hours
+
+  - Every **Friday** from **9am - 9:50am**
+  - Location: **Math & Stats Learning Center (MSLC) in Kidder Hall**
+  
+. . .
+
+![](statmeme1.jpeg){width="1000" height="600"}
+
+
+# Story Time! {background-image=office.jpeg background-opacity=0.2}
+
+
+## Activity Instructions
+
+1. **Word Length Identification**
+   - Select ten words that you feel best represent the story.
+   - Record the number of letters in each word.
+   - Format: Word | Number of Letters
+   
+. . .
+
+Example 1: Hi | 2
+
+. . .
+
+Example 2: Supercalifragilisticexpialidocious | 34 
+
+. . .
+
+You get the idea!
+
+
+2. **Calculate the Average**
+   - Compute the average length of the ten words you selected. Round to two decimal places.
+   - Include notation and units if applicable.`
+  
+3. **Read me your results**
+
+## (8 am Recitation Average)
+. . .
+
+
+```{r}
+## Input the class averages
+class.averages <- c(5.1, 6.6, 5.3, 7.2, 6, 6, 6, 5.2, 6, 5.8, 6)
+
+## Display the average of all the class average word lengths
+cat("Population Mean (Class Average):",mean(class.averages))
+cat("True Mean:", 4.25)
+cat("Population Standard Deviation:", sd(class.averages))
+cat("Median:",median(class.averages))
+cat("Min:", min(class.averages))
+cat("Max:", max(class.averages))
+
+
+## Make plots side-by-side
+par(mfrow = c(1, 2))
+
+## Boxplot
+boxplot(class.averages, horizontal = TRUE,
+        col = "darkolivegreen3",
+        xlab = "Word Length",
+        main = "Boxplot of Word Length",
+        pch = 19,
+        ylim = c(1.5, 9.5))
+axis(1, at = seq(2, 9, by = 1))
+abline(v = 4.25, lty = 2)
+
+## Histogram
+hist(class.averages,
+     col = "khaki2",
+     xlim = c(1.5, 9.5),
+     las = 1,
+     ylab = " ",
+     xlab = "Word Length",
+     main = "Distribution of Word Length",
+     breaks = 10) # Ensuring consistent breaks in the histogram
+axis(1, at = seq(2, 9, by = 1))
+abline(v = 4.25, lty = 2)
+
+## Return plots to be one plot at a time
+par(mfrow = c(1, 1))
+
+```
+
+## 10 am Recitation Class Average
+. . .
+
+
+```{r}
+## Input the class averages
+class.averages <- c(5.7, 5.5, 5, 4.9, 4.9, 5.4, 6.5, 6, 4.7, 6, 5.5, 5.3, 5.2, 6.5, 7, 5.7, 5.5, 5.6, 5.2, 5.9, 5.1)
+
+## Display the average of all the class average word lengths
+cat("Population Mean (Class Average):",mean(class.averages))
+cat("Population Standard Deviation:", sd(class.averages))
+cat("Min:", min(class.averages),"Max:", max(class.averages))
+cat("True Mean:", 4.25)
+
+
+## Make plots side-by-side
+par(mfrow = c(1, 2))
+
+## Boxplot
+boxplot(class.averages, horizontal = TRUE,
+        col = "darkolivegreen3",
+        xlab = "Word Length",
+        main = "Boxplot of Word Length",
+        pch = 19,
+        ylim = c(1.5, 9.5))
+axis(1, at = seq(2, 9, by = 1))
+abline(v = 4.25, lty = 2)
+
+## Histogram
+hist(class.averages,
+     col = "khaki2",
+     xlim = c(1.5, 9.5),
+     las = 1,
+     ylab = " ",
+     xlab = "Word Length",
+     main = "Distribution of Word Length",
+     breaks = 10) # Ensuring consistent breaks in the histogram
+axis(1, at = seq(2, 9, by = 1))
+abline(v = 4.25, lty = 2)
+
+## Return plots to be one plot at a time
+par(mfrow = c(1, 1))
+
+```
+
+
+# Finish and Turn in your worksheet! {background-image=hard.png background-opacity=0.3}
+
+
+
+

@@ -1,0 +1,18 @@
+---
+title: "Homework 4"
+subtitle: "ST 543 Applied Stochastic Models"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+jupyter: julia-1.8
+---
+
+# ST 563: Theory of Statistics III
+
+
+```{julia}
+plot(lik, 0, 1)
+```
+

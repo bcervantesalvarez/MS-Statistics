@@ -1,0 +1,199 @@
+---
+title: "Homework 2"
+subtitle: "ST553 Statistical Methods"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+---
+
+# 1.
+Derivation of the formula for the sum of squares for a contrast $C = \sum_{i=1}^g w_i \mu_i$ as described by Oehlert.
+
+## 1.1
+Oehlert asserts that either $t = \frac{\hat{C}}{SE(\hat{C})}$ or $F = \frac{SS_w}{MSE}$ may be used to test $H_0: C = 0$. Write down the $t$-statistic in terms of the contrast coefficients, sample means, and sample sizes:
+
+The estimated contrast $\hat{C}$ is given by:
+$$
+\hat{C} = \sum_{i=1}^g w_i \bar{x}_i
+$$
+where $w_i$ are the contrast weights and $\bar{x}_i$ are the sample means of each group.
+
+The variance of $\hat{C}$ is:
+$$
+\text{Var}(\hat{C}) = \sum_{i=1}^g w_i^2 \frac{\sigma_i^2}{n_i}
+$$
+where $\sigma_i^2$ are the variances of each group and $n_i$ are the sample sizes.
+
+The standard error of $\hat{C}$ is the square root of the variance:
+$$
+SE(\hat{C}) = \sqrt{\text{Var}(\hat{C})} = \sqrt{\sum_{i=1}^g w_i^2 \frac{\sigma_i^2}{n_i}}
+$$
+
+The $t$-statistic is then given by:
+$$
+t = \frac{\hat{C}}{SE(\hat{C})} = \frac{\sum_{i=1}^g w_i \bar{x}_i}{\sqrt{\sum_{i=1}^g w_i^2 \frac{\sigma_i^2}{n_i}}}
+$$
+
+## 1.2
+Recall that if the numerator degrees of freedom is 1, as it is with $F = \frac{SS_w}{MSE}$, then the $F$-statistic is the square of the $t$-statistic. Use this fact to write an equation relating $F$ and $t$:
+
+$$
+F = t^2 = \left( \frac{\sum_{i=1}^g w_i \bar{x}_i}{\sqrt{\sum_{i=1}^g w_i^2 \frac{\sigma_i^2}{n_i}}} \right)^2
+$$
+
+## 1.3
+Solve your equation in part 2 for $SS_w$:
+$$
+F = \frac{SS_w}{MSE} = t^2
+$$
+$$
+SS_w = MSE \cdot t^2
+$$
+$$
+SS_w = MSE \cdot \left( \frac{\sum_{i=1}^g w_i \bar{x}_i}{\sqrt{\sum_{i=1}^g w_i^2 \frac{\sigma_i^2}{n_i}}} \right)^2
+$$
+
+{{< pagebreak >}}
+
+# 2.
+Analysis of the French fry experiment using different types of fats to understand how fat type affects the amount of fat absorbed by French fries.
+
+## Report
+
+In exploring how different fats influence fat absorption in French fries, our analysis suggests that fries cooked in vegetable oils may absorb more fat compared to those in animal fats, with no apparent difference between canola and coconut oils, either alone or combined. Although these findings are suggestive, they are inconclusive (p = 0.0586), indicating a need for further research to clarify these initial observations.
+
+
+![](contrasts.jpeg)
+
+
+{{< pagebreak >}}
+
+# 3.
+
+For the statistical analysis of the fabric tensile strength data as described, here is the full process to perform in SAS, including reading in the data, transforming it, and conducting the appropriate statistical analysis.
+
+## 3.1
+
+```{r}
+#| eval: false
+DATA WORK.FABRIC;
+    INFILE '/home/u63846470/Datasets/fabric.csv' DLM=',' FIRSTOBS=2;
+    INPUT cotton strength;
+    cotton2 = cotton**2;
+    cotton3 = cotton**3;
+RUN;
+
+PROC PRINT DATA=WORK.FABRIC;
+RUN;
+```
+
+![](table1.jpeg)
+
+{{< pagebreak >}}
+
+
+## 3.2
+
+The model parametrization can be expressed as:
+$$Y_{ij} = \mu + \gamma_i + \epsilon_{ij}$$
+Where:
+
+- $Y_{ij}$ is the tensile strength of the $j^{th}$ sample for the $i^{th}$ cotton percentage.
+
+- $\mu$ is the overall mean tensile strength.
+
+- $\gamma_i$ is the effect of the $i^{th}$ cotton percentage level.
+
+- $\epsilon_{ij}$ is the random error, and assuming $\sim N(0,\sigma^2)$
+
+{{< pagebreak >}}
+
+
+## 3.3
+
+Error sum of squares is approximately 51.4385.
+
+```{r}
+#| eval: false
+PROC GLM DATA=WORK.FABRIC;
+    MODEL strength = cotton; 
+RUN;
+```
+
+![](table2.jpeg)
+
+{{< pagebreak >}}
+
+
+## 3.4
+
+The polynomial model is expressed as:
+$$Y_{ij} = \beta_0 + \beta_1 \text{cotton} + \beta_2 \text{cotton}^2 + \beta_3 \text{cotton}^3 + \epsilon_{ij}$$
+
+```{r}
+#| eval: false
+PROC GLM DATA=WORK.FABRIC;
+    MODEL strength = cotton cotton2 cotton3;
+RUN;
+```
+
+![](table3.jpeg)
+
+{{< pagebreak >}}
+
+## 3.5
+
+![](table4.jpeg)
+
+{{< pagebreak >}}
+
+
+## 3.6
+
+### Type I 
+
+1. **cotton:**
+   - Full model: $Y = \beta_0 + \beta_1 \cdot \text{cotton}$
+   - Reduced model: $Y = \beta_0$
+
+2. **cotton2:**
+   - Full model: $Y = \beta_0 + \beta_1 \cdot \text{cotton} + \beta_2 \cdot \text{cotton}^2$
+   - Reduced model: $Y = \beta_0 + \beta_1 \cdot \text{cotton}$
+
+3. **cotton3:**
+   - Full model: $Y = \beta_0 + \beta_1 \cdot \text{cotton} + \beta_2 \cdot \text{cotton}^2 + \beta_3 \cdot \text{cotton}^3$
+   - Reduced model: $Y = \beta_0 + \beta_1 \cdot \text{cotton} + \beta_2 \cdot \text{cotton}^2$
+
+### Type III
+
+1. **cotton:**
+   - Full model: $Y = \beta_0 + \beta_1 \cdot \text{cotton} + \beta_2 \cdot \text{cotton}^2 + \beta_3 \cdot \text{cotton}^3$
+   - Reduced model: $Y = \beta_0 + \beta_2 \cdot \text{cotton}^2 + \beta_3 \cdot \text{cotton}^3$
+
+2. **cotton2:**
+   - Full model: $Y = \beta_0 + \beta_1 \cdot \text{cotton} + \beta_2 \cdot \text{cotton}^2 + \beta_3 \cdot \text{cotton}^3$
+   - Reduced model: $Y = \beta_0 + \beta_1 \cdot \text{cotton} + \beta_3 \cdot \text{cotton}^3$
+
+3. **cotton3:**
+   - Full model: $Y = \beta_0 + \beta_1 \cdot \text{cotton} + \beta_2 \cdot \text{cotton}^2 + \beta_3 \cdot \text{cotton}^3$
+   - Reduced model: $Y = \beta_0 + \beta_1 \cdot \text{cotton} + \beta_2 \cdot \text{cotton}^2$
+
+{{< pagebreak >}}
+
+## 3.7
+
+Our test reveals that the fabric's strength does not just simply increase or decrease steadily with more cotton. Instead, how much it changes depends on the amount of cotton already in the fabric.
+
+- Null, $H_0$: $\beta_2 = 0$
+
+- Alternative, $H_1$: $\beta_2 \neq 0$
+
+```{r}
+#| eval: false
+PROC GLM DATA=WORK.FABRIC;
+    MODEL strength = cotton cotton2;
+    TEST cotton2;
+RUN;
+```

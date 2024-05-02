@@ -1,0 +1,144 @@
+---
+title: "Homework 1"
+subtitle: "ST 543 Applied Stochastic Models"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+---
+
+# ST 563: Theory of Statistics III
+
+## Question 1
+
+Let $X$ be a *single* observation from the Geometric($p$) distribution, where $X \in \{0, 1, 2, 3, \ldots\}$ is the number of Bernoulli($p$) trials needed *before* seeing one success.  The pmf for the Geometric($p$) distribution is
+$$
+p(x) = P(X = x) = (1-p)^{x}p \; \text{ for } x = 0, 1, 2, 3, \ldots
+$$
+We wish to test the null hypothesis $H_0: p = 0.1$ vs. the alternative $H_1: p = 0.5$.
+
+  (a) (2 points) What values of $X$ are more likely under the null hypothesis $H_0: p =     0.1$ than under the alternative hypothesis $H_1: p = 0.5$?
+  \begin{align*}    
+  & H_0: P(X = x) = (1 - 0.1)^x(0.1) = (0.9)^x(0.1) \\
+  & H_1: P(X = x) = (1 - 0.5)^x(0.5) = (0.5)^x(0.5) \\
+  & H_0 > H_A = (0.9)^x(0.1) > (0.5)^x(0.5) \\
+  & (0.9)^x  > (0.5)^x \cdot 5  = xlog(0.9) > xlog(0.5) + log(5) \\
+  & xlog(0.9) - xlog(0.5) >  log(5) =  x(log(\frac{0.9}{0.5})) > log(5) \\
+  & x > \frac{log(5)}{log(\frac{0.9}{0.5})} \Rightarrow x > 2.738 \\ 
+  & \text{Essentially, } X = x \ge 3 \text{ given } X \in \mathbb{Z}
+  \end{align*}
+
+
+  (b) (2 points) Suppose we have the critical function, what is the Type I error 
+  probability for this test?
+  $$
+  \psi(X) = \begin{cases}
+  1 & \text{ for } X = 0 \\
+  0 & \text{ for } X > 0
+  \end{cases}
+  $$
+  \begin{align*}
+  & P_{p=0.1}(X = 0) = (0.9)^0(0.1) \\
+  & \text{Type I error} = 10\%
+  \end{align*}
+  (c) (3 points) How could we modify the above test to obtain a size $\alpha = 0.05$ test?
+  \begin{align*}
+  & P_{p=0.1}(X \le c) \le 0.05 \Rightarrow \sum_{i=1}^{c}(0.9)^i(0.1) \le 0.05 \\
+  & 
+  \end{align*}
+  (d) (3 points) What is the Type II error probability for the test you suggested in the previous part?
+
+
+{{< pagebreak >}}
+
+```{r}
+c <- 1.645*sqrt(112.751039*0.40) + 112.751039*0.40
+c
+
+```
+ 
+
+
+## Question 2
+
+(8.13 from *Statistical Inference, 2nd Edition*) Let $X_1, X_2$ be iid Uniform($\theta, \theta+1$).  For testing $H_0: \theta = 0$ versus $H_1: \theta > 0$, we have two competing tests:
+
+- Test 1: $\phi_1(X_1)$:  Reject $H_0$ if $X_1 > 0.95$.
+- Test 2: $\phi_2(X_1, X_2)$: Reject $H_0$ if $X_1 + X_2 > C$.
+
+(a) Find the value of $C$ so that $\phi_2$ has the same size as $\phi_1$.
+
+
+(b) Calculate the power function of each test.  Draw a well-labeled graph of each power function.
+
+
+(c) Prove or disprove: $\phi_2$ is a more powerful test than $\phi_1$.
+
+
+
+(d) Show how to get a test that has the same size but is more powerful than $\phi_2$.
+
+{{< pagebreak >}}
+
+## Question 3
+
+(8.14 from *Statistical Inference, 2nd Edition*) For a random sample $X_1, \ldots, X_n$ of Bernoulli($p$) variables, it is desired to test
+
+$$
+H_0: p = 0.49 \hspace{0.5in} \text{versus} \hspace{0.5in} H_1: p = 0.51
+$$
+
+Use the Central Limit Theorem to determine, approximately, the sample size needed so that the two probabilities of error are both about 0.01.  Use a test function that rejects $H_0$ if $\sum_{i=1}^{n} X_i$ is large.
+
+{{< pagebreak >}}
+
+## Question 4
+
+(8.15 from *Statistical Inference, 2nd Edition*) Show that for a random sample $X_1, \ldots, X_n$ from a Normal$0, \sigma^2$ population distribution, the most powerful test of $H_0: \sigma = \sigma_0$ versus $H_1: \sigma = \sigma_1$, where $\sigma_0 < \sigma_1$, is given by
+
+$$
+\phi \left( \sum_{i=1}^{n} X_i^2 \right) = \begin{cases}
+1 & \text{if} \sum_{i=1}^n X_i^2 > c\\
+0 & \text{if} \sum_{i=1}^n X_i^2 \leq c
+\end{cases}
+$$
+
+For a given value of $\alpha$, the size of the Type I Error, show how the value of $c$ is explicitly determined.
+
+{{< pagebreak >}}
+
+## Question 5
+
+(8.20 from *Statistical Inference, 2nd Edition*) Let $X$ be a random variable whose pmf under $H_0$ and $H_1$ is given by
+
+$$
+\begin{array}{cccccccc}
+x & 1 & 2 & 3 & 4 & 5 & 6 & 7\\
+\hline
+f(x | H_0) & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.94 \\
+f(x | H_1) & 0.06 & 0.05 & 0.04 & 0.03 & 0.02 & 0.01 & 0.79 \\
+\end{array}
+$$
+
+Use the Neyman-Pearson Lemma to find the most powerful test for $H_0$ versus $H_1$ with size $\alpha = 0.04$.  Compute the probability of Type II Error for this test.
+
+{{< pagebreak >}}
+
+## Question 6
+
+(8.23 from *Statistical Inference, 2nd Edition*)  Suppose $X$ is one observation from a population with Beta($\theta, 1$) pdf.
+
+(a) For testing $H_0: \theta \leq 1$ versus $H_1: \theta > 1$, find the size and sketch the power function of the test that rejects $H_0$
+
+ if $X > \frac{1}{2}$.
+
+
+(b) Find the most powerful level $\alpha$ test of $H_0: \theta = 1$ versus $H_1: \theta = 2$.
+
+
+{{< pagebreak >}}
+
+## Question 7
+
+*Make up your own question based on this week's material (hypothesis testing, Neyman-Pearson Lemma, Uniformly Most Powerful (UMP) tests), and provide a solution.*

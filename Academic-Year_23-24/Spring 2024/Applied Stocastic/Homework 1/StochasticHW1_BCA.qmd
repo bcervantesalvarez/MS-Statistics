@@ -1,0 +1,134 @@
+---
+title: "Homework 1"
+subtitle: "ST 543 Applied Stochastic Models"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+---
+
+
+# Problem 1: Marbles Drawn with Replacement
+
+## (a) Sample Space
+
+
+$$S = \{(R, R), (R, G), (R, B), (G, R), (G, G), (G, B), (B, R), (B, G), (B, B)\}$$
+
+## (b) Probability of Each Point in the Sample Space
+
+$$P((x, y)) = \frac{1}{9}$$
+
+
+{{< pagebreak >}}
+
+# Problem 2: Marbles Drawn without Replacement
+
+## (a) Sample Space
+
+
+$$S = \{(R, G), (R, B), (G, R), (G, B), (B, R), (B, G)\}$$
+
+## (b) Probability of Each Point in the Sample Space
+
+
+$$P((x, y)) = \frac{1}{6}$$
+
+{{< pagebreak >}}
+
+# Problem 3: Probability of Drawing a Black Marble
+
+
+\begin{align*}
+P(\text{Black}|\text{Box1}) &= \frac{1}{2} \\
+P(\text{Black}|\text{Box2}) &= \frac{2}{3} \\ 
+P(\text{Box1}) = P(\text{Box2}) &= \frac{1}{2} \\
+P(\text{Black}) &= P(\text{Black}|\text{Box1}) \cdot P(\text{Box1}) + P(\text{Black}|\text{Box2}) \cdot P(\text{Box2}) \\
+P(\text{Black}) &= \frac{1}{2} \cdot \frac{1}{2} + \frac{2}{3} \cdot \frac{1}{2} = \frac{1}{4} + \frac{1}{3} = \frac{7}{12}
+\end{align*}
+
+
+
+{{< pagebreak >}}
+
+# Problem 4: Two Balls Selection
+
+## (a) Sample Space
+
+
+$$S = \{\text{All combinations of two balls from 5 red, 3 orange, and 2 blue}\}$$
+$$S = \binom{10}{2} = 45 $$
+
+## (b) Support of R.V. X
+
+
+$$\text{Support}(X) = \{0, 1, 2\}$$
+
+## (c) P(X = 0)
+
+
+$$P(X = 0) = \frac{\binom{5}{2} + \binom{2}{2}}{\binom{10}{2}} = \frac{10+1}{45} = \frac{11}{45} = 0.24\bar{4} \approx 24.4\%$$
+
+
+{{< pagebreak >}}
+
+# Problem 5: Five Fair Coins Tossed
+
+## (a) What outcomes in the sample space does $I_E = 1$ equal $1$?
+
+$$\text{Outcomes} = \{(H, H, H, H, H)\}$$
+
+## (b) What is $P(I_E = 1)$?
+
+$$P(I_E = 1) = \left(\frac{1}{2}\right)^5 = \frac{1}{32} = 0.03125$$
+
+{{< pagebreak >}}
+# Problem 6: Random Variable with a Biased Coin
+
+## (a) Random Variable X Equally Likely to be 0 or 1
+
+The probability that $O_1$ and $O_2$ are the same is $(1-p)p + p(1-p) = 2p(1-p)$, and the probability that $O_1$ and $O_2$ are different is $2p(1-p)$. Since the procedure alternates until $O_1$ and $O_2$ are different, the probability of $X$ being 0 or 1 is equal.
+
+Hence, $$P(X = 0) = P(X = 1) = \frac{1}{2}$$
+
+
+## (b) Simpler Method Validation
+
+Yes, we could use a simpler procedure that continues flipping the coin until the last two flips are different. This method maintains the equal likelihood of $X = 0 \text{ or } X = 1.$
+
+
+{{< pagebreak >}}
+
+# Problem 7: Drawing Black Given Red
+
+\begin{flalign*}
+& P(\text{First ball is Black | Second ball is Red}) = \frac{P(\text{First ball is Black} \cap \text{Second ball is Red})}{P(\text{Second ball is Red})} &\\
+& P(\text{First ball is Black} \cap \text{Second ball is Red}) = \frac{b}{b + r + c} \cdot \frac{r}{b + r + c} = \frac{br}{(b + r + c)^2} &\\
+& P(\text{Second ball is Red}) = \frac{r}{b + r + c} &\\
+& P(\text{First ball is Black | Second ball is Red}) = \frac{\frac{br}{(b + r + c)^2}}{\frac{r}{b + r + c}} = \frac{br}{(b + r + c)^2} \cdot \frac{b + r + c}{r} = \frac{b}{b + r + c} &
+\end{flalign*}
+
+So, we find that 
+$$
+P(\text{First ball is Black | Second ball is Red}) = \frac{b}{b + r + c}
+$$
+
+
+{{< pagebreak >}}
+
+# Problem 8: Expectation of Nonnegative Integer R.V.
+
+\begin{flalign*}
+& E(X) = \sum_{n=1}^{\infty} P(X \geq n) = \sum_{n=0}^{\infty} P(X > n), \text{ where } X \text{ is a nonnegative integer valued random variable.} &\\
+& I_n = \begin{cases} 1 & \text{if } X \geq n \\ 0 & \text{if } X < n \end{cases}, \text{ for } n \geq 1. \\
+& \text{Express } X \text{ using } I_n: X = \sum_{n=1}^{\infty} I_n. 
+\end{flalign*}
+\begin{align*}
+& E(X) \text{ can be rewritten as: } &\\
+& E(X) = E\left(\sum_{n=1}^{\infty} I_n\right) = \sum_{n=1}^{\infty} E(I_n), \text{ by the linearity of expectation.} &\\
+& \text{Since } E(I_n) = P(X \geq n), \text{ we get: } &\\
+& E(X) = \sum_{n=1}^{\infty} P(X \geq n), \text{ which is the sum of probabilities that } X \text{ is at least } n. &\\
+& \text{Thus, } &\\
+& E(X) = \sum_{n=0}^{\infty} P(X > n)
+\end{align*}

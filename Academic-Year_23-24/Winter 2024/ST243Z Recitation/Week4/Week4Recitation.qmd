@@ -16,7 +16,6 @@ format:
      incremental: true
      slide-number: c/t
      transition: slide
-     
 ---
 
 

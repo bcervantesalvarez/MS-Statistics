@@ -1,0 +1,125 @@
+---
+title: "Homework 3"
+subtitle: "ST553 Statistical Methods"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+---
+
+
+
+# Problem 1
+
+## 1.1
+
+To prove this:
+$$P(A_1 \cup A_2) \leq P(A_1) + P(A_2)$$
+
+We can use the principle of inclusion-exclusion:
+$$P(A_1 \cup A_2) = P(A_1) + P(A_2) - P(A_1 \cap A_2)$$
+
+Since the probabilities are non-negative, $P(A_1 \cap A_2) \geq 0$, we obtain:
+$$P(A_1 \cup A_2) \leq P(A_1) + P(A_2)$$
+
+Hence, the probability of either event occurring is bounded by the sum of their individual probabilities, accounting for any overlap.
+
+{{< pagebreak >}}
+
+## 1.2
+
+For general $k$ where each $A_i$ represents the event of falsely rejecting $H_{0i}$ with $P(A_i) = \alpha_C$ for all $i$, the Bonferroni inequality states:
+$$P(A_1 \cup \dots \cup A_k) \leq k \times \alpha_C$$
+
+If we set the combined false positive rate $\alpha_F$ to not exceed 0.05:
+$$k \times \alpha_C \leq 0.05$$
+
+Then, we can solving for $\alpha_C$ and get:
+$$\alpha_C = \frac{0.05}{k}$$
+
+This adjustment of $\alpha_C$ ensures that the overall type I error rate is controlled at 0.05, considering the cumulative increase in error probability due to multiple testing.
+
+{{< pagebreak >}}
+
+
+# Problem 2
+
+## 2.1
+
+In a balanced completely randomized design with 5 groups and 15 total observations, the degrees of freedom for error are:
+$$df = N - g = 15 - 5 = 10$$
+
+To create simultaneous 90% confidence intervals for all the group means using the Bonferroni method, we adjust the significance level:
+$$\alpha = \frac{0.10}{5} = 0.02$$
+
+The t-quantile we need is for 99% confidence since $1 - 0.01/2 = 0.99$ is based on 10 degrees of freedom. 
+$$t_{0.99, 10} = 2.764$$.
+
+{{< pagebreak >}}
+
+## 2.2
+
+Tukey's procedure handles every possible pair of comparisons between the 5 groups, so the number of comparisons is:
+$$\frac{5(5 - 1)}{2} = 10$$
+
+Dunnett's procedure only compares each group to a control group, assuming one group is the control. Therefore, it involves:
+$$5 - 1 = 4$$ comparisons.
+
+Tukey's looks at more pairs because it doesn't restrict comparisons to a control group, unlike Dunnett's. Tukey's method is useful when comparing all possible differences between groups, ideal for exploratory analysis without a specific reference group. In contrast, Dunnett’s focuses on comparisons between a control and other groups, beneficial in settings like clinical trials where comparisons to a standard are crucial. This makes Tukey's broader in application, whereas Dunnett’s is more targeted.
+
+{{< pagebreak >}}
+
+## 2.3
+
+When making $k$ simultaneous Bonferroni confidence intervals, the critical t-value goes up as $k$ increases because we're spreading the overall 10% error rate thinner across more comparisons:
+$$\alpha = \frac{0.10}{k}$$
+
+For Scheffé's method, which also makes wider intervals for more comparisons, the calculation involves the F-distribution, and its critical value grows slower:
+$$\sqrt{(k-1)F_{0.90, k-1, df}}$$
+
+To figure out when Bonferroni's confidence intervals are wider than Scheffé's, we compare how fast their critical values grow as we increase the number of comparisons $k$. Bonferroni's method splits the allowed error rate (like 10%) among all the comparisons, so its critical value, based on t-scores, gets larger quickly as $k$ increases. Scheffé’s method, using F-scores, doesn't grow as fast. 
+
+This means that as $k$ gets larger, Bonferroni’s intervals become noticeably wider. This happens because Bonferroni is very strict about keeping the overall error low, which makes the intervals wider to ensure they cover the true means. Finding the exact point where Bonferroni's intervals surpass Scheffé's involves looking at specific values for $k$ and might require some calculations.
+
+{{< pagebreak >}}
+
+# Problem 3
+
+## 3.1
+
+The analysis showed that the type of fat used in the French fry cooking process does affect the fat absorption. Specifically, it was observed that treatment D resulted in a notably lower fat absorption compared to the others. Treatments A, B, and C did not show any substantial difference in their effects. Treatment E's results were similar to A, B, and C but showed a distinct difference when compared to D. Therefore, if the goal is to minimize fat absorption, the fat used in treatment D might be the most effective choice. Reference underline diagram below.
+
+![](comparison.jpeg)
+
+{{< pagebreak >}}
+
+## 3.2
+
+In this case, using fat D led to the lowest fat absorption in French fries compared to the standard, which was fat A. The differences observed with fats C and E were less clear, and fat B showed a similar level of fat absorption to the standard. These findings suggest that fat D may be the most effective option for reducing fat absorption in French fries. Reference Dunnett adjustment figure below.
+
+![](dunnett.jpeg)
+
+{{< pagebreak >}}
+
+## 3.3
+
+The evaluation points to fat D as the most effective in minimizing fat absorption in French fries, as it had significantly lower absorption compared to the standard (fat A). The differences with the other fats were present but not as pronounced, making fat D a potentially better choice for reducing fat absorption based on the data collected.
+
+{{< pagebreak >}}
+
+## 3.4
+
+In the experiment looking at fat absorption in French fries, comparing different types of fats showed that whether we used vegetable or animal fats, lard or tallow, canola or a mixed fat, or coconut or the mixed fat, there was no significant difference in the fat absorbed by the fries (p-values: lard vs. tallow = 0.5361, canola vs. mixture = 0.8352, coconut vs. mixture = 0.5361). This suggests that the type of fat may not play a critical role in the amount of fat absorbed by the fries. Reference the figure below.
+
+![](boni.png)
+
+
+{{< pagebreak >}}
+
+
+## 3.5
+
+When the researchers looked at whether there was a difference in the amount of fat absorbed by French fries cooked in coconut oil compared to lard, the findings were not conclusive (p-value = 0.5361). This suggests that, based on the data from this particular study, we cannot say for certain if one fat is better than the other at reducing fat absorption.
+
+![](comp.png)

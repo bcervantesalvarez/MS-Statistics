@@ -1,0 +1,136 @@
+---
+title: "Week 1: Introduction to Data Analysis"
+format: 
+   revealjs:
+     footer: "ST 243Z Recitation (April 5, 2024)"
+     code-fold: true
+     multiplex: true
+     preview-links: true
+     theme: [OSUTheme.scss]
+     scrollable: true
+     logo: OSULogo.png
+     smooth-scroll: true
+     chalkboard: true
+     html-math-method: katex
+     incremental: true
+     slide-number: c/t
+     transition: slide
+---
+
+## A Little About Your TA
+
+- **Name:** Brian Cervantes Alvarez (Brian)
+- **Academic Background** 
+  - B.A. in Mathematics from Linfield University
+  - M.S. in Data Science from Willamette University
+  - Working towards my M.S. in Statistics at Oregon State University 
+  - Plan to pursue my Ph.D. in Statistics at Oregon State University
+- **Hobbies & Interests** 
+  - Audiophile (I love high-end speakers and headphones)
+  - Baking (Sweets are my weakness)
+  - Data Science Projects: Time Series, Data Viz, Machine Learning, etc.
+- **Fun Facts**
+  - Never been on a train
+  - I dislike ketchup
+  - I've been on a billboard! 
+  
+. . .
+
+![](dapmeup.gif){.absolute top=50 right=0 width="350" height="600"}
+
+. . .
+
+## How do you get a hold of me during the term?
+
+
+
+. . .
+
+Contact information
+
+  - Email: **cervantb@oregonstate.edu**
+  
+. . .
+  
+Office hours
+
+  - Every **Friday** from **9am - 9:50am**
+  - Location: **Math & Stats Learning Center (MSLC) in Kidder Hall**
+
+
+## Overview
+
+. . .
+
+Recitations serve as a cornerstone for reinforcing and expanding upon the concepts introduced in lectures. They provide a structured environment where you can engage more fully with the material, practicing and exploring to gain a nuanced understanding of the subject matter.
+
+. . .
+
+
+. . .
+
+**Goal For Today**
+
+  - To successfully complete the worksheet
+  - To leave today's session with a solid foundation in the basics of Data Analysis, equipped with the knowledge to apply these concepts effectively.
+  - Quick note, ensure your name and student ID are clearly legible (We use AI to help sort your papers, so we can grade faster on gradescope)
+
+. . .
+
+## Form Groups of 2-4 people
+
+. . .
+
+My teaching philosophy is centered on collaboration and collective effort. In the professional sphere, you'll often find yourself teaming up with individuals you're initially unfamiliar with. Over time, as you learn to collaborate effectively, your collective efficiency will soar. Moreover, working in groups creates a supportive learning environment, making it easier to pose questions and learn from one another.
+
+. . .
+
+**Guidance for Today's Session**
+
+  - I will guide you through the initial questions (1 & 2), providing a scaffold for your learning.
+  - Should you have any inquiries or encounter challenges, please feel free to seek my assistance.
+  - For those who complete the exercises ahead of time, you're encouraged to submit your work directly to me.
+
+
+## Question 1: Understanding Variability
+
+ST 243Z Recitation Activity 1
+
+Consider three datasets, each with the same mean (𝑥̅ = 15):
+
+- Dataset 1: 15, 15, 15, 15, 15
+- Dataset 2: 5, 10, 15, 20, 25
+- Dataset 3: 13, 14, 15, 16, 17
+
+### a. Largest Standard Deviation
+
+- **Dataset 2** exhibits the largest standard deviation, as its values are spread further from the mean of 15. This is evidenced by its absolute deviations: 10, 5, 0, 5, 10, contrasted with Dataset 3's deviations of 2, 1, 0, 1, 2, and Dataset 1's consistent deviation of 0.
+
+### b. Smallest Standard Deviation
+
+- **Dataset 1** demonstrates the smallest standard deviation, precisely zero, because all observations are identical to the mean (15). This uniformity means there is no variation or deviation from the mean.
+
+## Question 2: Distribution of Majors
+
+A survey of 73 ST 243Z students' majors at OSU revealed:
+
+### a. Major Percentages
+
+- Business: 12.3%, Education: 1.4%, Engineering: 2.7%, Liberal Arts: 17.8%, Psychology: 2.7%, Science: 46.6%, Social and Human Science: 16.4%.
+
+### b. Percentage Total
+
+- The calculated percentages sum to approximately **99.9%**, a slight deviation from 100% due to rounding. Without rounding, they would sum precisely to 100%.
+
+### c. Major Distribution Description
+
+- The distribution shows **Science** as the predominant major (46.6%), followed by **Liberal Arts** and **Social and Human Science**. **Psychology**, **Engineering**, and **Education** are less common, highlighting a diverse yet concentrated interest in specific fields among statistics students.
+
+### d. Barplot Analysis
+
+- The second barplot reorders categories by size rather than the initial arrangement. This data, being categorical, cannot be described as skewed based on the rearrangement. Skewness is a property of quantitative data, and reordering categories does not alter the distribution's inherent characteristics.
+
+
+
+# Finish and Turn in your Worksheet
+

@@ -1,0 +1,316 @@
+---
+title: "Homework 2"
+subtitle: "ST 543 Applied Stochastic Models"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+---
+
+# Question 1
+
+There wasn't much to discuss here. The problem was pretty straight forward. (Update, problem 5 torn me to pieces)
+
+## Part A
+
+$$ X = \sum_{i=1}^{N} T_i $$
+
+## Part B
+
+$$ E[N] = \frac{1}{p} = \frac{1}{1/3} = 3$$
+
+## Part C
+
+$$ E[T_N] = \frac{1}{3}(2) + \frac{1}{3}(3) + \frac{1}{3}(5) = \frac{10}{3} $$
+
+## Part D
+
+$$ E[\sum_{i=1}^{N} T_i | N = n] = n \cdot E[T_N] = \frac{10}{3}n $$
+
+## Part E
+
+$$ E[X] = E[N] \cdot E[T_N] = (3)(\frac{10}{3}) = 10 $$
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part A
+
+The probability of getting no heads in ten flips, calculated as a mixture of the probabilities for each coin.
+
+$$ P(N = 0) = \frac{1}{3} (1 - 0.3)^{10} + \frac{1}{3} (1 - 0.5)^{10} + \frac{1}{3} (1 - 0.7)^{10} \approx 0.00974 $$
+
+## Part B
+
+Generalizing $P(N = 0)$, where instead of $0$ heads, we have $n$ heads in ten flips and the given mixture of different coin probabilities. This results the following equation:
+
+$$P(N = n) = \frac{1}{3} \left( \binom{10}{n} 0.3^n (1-0.3)^{10-n} + \binom{10}{n} 0.5^n (1-0.5)^{10-n} + \binom{10}{n} 0.7^n (1-0.7)^{10-n} \right)$$
+Here's all the probabilities for $n = 0, 1, 2, ...,  10$
+
+- $P(N = 0) \approx 0.00974$
+- $P(N = 1) \approx 0.04365$
+- $P(N = 2) \approx 0.09296$
+- $P(N = 3) \approx 0.13101$
+- $P(N = 4) \approx 0.14732$
+- $P(N = 5) \approx 0.15064$
+- $P(N = 6) \approx 0.14732$
+- $P(N = 7) \approx 0.13101$
+- $P(N = 8) \approx 0.09296$
+- $P(N = 9) \approx 0.04365$
+- $P(N = 10) \approx 0.00974$
+
+## Part C
+
+$N$ does not strictly follow a binomial distribution since it is derived from a mixture of binomial distributions due to different head probabilities per selected coin.
+
+## Part D
+
+$$E[\text{Heads per flip}] = \frac{1}{3}(0.3) + \frac{1}{3}(0.5) + \frac{1}{3}(0.7) = 0.5$$
+
+The expected outcome of the game per flip is 0, which points towards a fair game in the long run. In other words, if you continue to play this game for over $n$ runs, your expected win should be $\$0$. Now, that's a game theory!
+
+
+{{< pagebreak >}}
+
+# Question 3
+
+## Part A
+
+Let $Y_i$ be the amount of money spent by the $i^{th}$ customer, which is uniformly distributed over (0, 100). Then,
+
+$$E[Y_i] = \frac{0 + 100}{2} = 50$$
+
+Given that mean number of customers entering the store is poisson distributed, we have:
+
+$$E[N] = \lambda = 10$$
+
+
+Now, $X$ is the sum of the individual purchases of $N$ customers:
+
+$$X = Y_1 + Y_2 + \dots + Y_N$$
+Therefore, we can calculate the mean of the amount of money $X$ that the store takes in on a
+given day by:
+
+$$E[X] = E[N] \cdot E[Y_i] = 10 \cdot 50 = 500$$
+
+Hence, the mean amount of money that the store takes in on a given day is $500.
+
+{{< pagebreak >}}
+
+## Part B
+
+To find the variance of the amount of money $X$ that the store takes in on a given day, we do the following algebraic manipulations:
+
+$$\text{Var}(N) = \lambda = 10$$
+
+$$\text{Var}(Y_i) = \frac{(100-0)^2}{12} = \frac{10000}{12} \approx 833.33$$
+
+$$\text{Var}(X) = E[N] \cdot \text{Var}(Y_i) + \text{Var}(N) \cdot (E[Y_i])^2$$
+
+Thus, substituting these into the equation about yields:
+
+$$\text{Var}(X) = 10 \cdot 833.33 + 10 \cdot 50^2 = 8333.3 + 25000 = 33333.3$$
+
+Therefore, the variance of the amount of money $X$ that the store takes in on a given day is approximately $33,333.30. Scary.
+
+
+{{< pagebreak >}}
+
+# Question 4
+
+## Part A
+
+Since $E[Z_k] = 0$, we have:
+$$E[X_{k+1}] = E[X_k + Z_k] = E[X_k] + E[Z_k] = E[X_k]$$
+Given that $X_0 = x_0$, the expected position after the first step is:
+$$E[X_1] = E[X_0] = x_0$$
+Applying the same reasoning iteratively for each step:
+$$E[X_2] = E[X_1] = x_0$$
+$$\vdots$$
+$$E[X_n] = x_0$$
+Hence, the expected position $E[X_n]$ after $n$ steps remains $x_0$, the initial position.
+
+{{< pagebreak >}}
+
+## Part B
+
+Recall, $\text{Var}(X + Y) = \text{Var}(X) + \text{Var}(Y)$. While $X_k$ and $Z_k$ are not independent, we can still write:
+$$\text{Var}(X_{k+1}) = \text{Var}(X_k + Z_k)$$
+Given $\text{Var}(Z_k) = \beta X_k^2$, we can apply the law of total variance:
+$$\text{Var}(X_{k+1}) = \text{Var}(E[X_{k+1}|X_k]) + E[\text{Var}(X_{k+1}|X_k)] = \text{Var}(X_k) + E[\beta X_k^2]$$
+Fortunately, we can use the fact that $E[X_{k+1}|X_k] = X_k$, and simplify above:
+$$\text{Var}(X_{k+1}) = \text{Var}(X_k) + \beta E[X_k^2]$$
+Next, $E[X_k^2] = \text{Var}(X_k) + E[X_k]^2$ and $E[X_k] = x_0$ so,
+$$\text{Var}(X_{k+1}) = \text{Var}(X_k) + \beta (\text{Var}(X_k) + x_0^2)$$
+Thus, each step increments the variance by $\beta \text{Var}(X_k) + \beta x_0^2$. Starting from $\text{Var}(X_0) = 0$:
+$$\text{Var}(X_1) = 0 + \beta x_0^2$$
+$$\text{Var}(X_2) = \text{Var}(X_1) + \beta (x_0^2 + \text{Var}(X_1))$$
+By iteratively applying this logic, we formulate the variance at $n$ steps.
+
+Hence, $\text{Var}(X_n)$, after $n$ steps is given by the formula:
+$$\text{Var}(X_n) = x_0^2 \left((\beta + 1)^n - 1\right)$$
+
+
+{{< pagebreak >}}
+
+# Question 5
+
+
+## Part A
+
+Let $T$ denote the number of distinct types collected before collecting type $i$ for the first time, where $T$ takes values in $\{0, 1, \ldots, n-1\}$, with $n$ being the total number of types. Each type is equally likely to appear. The probability $P(T = k)$ is $\frac{1}{n}$ for all $k$.
+
+
+Proof $P(T = k)$:
+$$
+P(T = k) = \binom{n-1}{k} \times k! \times \left(\frac{1}{n}\right)^k \times \left(\frac{n-1}{n}\right)^k \times \frac{1}{n}
+$$
+Simplifying this, we find:
+$$
+P(T = k) = \frac{(n-1)!}{(n-1-k)!n^k} \times \left(\frac{n-1}{n}\right)^k \times \frac{1}{n}
+$$
+This results in:
+$$
+P(T = k) = \frac{1}{n}
+$$
+for all $k$ from 0 to $n-1$. This proves that each $k$ is equally probable under the assumption that type $i$ appears after exactly $k$ other types have been collected, establishing $P(T = k) = \frac{1}{n}$.
+
+Define $E_i$ as the event that type $i$ appears. The probability $P(E_i = 1)$ is computed using:
+$$
+P(E_i = 1) = \sum_{k=0}^{n-1} P(E_i = 1|T = k)P(T = k)
+$$
+where $P(E_i = 1|T = k)$ is the conditional probability of collecting type $i$ given $k$ other types have been collected, which is $\frac{1}{n-k}$.
+
+Thus, the total probability $P(E_i = 1)$ is:
+$$
+P(E_i = 1) = \sum_{k=0}^{n-1} \frac{1}{n-k} \cdot\frac{1}{n}
+$$
+Therefore, the probability of each type $i$ being equally likely to be the last collected type.
+
+
+{{< pagebreak >}}
+
+## Part B
+
+Define $X_j$ as the indicator random variable for the event that exactly one type $j$ appears in the collection. We want to find the expected number of coupon types that appear exactly once, denoted by $X = \sum_{j=1}^n X_j$. The probability that a specific type $j$ appears exactly once in $n$ trials, given by $P(X_j = 1)$, can be calculated by considering that the type appears once and does not appear in the other $n-1$ trials.
+
+The probability that type $j$ appears exactly once can be expressed as:
+$$
+P(X_j = 1) = \binom{n}{1} \left(\frac{1}{n}\right)^1 \left(\frac{n-1}{n}\right)^{n-1}
+$$
+This simplifies to:
+$$
+P(X_j = 1) = n \cdot \frac{1}{n} \cdot \left(\frac{n-1}{n}\right)^{n-1} = \left(\frac{n-1}{n}\right)^{n-1}
+$$
+
+The expectation of $X$, the total number of types that appear exactly once, is given by:
+$$
+E(X) = E\left(\sum_{j=1}^n X_j\right) = \sum_{j=1}^n E(X_j) = \sum_{j=1}^n P(X_j = 1)
+$$
+Since $P(X_j = 1)$ is the same for all $j$, this results in:
+$$
+E(X) = n \cdot \left(\frac{n-1}{n}\right)^{n-1}
+$$
+
+
+{{< pagebreak >}}
+
+# Question 6
+
+## Part A
+
+By definition, a Markov chain is a stochastic process where future state depends only on the current state. By this logic:
+
+- $X_n$ represents the white balls in the first urn after $n^{th}$ step.
+- $X_{n+1}$ depends solely on $X_n$ and random outcome, independent of previous steps.
+
+Thus, $X_n$ is a Markov Chain.
+
+{{< pagebreak >}}
+
+## Part B
+
+The transition probabilities can be calculated based on the combinations of balls being switched between the urns. Let's denote the transition probability matrix as $A$, where $A_{ij}$ is the probability of moving from state $i$ to state $j$.
+
+$$
+A_{ij} = \begin{pmatrix}
+a_{0,0} & a_{0,1} & a_{0,2} & a_{0,3} \\
+a_{1,0} & a_{1,1} & a_{1,2} & a_{1,3} \\
+a_{2,0} & a_{2,1} & a_{2,2} & a_{2,3} \\
+a_{3,0} & a_{3,1} & a_{3,2} & a_{3,3}
+\end{pmatrix}
+$$
+
+Possible states are $0,1,2,3$:
+
+- **State 0**: 0 white, 3 black in the first urn.
+- **State 1**: 1 white, 2 black in the first urn.
+- **State 2**: 2 white, 1 black in the first urn.
+- **State 3**: 3 white, 0 black in the first urn.
+
+The state transition probabilities are:
+
+- From **State 0**, the next state must be 1 because we are switching one black ball from the first urn with one white ball from the second urn.
+- From **State 1**, transitions depend on which ball is drawn from each urn:
+  - Transition to **State 0** if we draw a white ball from the first urn (1 white) and a black ball from the second urn (probability $\frac{1}{3} \times \frac{1}{3} = \frac{1}{9}$).
+  - Transition to **State 2** if we draw a black ball from the first urn (2 blacks) and a white ball from the second urn (probability $\frac{2}{3} \times \frac{2}{3} = \frac{4}{9}$).
+  - Stay in **State 1** otherwise (probability $\frac{1}{9} + \frac{4}{9} = \frac{5}{9}$).
+- From **State 2**, transitions are the reverse of those from state 1:
+  - Transition to **State 3** if we draw a black ball from the first urn (1 black) and a white ball from the second urn (probability $\frac{1}{3} \times \frac{1}{3} = \frac{1}{9}$).
+  - Transition to **State 1** if we draw a white ball from the first urn (2 whites) and a black ball from the second urn (probability $\frac{2}{3} \times \frac{2}{3} = \frac{4}{9}$).
+  - Stay in **State 2** otherwise (probability $\frac{1}{9} + \frac{4}{9} = \frac{5}{9}$).
+- From **State 3**, the next state must be 1 because we are switching one white ball from the first urn with one black ball from the second urn.
+
+Thus, the transition probability matrix $A$ is:
+
+$$
+A = \begin{pmatrix}
+0 & 1 & 0 & 0 \\
+\frac{1}{9} & \frac{5}{9} & \frac{4}{9} & 0 \\
+0 & \frac{4}{9} & \frac{5}{9} & \frac{1}{9} \\
+0 & 0 & 1 & 0
+\end{pmatrix}
+$$
+
+Each row sums to 1, confirming the probabilities are correctly distributed. Google really likes Markov Chains (My source: Google). 
+
+
+{{< pagebreak >}}
+
+# Question 7
+
+## Part A
+Given that $T_i = T_{i-1} + (T_i - T_{i-1})$, and $T_i - T_{i-1}$ given $T_{i-1}$ has a geometric distribution, we can compute the expected value as follows:
+$$
+E[T_i|T_{i-1}] = E[T_{i-1} + (T_i - T_{i-1})|T_{i-1}]
+= E[T_{i-1}|T_{i-1}] + E[T_i - T_{i-1}|T_{i-1}]
+= T_{i-1} + \frac{1}{p}
+$$
+
+## Part B
+Noice that $T_i$ and $T_i - T_{i-1}$ are independent of $T_{i-1}$:
+$$
+\text{Var}(T_i|T_{i-1}) = \text{Var}(T_{i-1} + (T_i - T_{i-1})|T_{i-1})
+= \text{Var}(T_{i-1}|T_{i-1}) + \text{Var}(T_i - T_{i-1}|T_{i-1})
+= 0 + \frac{1-p}{p^2}
+$$
+Here, $\text{Var}(T_{i-1}|T_{i-1}) = 0$ because $T_{i-1}$ is known given $T_{i-1}$.
+
+## Part C
+Considering $T_j = T_i + (T_j - T_i)$ and assuming $i < j$:
+$$
+\text{Cov}(T_i, T_j) = \text{Cov}(T_i, T_i + (T_j - T_i))
+= \text{Cov}(T_i, T_i) + \text{Cov}(T_i, T_j - T_i)
+= \text{Var}(T_i) + 0
+= \text{Var}(T_i)
+$$
+Next,
+$$
+\text{Var}(T_i) = \text{Var}(T_{i-1}) + \frac{1-p}{p^2}
+$$
+Thus, we get:
+$$
+\text{Cov}(T_i, T_j) = \text{Var}(T_i) = i \cdot\frac{1-p}{p^2}
+$$
