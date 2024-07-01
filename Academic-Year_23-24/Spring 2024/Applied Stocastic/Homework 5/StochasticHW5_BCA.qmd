@@ -1,0 +1,352 @@
+---
+title: "Homework 5"
+subtitle: "ST 543: Applied Stochastic Models"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+---
+
+
+
+# Question 1
+
+For a Markov chain with states $\{1, 2, 3, 4\}$ and the transition probability matrix $P$:
+
+$$
+P =
+\begin{bmatrix}
+0.4 & 0.2 & 0.1 & 0.3 \\
+0.1 & 0.5 & 0.2 & 0.2 \\
+0.3 & 0.4 & 0.2 & 0.1 \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+We need to find $f_{i,3}$ and $s_{i,3}$  for $i = 1, 2, 3$. To calculate $f_{i,3}$, we solve,
+
+$$f_{i,j} = P_{ij} + \sum_{k \neq j} P_{ik} f_{k,j}$$
+
+Let's start with state 1:
+
+$$f_{1,3} = P_{13} + P_{12} f_{2,3} + P_{14} f_{4,3} + P_{11} f_{1,3}$$
+
+Since state 4 is absorbing and state 3 is our target, we have:
+
+$$f_{4,3} = 0$$
+$$f_{3,3} = 1$$
+
+Now, let's set up the equations for $f_{1,3}$ and $f_{2,3}$:
+
+$$f_{1,3} = 0.1 + 0.2 f_{2,3} + 0.4 f_{1,3}$$
+$$f_{2,3} = 0.2 + 0.5 f_{2,3}$$
+
+Solving for $f_{2,3}$,
+
+$$f_{2,3} = 0.2 + 0.5 f_{2,3}$$
+$$0.5 f_{2,3} = 0.2$$
+$$f_{2,3} = 0.4$$
+
+Substituting $f_{2,3}$ into the equation for $f_{1,3}$:
+
+$$f_{1,3} = 0.1 + 0.2 \cdot 0.4 + 0.4 f_{1,3}$$
+$$f_{1,3} = 0.18 + 0.4 f_{1,3}$$
+$$0.6 f_{1,3} = 0.18$$
+$$f_{1,3} = 0.3$$
+
+Similarly, for $f_{3,3}$, we have:
+
+$$f_{3,3} = 1$$
+
+So the first passage probabilities are:
+
+- $f_{1,3} = 0.3$
+- $f_{2,3} = 0.4$
+- $f_{3,3} = 1$
+
+
+Now, to calculate $s_{i,j}$, we solve,
+
+$$s_{i,j} = 1 + \sum_{k \neq j} P_{ik} s_{k,j}$$
+
+Starting with state 1:
+
+$$s_{1,3} = 1 + 0.2 s_{2,3} + 0.4 s_{1,3}$$
+
+For state 2:
+
+$$s_{2,3} = 1 + 0.5 s_{2,3}$$
+$$0.5 s_{2,3} = 1$$
+$$s_{2,3} = 2$$
+
+Substituting $s_{2,3}$ into the equation for $s_{1,3}$,
+
+$$s_{1,3} = 1 + 0.2 \cdot 2 + 0.4 s_{1,3}$$
+$$s_{1,3} = 1.4 + 0.4 s_{1,3}$$
+$$0.6 s_{1,3} = 1.4$$
+$$s_{1,3} = \frac{1.4}{0.6}$$
+$$s_{1,3} = \frac{7}{3}$$
+
+Hence, the expected first passage times are,
+
+- $s_{1,3} = \frac{7}{3}$
+- $s_{2,3} = 2$
+- $s_{3,3} = 0$ (since state 3 is already the target)
+
+{{< pagebreak >}}
+
+# Question 2
+
+For a branching process, the extinction probability $\pi_0$ is the probability that the process eventually dies out.
+
+## Part A
+
+The generating function is,
+
+$$f(s) = \frac{1}{4} + \frac{3}{4}s^2$$
+
+We can fix the equation with $\pi = f(\pi)$,
+
+$$\pi = \frac{1}{4} + \frac{3}{4}\pi^2$$
+
+Then we rearrange and solve for $\pi$
+
+$$3\pi^2 - 4\pi + 1 = 0$$
+
+We can apply the quadratic formula,
+
+$$\pi = \frac{4 \pm \sqrt{16 - 12}}{6} = \frac{4 \pm 2}{6}$$
+$$\pi = 1 \text{ or } \pi = \frac{1}{3}$$
+
+Therefore, the extinction probability $\pi_0$ is the smaller root,
+
+$$\pi_0 = \frac{1}{3}$$
+
+{{< pagebreak >}}
+
+## Part B
+
+The generating function is,
+
+$$f(s) = \frac{1}{4} + \frac{1}{2}s + \frac{1}{4}s^2$$
+
+We can fix the equation with $\pi = f(\pi)$
+
+$$\pi = \frac{1}{4} + \frac{1}{2}\pi + \frac{1}{4}\pi^2$$
+
+We rearrange to make it a quadratic equation,
+
+$$\pi^2 - 2\pi + 1 = 0$$
+
+We can factor out the terms,
+
+$$(\pi - 1)^2 = 0$$
+
+So,
+
+$$\pi = 1$$
+
+Hence, the extinction probability $\pi_0$ is:
+
+$$\pi_0 = 1$$
+
+{{< pagebreak >}}
+
+## Part C
+
+The generating function is,
+$$f(s) = \frac{1}{6} + \frac{1}{2}s + \frac{1}{3}s^3$$
+
+To find the extinction probability $\pi_0$, we solve $\pi = f(\pi)$,
+$$\pi = \frac{1}{6} + \frac{1}{2}\pi + \frac{1}{3}\pi^3$$
+
+Rewriting the equation, we get,
+$$6\pi = 1 + 3\pi + 2\pi^3$$
+$$2\pi^3 - 3\pi + 1 = 0$$
+
+We recognize that $\pi = 1$ is a root of this cubic equation. Therefore, we can factor the cubic polynomial as,
+$$2\pi^3 - 3\pi + 1 = (\pi - 1)(2\pi^2 + 2\pi - 1)$$
+
+Now we need to solve the quadratic equation $2\pi^2 + 2\pi - 1 = 0$ using the quadratic formula,
+$$\pi = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$ 
+where $a = 2$, $b = 2$, and $c = -1$.
+
+Substituting these values into the quadratic formula, we get:
+$$\pi = \frac{-2 \pm \sqrt{2^2 - 4 \cdot 2 \cdot (-1)}}{2 \cdot 2}$$
+$$\pi = \frac{-2 \pm \sqrt{4 + 8}}{4}$$
+$$\pi = \frac{-2 \pm \sqrt{12}}{4}$$
+$$\pi = \frac{-2 \pm 2\sqrt{3}}{4}$$
+$$\pi = \frac{-1 \pm \sqrt{3}}{2}$$
+
+The solutions to the quadratic equation are as follows,
+$$\pi = \frac{-1 + \sqrt{3}}{2} \quad \text{and} \quad \pi = \frac{-1 - \sqrt{3}}{2}$$
+
+Thus, the solutions to the cubic equation $2\pi^3 - 3\pi + 1 = 0$ are,
+$$\pi = 1, \quad \pi = \frac{-1 + \sqrt{3}}{2}, \quad \pi = \frac{-1 - \sqrt{3}}{2}$$
+
+Note, we will discard any solutions outside the probabilistic range [0, 1]. So, the valid solutions reduce to,
+$$\pi = 1 \quad \text{and} \quad \pi = \frac{-1 + \sqrt{3}}{2}$$
+
+Given that $\frac{-1 + \sqrt{3}}{2}$ is approximately 0.366, the extinction probability is, therefore,
+$$\pi_0 = \frac{-1 + \sqrt{3}}{2} \approx 0.366$$
+
+{{< pagebreak >}}
+
+# Question 3
+
+## Part A 
+
+The following proof shows that $\pi Q = \pi$,
+
+$$\pi_j = \sum_i \pi_i Q_{ij} = \sum_i \pi_i \frac{\pi_j P_{ji}}{\pi_i} = \pi_j \sum_i P_{ji} = \pi_j$$
+
+Hence, $\pi$ is the stationary distribution for both the forward and reversed chains.
+
+{{< pagebreak >}}
+
+## Part B 
+
+In a stationary distribution, the long-term proportion of time spent in each state does not change over time. Plus, the balance condition ensures that the probability flow between any two states is equal in both directions. As a result, the stationary distribution stays the same even if we reverse the order of the states in the chain.
+
+{{< pagebreak >}}
+
+# Question 4
+
+## Part A
+
+For $S_4$, we have $S_4 \sim \text{Gamma}(4, \lambda)$. Thus, the expected value of a Gamma r.v.with shape parameter $k$ and rate parameter $\lambda$ is given by:
+
+$$ E[S_4] = \frac{k}{\lambda} $$
+Since we have k = 4, our expected value becomes,
+$$ E[S_4] = \frac{4}{\lambda} $$
+
+{{< pagebreak >}}
+
+## Part B
+
+Given that $N(1) = 2$, there are 2 events in the interval $[0, 1]$. Let $T_1$ and $T_2$ be the times of these events within $[0, 1]$. The remaining 2 events to reach $S_4$ will occur after $t = 1$. Thus, the remaining time needed for two more events after $t = 1$ follows a $Gamma(2,\lambda)$
+
+So,
+
+$$ S_4 = 1 + T_3 + T_4 $$
+
+where, again, $T_3 + T_4 \sim \text{Gamma}(2, \lambda)$.
+
+Therefore, the expected value is calculated as,
+
+$$ E[S_4 \mid N(1) = 2] = 1 + E[T_3 + T_4] = 1 + \frac{2}{\lambda} $$
+
+
+{{< pagebreak >}}
+
+## Part C
+
+Given $N(1) = 3$, the events within $[1, 2]$ and $[2, 4]$ are independent of the number of events within $[0, 1]$.
+
+The number of events in $[2, 4]$, given that the rate of the Poisson process is $\lambda$, is:
+
+$$ N(4) - N(2) \sim \text{Poisson}(2\lambda) $$
+
+Therefore,
+
+$$ E[N(4) - N(2) \mid N(1) = 3] = E[N(4) - N(2)] = 2\lambda $$
+
+{{< pagebreak >}}
+
+# Question 5
+
+## Part A
+
+The time $T$ between successive train arrivals is distributed $Uniform(0,1)$. Thus, we can let $T \sim U(0,1)$. We also know that the passengers arrive with a rate $\lambda = 7$. Thus, we want to solve for $E[X \mid T=t] = 7t$.
+
+To find the overall expected value $E[X]$, we take the expectation over the distribution of $T$:
+
+$$
+E[X] = E[E[X \mid T]] = E[7T] 
+$$
+
+Again, since $T \sim U(0,1)$, $E[T] = \frac{1}{2}$, we can solve for $E[X]$ as follows
+
+$$
+E[X] = 7 E[T] = 7 \times \frac{1}{2} = 3.5 
+$$
+
+{{< pagebreak >}}
+
+## Part B
+
+
+The variance of $X$ can be found using the law of total variance,
+
+$$
+\text{Var}[X] = E[\text{Var}[X \mid T]] + \text{Var}[E[X \mid T]] 
+$$
+
+For a Poisson r.v. with parameter $7t$, the variance is given,
+
+$$
+\text{Var}[X \mid T=t] = 7t 
+$$
+
+Therefore,
+
+$$
+E[\text{Var}[X \mid T]] = E[7T] = 7E[T] = 7 \times \frac{1}{2} = 3.5 
+$$
+
+From earlier, we solved for $E[X \mid T=t] = 7t$. Thus, we can plug that into the variance system and solve,
+
+$$
+\text{Var}[E[X \mid T]] = \text{Var}[7T] = 49 \text{Var}[T] 
+$$
+
+For $T \sim U(0,1)$, $\text{Var}[T] = \frac{1}{12}$:
+
+$$
+\text{Var}[E[X \mid T]] = 49 \times \frac{1}{12} = \frac{49}{12} 
+$$
+
+Finally, we can combine and solve for $Var[X]$
+
+$$
+\text{Var}[X] = 3.5 + \frac{49}{12} = 3.5 + 4.0833 = 7.5833 
+$$
+
+{{< pagebreak >}}
+
+# Question 6
+
+## Part A 
+
+In this situation the  Poisson process follows,
+$$P(N(t) = k) = \frac{(\lambda t)^k e^{-\lambda t}}{k!}$$
+
+If we set $k=0$ and $\lambda t = 2$, it simplifies down to,
+$$P(N(1) = 0) = e^{-2}$$
+
+Therefore, the probability that no event occurs between 8 pm and 9 pm is $e^{-2} \approx 0.1353$
+
+{{< pagebreak >}}
+
+## Part B 
+
+The expected time for the $n$th event is,
+$$E[S_n] = \frac{n}{\lambda}$$
+
+For $n=4$ and $\lambda = 2$:
+$$E[S_4] = \frac{4}{2} = 2 \text{ hours after noon}$$
+
+Hence, the expected time at which the fourth event occurs is at 2pm.
+
+{{< pagebreak >}}
+
+## Part C 
+
+Using the same logic from Part A and Part B, 
+$$P(N(2) \geq 2) = 1 - P(N(2) = 0) - P(N(2) = 1)$$
+$$P(N(2) = 0) = e^{-4}$$
+$$P(N(2) = 1) = 4e^{-4}$$
+$$P(N(2) \geq 2) = 1 - e^{-4} - 4e^{-4} = 1 - 5e^{-4}$$
+Therefore, the probability that two or more events occur between 6 pm
+and 8 pm is $1 - 5e^{-4} \approx 0.9084$

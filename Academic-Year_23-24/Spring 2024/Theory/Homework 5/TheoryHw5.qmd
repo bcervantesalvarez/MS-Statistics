@@ -1,0 +1,1035 @@
+---
+title: "Homework 5"
+subtitle: "ST 563 Theory of Statistics III"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute:
+  warning: false
+  message: false
+---
+
+# Question 1
+
+Suppose 
+$$
+X_{1,1}, X_{1,2}, \ldots, X_{1,n} \stackrel{\text{iid}}{\sim} \mathcal{N}(\mu_1, \sigma^2)
+$$
+$$
+X_{2,1}, X_{2,2}, \ldots, X_{2,n} \stackrel{\text{iid}}{\sim} \mathcal{N}(\mu_2, \sigma^2) 
+$$
+$$
+X_{3,1}, X_{3,2}, \ldots, X_{3,n} \stackrel{\text{iid}}{\sim} \mathcal{N}(\mu_3, \sigma^2)
+$$
+$$
+X_{4,1}, X_{4,2}, \ldots, X_{4,n} \stackrel{\text{iid}}{\sim} \mathcal{N}(\mu_4, \sigma^2)
+$$
+$$
+X_{5,1}, X_{5,2}, \ldots, X_{5,n} \stackrel{\text{iid}}{\sim} \mathcal{N}(\mu_5, \sigma^2)
+$$
+and all samples are independent. We will construct a confidence interval for $(\mu_1 - \mu_2, \mu_2 - \mu_3, \mu_3 + \mu_4 - 2\mu_5)$ in the following steps.
+
+## Part A
+
+Define $Y_{1,j} = X_{1,j} - X_{2,j}$, $Y_{2,j} = X_{2,j} - X_{3,j}$, and $Y_{3,j} = X_{3,j} + X_{4,j} - 2X_{5,j}$. Then $Y_j = (Y_{1,j}, Y_{2,j}, Y_{3,j})^T$ for $j = 1, \ldots, n$ are iid three-dimensional normal random variables. Determine the mean and covariance matrix for the $Y_j$. You will find that the covariance matrix has the form $\sigma^2 \mathbf{H}$ where the matrix $\mathbf{H}$ is known.
+
+### Solution
+
+First, we can define,
+$$
+Y_{1,j} = X_{1,j} - X_{2,j}, \quad Y_{2,j} = X_{2,j} - X_{3,j}, \quad Y_{3,j} = X_{3,j} + X_{4,j} - 2X_{5,j}
+$$
+
+Now, let us determine the mean vector of $Y_j = (Y_{1,j}, Y_{2,j}, Y_{3,j})^T$ using these expecations,
+$$
+E[Y_{1,j}] = E[X_{1,j} - X_{2,j}] = \mu_1 - \mu_2
+$$
+$$
+E[Y_{2,j}] = E[X_{2,j} - X_{3,j}] = \mu_2 - \mu_3
+$$
+$$
+E[Y_{3,j}] = E[X_{3,j} + X_{4,j} - 2X_{5,j}] = \mu_3 + \mu_4 - 2\mu_5
+$$
+Thus, the complete mean vector is as follows,
+$$
+E[Y_j] = \begin{pmatrix}
+\mu_1 - \mu_2 \\
+\mu_2 - \mu_3 \\
+\mu_3 + \mu_4 - 2\mu_5
+\end{pmatrix}
+$$
+
+Next, we can compute the covariance matrix of $Y_j$.
+
+$$
+\text{Var}(Y_{1,j}) = \text{Var}(X_{1,j} - X_{2,j}) = \sigma^2 + \sigma^2 = 2\sigma^2
+$$
+$$
+\text{Var}(Y_{2,j}) = \text{Var}(X_{2,j} - X_{3,j}) = \sigma^2 + \sigma^2 = 2\sigma^2
+$$
+$$
+\text{Var}(Y_{3,j}) = \text{Var}(X_{3,j} + X_{4,j} - 2X_{5,j}) = \sigma^2 + \sigma^2 + 4\sigma^2 = 6\sigma^2
+$$
+$$
+\text{Cov}(Y_{1,j}, Y_{2,j}) = \text{Cov}(X_{1,j} - X_{2,j}, X_{2,j} - X_{3,j}) = -\sigma^2
+$$
+$$
+\text{Cov}(Y_{1,j}, Y_{3,j}) = \text{Cov}(X_{1,j} - X_{2,j}, X_{3,j} + X_{4,j} - 2X_{5,j}) = 0
+$$
+$$
+\text{Cov}(Y_{2,j}, Y_{3,j}) = \text{Cov}(X_{2,j} - X_{3,j}, X_{3,j} + X_{4,j} - 2X_{5,j}) = \sigma^2
+$$
+$$
+\text{Cov}(Y_{1,j}, Y_{2,j}) = \text{Cov}(X_{1,j} - X_{2,j}, X_{2,j} - X_{3,j}) = -\sigma^2
+$$
+$$
+\text{Cov}(Y_{1,j}, Y_{3,j}) = \text{Cov}(X_{1,j} - X_{2,j}, X_{3,j} + X_{4,j} - 2X_{5,j}) = 0
+$$
+$$
+\text{Cov}(Y_{2,j}, Y_{3,j}) = \text{Cov}(X_{2,j} - X_{3,j}, X_{3,j} + X_{4,j} - 2X_{5,j}) = \sigma^2
+$$
+So, the covariance matrix $\mathbf{H}$ is,
+$$
+\mathbf{H} = \begin{pmatrix}
+2 & -1 & 0 \\
+-1 & 2 & 1 \\
+0 & 1 & 6
+\end{pmatrix}
+$$
+
+Therefore, the covariance matrix of $Y_j$ is,
+$$
+\text{Cov}(Y_j) = \sigma^2 \mathbf{H}
+$$
+
+{{< pagebreak >}}
+
+## Part B
+
+Pretend that we did not observe the $X_{i,j}$s. Estimate $\sigma^2$ using the $Y_{i,j}$s. You can use a quantity having a chi-squared distribution with $3(n-1)$ degrees of freedom.
+
+### Solution
+
+Using the fact that,
+$$
+\sum_{j=1}^n \left( Y_{1,j}^2 + Y_{2,j}^2 + Y_{3,j}^2 \right) \sim \sigma^2 \chi^2_{3(n-1)}
+$$
+We can estimate $\sigma^2$ using this expression,
+$$
+\hat{\sigma}^2 = \frac{1}{3(n-1)} \sum_{j=1}^n (Y_{1,j}^2 + Y_{2,j}^2 + Y_{3,j}^2 + 2Y_{1,j}Y_{2,j} - 2Y_{2,j}Y_{3,j})
+$$
+
+
+
+{{< pagebreak >}}
+
+## Part C
+
+However, the estimate of $\sigma^2$ in the previous part is not the best you could do. Instead, estimate $\sigma^2$ using the $X_{i,j}$s. You can use a quantity having a chi-squared distribution with $5(n-1)$ degrees of freedom.
+
+### Solution
+
+Based on the fact that,
+$$
+\sum_{i=1}^5 \sum_{j=1}^n (X_{i,j} - \bar{X}_i)^2 \sim \sigma^2 \chi^2_{5(n-1)}
+$$
+We can directly estimate $\sigma^2$ from the $X_{i,j}$s. Thus, we can use the sample variances of each group,
+$$
+\hat{\sigma}^2 = \frac{1}{5(n-1)} \sum_{i=1}^5 \sum_{j=1}^n (X_{i,j} - \bar{X}_i)^2
+$$
+where $\bar{X}_i = \frac{1}{n} \sum_{j=1}^n X_{i,j}$.
+
+
+
+{{< pagebreak >}}
+
+## Part D
+
+Construct a level $(1 - \alpha)$ confidence interval for $(\mu_1 - \mu_2, \mu_2 - \mu_3, \mu_3 + \mu_4 - 2\mu_5)$ using your results from the previous parts.
+
+### Solution
+
+First, the sample means are given as follows,
+$$
+\bar{Y}_{1} = \frac{1}{n} \sum_{j=1}^n Y_{1,j}, \quad \bar{Y}_{2} = \frac{1}{n} \sum_{j=1}^n Y_{2,j}, \quad \bar{Y}_{3} = \frac{1}{n} \sum_{j=1}^n Y_{3,j}
+$$
+
+Second, the variance of $\bar{Y}_{i}$ is $\frac{\sigma^2 H_{ii}}{n}$.
+
+Using the fact that 
+$$(\bar{Y}_{1}, \bar{Y}_{2}, \bar{Y}_{3})^T \sim \mathcal{N} \left( \begin{pmatrix}
+\mu_1 - \mu_2 \\
+\mu_2 - \mu_3 \\
+\mu_3 + \mu_4 - 2\mu_5
+\end{pmatrix}, \frac{\sigma^2}{n} \mathbf{H} \right)
+$$
+we can then construct the confidence intervals.
+
+For $\mu_1 - \mu_2$,
+$$
+\bar{Y}_1 \pm t_{n-1, 1-\alpha/2} \sqrt{\frac{2\hat{\sigma}^2}{n}}
+$$
+
+For $\mu_2 - \mu_3$,
+$$
+\bar{Y}_2 \pm t_{n-1, 1-\alpha/2} \sqrt{\frac{2\hat{\sigma}^2}{n}}
+$$
+
+For $\mu_3 + \mu_4 - 2\mu_5$,
+$$
+\bar{Y}_3 \pm t_{n-1, 1-\alpha/2} \sqrt{\frac{6\hat{\sigma}^2}{n}}
+$$
+
+
+{{< pagebreak >}}
+
+# Question 2
+
+(10.36 from *Statistical Inference, 2nd Edition*) Let $X_1, \ldots, X_n$ be a random sample from a Gamma($\alpha, \beta$) population. Assume $\alpha$ is known and $\beta$ is unknown. Consider testing $H_0: \beta = \beta_0$.
+
+## Part A
+
+What is the MLE of $\beta$?
+
+### Solution
+
+The probability density function of a Gamma($\alpha, \beta$) distribution is given by,
+$$
+f(x|\alpha, \beta) = \frac{1}{\beta^\alpha \Gamma(\alpha)} x^{\alpha - 1} e^{-x/\beta}
+$$
+Given $X_1, X_2, \ldots, X_n$, the likelihood function is,
+$$
+L(\beta) = \prod_{i=1}^n f(X_i | \alpha, \beta) = \prod_{i=1}^n \frac{1}{\beta^\alpha \Gamma(\alpha)} X_i^{\alpha - 1} e^{-X_i/\beta}
+$$
+Take the natural log to get the log-likelihood function,
+$$
+\ell(\beta) = \sum_{i=1}^n \left( -\alpha \log(\beta) - \log(\Gamma(\alpha)) + (\alpha - 1)\log(X_i) - \frac{X_i}{\beta} \right)
+$$
+Simplifying, we obtain,
+$$
+\ell(\beta) = -n\alpha \log(\beta) + (\alpha - 1) \sum_{i=1}^n \log(X_i) - \frac{1}{\beta} \sum_{i=1}^n X_i - n \log(\Gamma(\alpha))
+$$
+To find the MLE of $\beta$, we take the derivative of $\ell(\beta)$ with respect to $\beta$ and set it to zero,
+$$
+\frac{\partial \ell(\beta)}{\partial \beta} = -\frac{n\alpha}{\beta} + \frac{1}{\beta^2} \sum_{i=1}^n X_i = 0
+$$
+Solving for $\hat{\beta}_{MLE}$, we get
+$$
+\hat{\beta}_{MLE} = \frac{1}{n\alpha} \sum_{i=1}^n X_i = \frac{\bar{X}}{\alpha}
+$$
+Hence, $\hat{\beta}_{MLE} = \frac{\bar{X}}{\alpha}$.
+
+{{< pagebreak >}}
+
+## Part B
+
+Derive a Wald statistic for testing $H_0$, using the MLE in both the numerator and denominator of the statistic.
+
+### Solution
+
+The Wald test statistic is given by,
+$$
+W = \frac{\hat{\beta} - \beta_0}{\text{SE}(\hat{\beta})}
+$$
+
+First, we need to find the standard error of $\hat{\beta}$. The Fisher information for $\beta$ in a Gamma($\alpha, \beta$) distribution is:
+$$
+I(\beta) = -E\left( \frac{\partial^2 \ell(\beta)}{\partial \beta^2} \right)
+$$
+
+Since we already have,
+$$
+\frac{\partial \ell(\beta)}{\partial \beta} = -\frac{n\alpha}{\beta} + \frac{1}{\beta^2} \sum_{i=1}^n X_i
+$$
+
+We can quickly take the second derivative and get,
+$$
+\frac{\partial^2 \ell(\beta)}{\partial \beta^2} = \frac{n\alpha}{\beta^2} - \frac{2}{\beta^3} \sum_{i=1}^n X_i
+$$
+
+Then, the expected value of the second derivative yields,
+$$
+E\left( \frac{\partial^2 \ell(\beta)}{\partial \beta^2} \right) = \frac{n\alpha}{\beta^2} - \frac{2}{\beta^3} E\left( \sum_{i=1}^n X_i \right) = \frac{n\alpha}{\beta^2} - \frac{2n\alpha \beta}{\beta^3} = -\frac{n\alpha}{\beta^2}
+$$
+
+Thus, the Fisher information is,
+$$
+I(\beta) = \frac{n\alpha}{\beta^2}
+$$
+
+The variance of $\hat{\beta}$ is the inverse of the Fisher information,
+$$
+\text{Var}(\hat{\beta}) = \left( \frac{n\alpha}{\beta^2} \right)^{-1} = \frac{\beta^2}{n\alpha}
+$$
+
+So, the standard error is,
+$$
+\text{SE}(\hat{\beta}) = \sqrt{\text{Var}(\hat{\beta})} = \frac{\beta}{\sqrt{n\alpha}}
+$$
+
+Hence, the Wald test statistic is,
+$$
+W = \frac{\hat{\beta} - \beta_0}{\frac{\hat{\beta}}{\sqrt{n\alpha}}} = \frac{\sqrt{n\alpha} (\hat{\beta} - \beta_0)}{\hat{\beta}}
+$$
+
+{{< pagebreak >}}
+
+## Part C
+
+Repeat part (b), but using the sample standard deviation in the standard error.
+
+### Solution
+
+The sample variance of $Gamma(\alpha,\beta)$ is,
+$$
+\hat{\beta} = \frac{\bar{X}}{\alpha}
+$$
+
+The sample variance $X_i$ is,
+$$
+S^2 = \frac{1}{n-1} \sum_{i=1}^n (X_i - \bar{X})^2
+$$
+
+The standard error using the sample standard deviation is,
+$$
+\text{SE}(\hat{\beta}) = \frac{S}{\sqrt{n}}
+$$
+
+Thus, the Wald test statistic is,
+$$
+W = \frac{\hat{\beta} - \beta_0}{\text{SE}(\hat{\beta})} = \frac{\hat{\beta} - \beta_0}{\frac{S}{\sqrt{n}}} = \frac{\sqrt{n} (\hat{\beta} - \beta_0)}{S}
+$$
+
+{{< pagebreak >}}
+
+# Question 3
+
+(10.38 from *Statistical Inference, 2nd Edition*) Let $X_1, \ldots, X_n$ be a random sample from a Gamma($\alpha, \beta$) distribution. Assume $\alpha$ is known and $\beta$ is unknown. Consider testing $H_0: \beta = \beta_0$. Derive a score statistic for testing $H_0$.
+
+### Solution
+
+To derive the score statistic, we first need to obtain the score function and the Fisher information. The pdf of a Gamma($\alpha, \beta$) distribution is,
+$$
+f(x|\alpha, \beta) = \frac{1}{\beta^\alpha \Gamma(\alpha)} x^{\alpha - 1} e^{-x/\beta}
+$$
+Given a random sample $X_1, X_2, \ldots, X_n$ from the Gamma distribution, the likelihood function is,
+$$
+L(\beta) = \prod_{i=1}^n f(X_i | \alpha, \beta) = \prod_{i=1}^n \frac{1}{\beta^\alpha \Gamma(\alpha)} X_i^{\alpha - 1} e^{-X_i/\beta}
+$$
+
+Taking the natural log of the likelihood function, we get the log-likelihood function,
+$$
+\ell(\beta) = \sum_{i=1}^n \left( -\alpha \log(\beta) - \log(\Gamma(\alpha)) + (\alpha - 1)\log(X_i) - \frac{X_i}{\beta} \right)
+$$
+
+Simplifying, we obtain,
+$$
+\ell(\beta) = -n\alpha \log(\beta) + (\alpha - 1) \sum_{i=1}^n \log(X_i) - \frac{1}{\beta} \sum_{i=1}^n X_i - n \log(\Gamma(\alpha))
+$$
+
+The score function is the first derivative of the log-likelihood function with respect to $\beta$,
+$$
+U(\beta) = \frac{\partial \ell(\beta)}{\partial \beta} = -\frac{n\alpha}{\beta} + \frac{1}{\beta^2} \sum_{i=1}^n X_i
+$$
+
+Under the null hypothesis $H_0: \beta = \beta_0$, the score function is,
+$$
+U(\beta_0) = -\frac{n\alpha}{\beta_0} + \frac{1}{\beta_0^2} \sum_{i=1}^n X_i
+$$
+
+Next, we need to calculate the Fisher information at $\beta_0$. The second derivative of the log-likelihood function with respect to $\beta$ is,
+$$
+\frac{\partial^2 \ell(\beta)}{\partial \beta^2} = \frac{n\alpha}{\beta^2} - \frac{2}{\beta^3} \sum_{i=1}^n X_i
+$$
+
+The Fisher information $I(\beta)$ is the negative expected value of the second derivative,
+$$
+I(\beta) = -E\left( \frac{\partial^2 \ell(\beta)}{\partial \beta^2} \right)
+$$
+
+We already have,
+$$
+\frac{\partial^2 \ell(\beta)}{\partial \beta^2} = \frac{n\alpha}{\beta^2} - \frac{2}{\beta^3} \sum_{i=1}^n X_i
+$$
+
+Taking the expectation, we get,
+$$
+E\left( \frac{\partial^2 \ell(\beta)}{\partial \beta^2} \right) = \frac{n\alpha}{\beta^2} - \frac{2}{\beta^3} E\left( \sum_{i=1}^n X_i \right) = \frac{n\alpha}{\beta^2} - \frac{2n\alpha \beta}{\beta^3} = -\frac{n\alpha}{\beta^2}
+$$
+
+Thus, the Fisher information is,
+$$
+I(\beta) = \frac{n\alpha}{\beta^2}
+$$
+
+Under $H_0: \beta = \beta_0$, the score statistic is,
+$$
+S = \frac{U(\beta_0)}{\sqrt{I(\beta_0)}} = \frac{-\frac{n\alpha}{\beta_0} + \frac{1}{\beta_0^2} \sum_{i=1}^n X_i}{\sqrt{\frac{n\alpha}{\beta_0^2}}}
+$$
+
+Simplifying, we get,
+$$
+S = \frac{-n\alpha + \frac{1}{\beta_0} \sum_{i=1}^n X_i}{\sqrt{n\alpha}} = \frac{\frac{1}{\beta_0} \sum_{i=1}^n X_i - n\alpha}{\sqrt{n\alpha}}
+$$
+
+This is the score statistic for testing $H_0: \beta = \beta_0$.
+
+{{< pagebreak >}}
+
+# Question 4
+
+Let $X_1, \ldots, X_n$ be iid Weibull($\lambda, 4$), which has density function
+$$
+f(x | \lambda) = \frac{4}{\lambda} \left( \frac{x}{\lambda} \right)^3 e^{-\left(\frac{x}{\lambda} \right)^4} \text{  for  } x > 0
+$$
+
+## Part A
+
+What is the MLE for $\lambda$?
+
+### Solution
+
+The likelihood function for the Weibull distribution is given,
+$$
+L(\lambda) = \prod_{i=1}^n \frac{4}{\lambda} \left( \frac{X_i}{\lambda} \right)^3 e^{-\left(\frac{X_i}{\lambda}\right)^4}
+$$
+
+Next, the log-likelihood function is found by taking the log,
+$$
+\ell(\lambda) = \sum_{i=1}^n \left[ \log\left( \frac{4}{\lambda} \right) + 3 \log\left( \frac{X_i}{\lambda} \right) - \left( \frac{X_i}{\lambda} \right)^4 \right]
+$$
+
+Simplifying, we now obtain,
+$$
+\ell(\lambda) = \sum_{i=1}^n \left[ \log(4) - \log(\lambda) + 3 \log(X_i) - 3 \log(\lambda) - \left( \frac{X_i}{\lambda} \right)^4 \right]
+$$
+$$
+\ell(\lambda) = n \log(4) - n \log(\lambda) + 3 \sum_{i=1}^n \log(X_i) - 3n \log(\lambda) - \sum_{i=1}^n \left( \frac{X_i}{\lambda} \right)^4
+$$
+$$
+\ell(\lambda) = n \log(4) + 3 \sum_{i=1}^n \log(X_i) - 4n \log(\lambda) - \sum_{i=1}^n \left( \frac{X_i}{\lambda} \right)^4
+$$
+
+Now, we solve for the MLE,
+$$
+\frac{\partial \ell(\lambda)}{\partial \lambda} = -\frac{4n}{\lambda} + 4 \sum_{i=1}^n \frac{X_i^4}{\lambda^5} = 0
+$$
+
+Solving for $\lambda$, we get,
+$$
+\frac{4n}{\lambda} = 4 \sum_{i=1}^n \frac{X_i^4}{\lambda^5}
+$$
+$$
+\lambda^5 = \frac{\sum_{i=1}^n X_i^4}{n}
+$$
+$$
+\hat{\lambda} = \left( \frac{\sum_{i=1}^n X_i^4}{n} \right)^{1/5}
+$$
+
+So the MLE of $\lambda$ is $\hat{\lambda} = \left( \frac{\sum_{i=1}^n X_i^4}{n} \right)^{1/5}$.
+
+{{< pagebreak >}}
+
+## Part B
+
+What is the information $I_1(\lambda)$?
+
+### Solution
+
+The Fisher information $I(\lambda)$ can be calculated using the negative expectation of the second derivative from the likelihood function,
+$$
+I(\lambda) = -E\left( \frac{\partial^2 \ell(\lambda)}{\partial \lambda^2} \right)
+$$
+
+Since we already calculated the first derivative,
+$$
+\frac{\partial \ell(\lambda)}{\partial \lambda} = -\frac{4n}{\lambda} + 4 \sum_{i=1}^n \frac{X_i^4}{\lambda^5}
+$$
+
+We can solve for the second derivative, and get
+$$
+\frac{\partial^2 \ell(\lambda)}{\partial \lambda^2} = \frac{4n}{\lambda^2} - 20 \sum_{i=1}^n \frac{X_i^4}{\lambda^6}
+$$
+
+Taking the expectation,
+$$
+E\left( \frac{\partial^2 \ell(\lambda)}{\partial \lambda^2} \right) = \frac{4n}{\lambda^2} - 20 \sum_{i=1}^n E\left( \frac{X_i^4}{\lambda^6} \right)
+$$
+
+We know that for a Weibull($\lambda, 4$) distribution,
+$$
+E\left( X_i^4 \right) = \lambda^4 \Gamma\left(1 + \frac{4}{4}\right) = \lambda^4 \Gamma(2) = \lambda^4 \cdot 1 = \lambda^4
+$$
+
+Thus,
+$$
+E\left( \frac{X_i^4}{\lambda^6} \right) = \frac{\lambda^4}{\lambda^6} = \frac{1}{\lambda^2}
+$$
+
+So,
+$$
+E\left( \frac{\partial^2 \ell(\lambda)}{\partial \lambda^2} \right) = \frac{4n}{\lambda^2} - 20 \cdot \frac{n}{\lambda^2} = \frac{4n}{\lambda^2} - \frac{20n}{\lambda^2} = -\frac{16n}{\lambda^2}
+$$
+
+Therefore, the Fisher information is:
+$$
+I(\lambda) = \frac{16n}{\lambda^2}
+$$
+
+{{< pagebreak >}}
+
+## Part C
+
+Find the Likelihood Ratio test statistic for testing $H_0: \lambda = 1$ vs. $H_1: \lambda \neq 1$.
+
+### Solution
+
+The likelihood ratio test statistic is given by,
+$$
+\lambda_{LR} = -2 \left( \ell(\lambda_0) - \ell(\hat{\lambda}) \right)
+$$
+
+Under $H_0: \lambda = 1$, the log-likelihood function is,
+$$
+\ell(1) = n \log(4) + 3 \sum_{i=1}^n \log(X_i) - 4n \log(1) - \sum_{i=1}^n X_i^4
+$$
+$$
+\ell(1) = n \log(4) + 3 \sum_{i=1}^n \log(X_i) - \sum_{i=1}^n X_i^4
+$$
+
+Under $H_1$, the log-likelihood function at $\hat{\lambda}$ is,
+$$
+\ell(\hat{\lambda}) = n \log(4) + 3 \sum_{i=1}^n \log(X_i) - 4n \log(\hat{\lambda}) - \sum_{i=1}^n \left( \frac{X_i}{\hat{\lambda}} \right)^4
+$$
+$$
+\ell(\hat{\lambda}) = n \log(4) + 3 \sum_{i=1}^n \log(X_i) - 4n \log\left( \left( \frac{\sum_{i=1}^n X_i^4}{n} \right)^{1/5} \right) - \sum_{i=1}^n \left( \frac{X_i^4}{\left( \frac{\sum_{i=1}^n X_i^4}{n} \right)^{4/5}} \right)
+$$
+$$
+\ell(\hat{\lambda}) = n \log(4) + 3 \sum_{i=1}^n \log(X_i) - \frac{4n}{5} \log\left( \sum_{i=1}^n X_i^4 \right) + \frac{4n}{5} \log(n) - n
+$$
+
+Hence, the likelihood ratio test statistic is,
+$$
+\lambda_{LR} = -2 \left( \ell(1) - \ell(\hat{\lambda}) \right)
+$$
+$$
+\lambda_{LR} = -2 \left[ n \log(4) + 3 \sum_{i=1}^n \log(X_i) - \sum_{i=1}^n X_i^4 - \left( n \log(4) + 3 \sum_{i=1}^n \log(X_i) - \frac{4n}{5} \log\left( \sum_{i=1}^n X_i^4 \right) + \frac{4n}{5} \log(n) - n \right) \right]
+$$
+$$
+\lambda_{LR} = -2 \left[ - \sum_{i=1}^n X_i^4 + \frac{4n}{5} \log\left( \sum_{i=1}^n X_i^4 \right) - \frac{4n}{5} \log(n) + n \right]
+$$
+$$
+\lambda_{LR} = 2 \sum_{i=1}^n X_i^4 - \frac{8n}{5} \log\left( \frac{\sum_{i=1}^n X_i^4}{n} \right) - 2n
+$$
+
+{{< pagebreak >}}
+
+## Part D
+
+Find the Score test statistic for testing $H_0: \lambda = 1$ vs. $H_1: \lambda \neq 1$.
+
+### Solution
+
+The score function is the first derivative of the log-likelihood function with respect to $\lambda$,
+$$
+U(\lambda) = \frac{\partial \ell(\lambda)}{\partial \lambda} = -\frac{4n}{\lambda} + 4 \sum_{i=1}^n \frac{X_i^4}{\lambda^5}
+$$
+
+Under the null hypothesis $H_0: \lambda = 1$, the score function is,
+$$
+U(1) = -4n + 4 \sum_{i=1}^n X_i^4
+$$
+
+The Fisher information at $\lambda = 1$ is,
+$$
+I(1) = \frac{16n}{1^2} = 16n
+$$
+
+Thus, the score test statistic is,
+$$
+S = \frac{U(1)}{\sqrt{I(1)}} = \frac{-4n + 4 \sum_{i=1}^n X_i^4}{4\sqrt{n}} = \frac{\sum_{i=1}^n X_i^4 - n}{\sqrt{n}}
+$$
+
+{{< pagebreak >}}
+
+## Part E
+
+Find the Wald test statistic for testing $H_0: \lambda = 1$ vs. $H_1: \lambda \neq 1$.
+
+### Solution
+
+The Wald test statistic is as follows,
+$$
+W = \frac{\hat{\lambda} - \lambda_0}{\text{SE}(\hat{\lambda})}
+$$
+
+From part A, we have the MLE,
+$$
+\hat{\lambda} = \left( \frac{\sum_{i=1}^n X_i^4}{n} \right)^{1/5}
+$$
+
+So, the Fisher information is,
+$$
+I(\lambda) = \frac{16n}{\lambda^2}
+$$
+
+Next, the variance of $\hat{\lambda}$ is just the inverse of the Fisher information,
+$$
+\text{Var}(\hat{\lambda}) = \left( \frac{16n}{\lambda^2} \right)^{-1} = \frac{\lambda^2}{16n}
+$$
+
+Therefore, the standard error is,
+$$
+\text{SE}(\hat{\lambda}) = \frac{\lambda}{4\sqrt{n}}
+$$
+
+The Wald test statistic is,
+$$
+W = \frac{\hat{\lambda} - 1}{\frac{\hat{\lambda}}{4\sqrt{n}}} = 4\sqrt{n} (\hat{\lambda} - 1)
+$$
+{{< pagebreak >}}
+
+# Question 5
+
+Let $X_1, \ldots, X_n$ be iid Poisson($\lambda_X$) and let $Y_1, \ldots, Y_m$ be iid Poisson($\lambda_Y$), with the two samples independent of each other.
+
+## Part A
+
+Find the unconstrained MLE of $(\lambda_X, \lambda_Y)$.
+
+### Solution
+
+The pmf of a Poisson($\lambda$) random variable is,
+$$
+P(X = x) = \frac{\lambda^x e^{-\lambda}}{x!}
+$$
+
+Given $X_1, X_2, \ldots, X_n$ are iid Poisson($\lambda_X$), the likelihood function becomes,
+$$
+L(\lambda_X) = \prod_{i=1}^n \frac{\lambda_X^{X_i} e^{-\lambda_X}}{X_i!}
+$$
+
+Next, the log-likelihood function is calculated as follows,
+$$
+\ell(\lambda_X) = \sum_{i=1}^n (X_i \log(\lambda_X) - \lambda_X - \log(X_i!))
+$$
+
+Simplifying, we obtain,
+$$
+\ell(\lambda_X) = \sum_{i=1}^n X_i \log(\lambda_X) - n \lambda_X - \sum_{i=1}^n \log(X_i!)
+$$
+
+Next, the MLE of $\lambda_X$ is found by,
+$$
+\frac{\partial \ell(\lambda_X)}{\partial \lambda_X} = \sum_{i=1}^n \frac{X_i}{\lambda_X} - n = 0
+$$
+
+Solving for $\lambda_X$, we get:
+$$
+\hat{\lambda}_X = \frac{1}{n} \sum_{i=1}^n X_i = \bar{X}
+$$
+
+Similarly, for $Y_1, Y_2, \ldots, Y_m$ which are iid Poisson($\lambda_Y$), we get:
+$$
+\hat{\lambda}_Y = \frac{1}{m} \sum_{j=1}^m Y_j = \bar{Y}
+$$
+
+Therefore, the unconstrained MLE of $(\lambda_X, \lambda_Y)$ is $(\hat{\lambda}_X, \hat{\lambda}_Y) = (\bar{X}, \bar{Y})$.
+
+{{< pagebreak >}}
+
+## Part B
+
+Find the constrained MLE of $(\lambda_X, \lambda_Y)$ subject to the constraint $\lambda_X = \lambda_Y$.
+
+### Solution
+
+Under the constraint $\lambda_X = \lambda_Y = \lambda$, the combined likelihood function is,
+$$
+L(\lambda) = \prod_{i=1}^n \frac{\lambda^{X_i} e^{-\lambda}}{X_i!} \prod_{j=1}^m \frac{\lambda^{Y_j} e^{-\lambda}}{Y_j!}
+$$
+
+Then, the log-likelihood function is found by,
+$$
+\ell(\lambda) = \sum_{i=1}^n (X_i \log(\lambda) - \lambda - \log(X_i!)) + \sum_{j=1}^m (Y_j \log(\lambda) - \lambda - \log(Y_j!))
+$$
+$$
+\ell(\lambda) = \left( \sum_{i=1}^n X_i + \sum_{j=1}^m Y_j \right) \log(\lambda) - (n + m) \lambda - \left( \sum_{i=1}^n \log(X_i!) + \sum_{j=1}^m \log(Y_j!) \right)
+$$
+
+We solve for the MLE of $\lambda$,
+$$
+\frac{\partial \ell(\lambda)}{\partial \lambda} = \frac{\sum_{i=1}^n X_i + \sum_{j=1}^m Y_j}{\lambda} - (n + m) = 0
+$$
+$$
+\hat{\lambda} = \frac{1}{n + m} \left( \sum_{i=1}^n X_i + \sum_{j=1}^m Y_j \right)
+$$
+$$
+\hat{\lambda} = \frac{n \bar{X} + m \bar{Y}}{n + m}
+$$
+
+Hence, the constrained MLE of $(\lambda_X, \lambda_Y)$ is $(\hat{\lambda}, \hat{\lambda}) = \left( \frac{n \bar{X} + m \bar{Y}}{n + m}, \frac{n \bar{X} + m \bar{Y}}{n + m} \right)$.
+
+{{< pagebreak >}}
+
+
+## Part C
+
+Find the Likelihood Ratio test statistic to test $H_0: \lambda_X = \lambda_Y$ vs. $H_1: \lambda_X \neq \lambda_Y$.
+
+### Solution
+
+The likelihood ratio test statistic is given by,
+$$
+\lambda_{LR} = -2 \left( \ell(\lambda_0) - \ell(\hat{\lambda}) \right)
+$$
+
+The log-likelihood under $H_0: \lambda_X = \lambda_Y = \lambda$ is,
+$$
+\ell(\lambda) = \left( \sum_{i=1}^n X_i + \sum_{j=1}^m Y_j \right) \log(\lambda) - (n + m) \lambda - \left( \sum_{i=1}^n \log(X_i!) + \sum_{j=1}^m \log(Y_j!) \right)
+$$
+$$
+\ell(\lambda) = \left( \sum_{i=1}^n X_i + \sum_{j=1}^m Y_j \right) \log \left( \frac{n \bar{X} + m \bar{Y}}{n + m} \right) - (n + m) \left( \frac{n \bar{X} + m \bar{Y}}{n + m} \right) - \left( \sum_{i=1}^n \log(X_i!) + \sum_{j=1}^m \log(Y_j!) \right)
+$$
+$$
+\ell(\lambda) = (n \bar{X} + m \bar{Y}) \log \left( \frac{n \bar{X} + m \bar{Y}}{n + m} \right) - (n \bar{X} + m \bar{Y}) - \left( \sum_{i=1}^n \log(X_i!) + \sum_{j=1}^m \log(Y_j!) \right)
+$$
+
+The log-likelihood under the alternative hypothesis is,
+$$
+\ell(\hat{\lambda}_X, \hat{\lambda}_Y) = \sum_{i=1}^n (X_i \log(\hat{\lambda}_X) - \hat{\lambda}_X - \log(X_i!)) + \sum_{j=1}^m (Y_j \log(\hat{\lambda}_Y) - \hat{\lambda}_Y - \log(Y_j!))
+$$
+$$
+\ell(\hat{\lambda}_X, \hat{\lambda}_Y) = \sum_{i=1}^n (X_i \log(\bar{X}) - \bar{X} - \log(X_i!)) + \sum_{j=1}^m (Y_j \log(\bar{Y}) - \bar{Y} - \log(Y_j!))
+$$
+$$
+\ell(\hat{\lambda}_X, \hat{\lambda}_Y) = \sum_{i=1}^n X_i \log(\bar{X}) - n \bar{X} + \sum_{j=1}^m Y_j \log(\bar{Y}) - m \bar{Y} - \left( \sum_{i=1}^n \log(X_i!) + \sum_{j=1}^m \log(Y_j!) \right)
+$$
+$$
+\ell(\hat{\lambda}_X, \hat{\lambda}_Y) = n \bar{X} \log(\bar{X}) - n \bar{X} + m \bar{Y} \log(\bar{Y}) - m \bar{Y} - \left( \sum_{i=1}^n \log(X_i!) + \sum_{j=1}^m \log(Y_j!) \right)
+$$
+
+Therefore, the likelihood ratio test statistic is,
+$$
+\lambda_{LR} = -2 \left( \ell(\lambda) - \ell(\hat{\lambda}_X, \hat{\lambda}_Y) \right)
+$$
+$$
+\lambda_{LR} = -2 \left[ (n \bar{X} + m \bar{Y}) \log \left( \frac{n \bar{X} + m \bar{Y}}{n + m} \right) - (n \bar{X} + m \bar{Y}) - \left( n \bar{X} \log(\bar{X}) - n \bar{X} + m \bar{Y} \log(\bar{Y}) - m \bar{Y} \right) \right]
+$$
+$$
+\lambda_{LR} = 2 \left[ n \bar{X} \log(\bar{X}) + m \bar{Y} \log(\bar{Y}) - (n \bar{X} + m \bar{Y}) \log \left( \frac{n \bar{X} + m \bar{Y}}{n + m} \right) \right]
+$$
+
+This is the likelihood ratio test statistic for testing $H_0: \lambda_X = \lambda_Y$ vs. $H_1: \lambda_X \neq \lambda_Y$.
+
+{{< pagebreak >}}
+
+# Question 6
+
+Let $X_1, \ldots, X_n \sim_{iid} \text{Exponential}(\theta_X)$, and $Y_1, \ldots, Y_n \sim_{iid} \text{Exponential}(\theta_Y)$ be independent samples. The density function of an Exponential($\theta$) random variable is:
+$$
+f(x | \theta) = \frac{1}{\theta} e^{-\frac{x}{\theta}} \text{  for  } x > 0
+$$
+
+## Part A
+
+Derive the unconstrained MLEs of $\theta_X$ and $\theta_Y$.
+
+### Solution
+
+The likelihood function for $X_1, \ldots, X_n \sim \text{Exponential}(\theta_X)$ is expressed as,
+$$
+L(\theta_X) = \prod_{i=1}^n \frac{1}{\theta_X} e^{-\frac{X_i}{\theta_X}} = \frac{1}{\theta_X^n} e^{-\frac{1}{\theta_X} \sum_{i=1}^n X_i}
+$$
+
+Now, the log-likelihood is formulated as,
+$$
+\ell(\theta_X) = -n \log(\theta_X) - \frac{1}{\theta_X} \sum_{i=1}^n X_i
+$$
+
+We solve for the MLE,
+
+$$
+\frac{\partial \ell(\theta_X)}{\partial \theta_X} = -\frac{n}{\theta_X} + \frac{1}{\theta_X^2} \sum_{i=1}^n X_i = 0
+$$
+$$
+\hat{\theta}_X = \frac{1}{n} \sum_{i=1}^n X_i = \bar{X}
+$$
+
+Similarly, for $Y_1, \ldots, Y_n \sim \text{Exponential}(\theta_Y)$, we can get,
+$$
+\hat{\theta}_Y = \frac{1}{n} \sum_{j=1}^n Y_j = \bar{Y}
+$$
+
+So, the unconstrained MLEs of $\theta_X$ and $\theta_Y$ are $\hat{\theta}_X = \bar{X}$ and $\hat{\theta}_Y = \bar{Y}$.
+
+{{< pagebreak >}}
+
+## Part B
+
+Derive the constrained MLE of $\theta_X$ and $\theta_Y$ under the constraint $\theta_X = \theta_Y$.
+
+### Solution
+
+Under the constraint $\theta_X = \theta_Y = \theta$, the combined likelihood function is found by,
+$$
+L(\theta) = \prod_{i=1}^n \frac{1}{\theta} e^{-\frac{X_i}{\theta}} \prod_{j=1}^n \frac{1}{\theta} e^{-\frac{Y_j}{\theta}}
+$$
+To continue, the log-likelihood is,
+$$
+\ell(\theta) = -2n \log(\theta) - \frac{1}{\theta} \left( \sum_{i=1}^n X_i + \sum_{j=1}^n Y_j \right)
+$$
+
+Then, the MLE is expressed as follows,
+$$
+\frac{\partial \ell(\theta)}{\partial \theta} = -\frac{2n}{\theta} + \frac{1}{\theta^2} \left( \sum_{i=1}^n X_i + \sum_{j=1}^n Y_j \right) = 0
+$$
+$$
+\hat{\theta} = \frac{1}{2n} \left( \sum_{i=1}^n X_i + \sum_{j=1}^n Y_j \right)
+$$
+
+Hence, the constrained MLE of $\theta_X$ and $\theta_Y$ under the constraint $\theta_X = \theta_Y$ is:
+$$
+\hat{\theta} = \frac{\sum_{i=1}^n X_i + \sum_{j=1}^n Y_j}{2n}
+$$
+
+{{< pagebreak >}}
+
+## Part C
+
+Derive an exact level $\alpha$ test for $H_0: \theta_X = \theta_Y$ vs. $H_1: \theta_X \neq \theta_Y$. (*Hint: find an implementable form for the Likelihood Ratio test.*)
+
+### Solution
+
+Let's use our favorite likelihood ratio test statistic for the 1000th time!!! Here it is,
+$$
+\lambda_{LR} = -2 \left( \ell(\theta_0) - \ell(\hat{\theta}) \right)
+$$
+
+The log-likelihood under $H_0: \theta_X = \theta_Y = \theta$ is,
+$$
+\ell(\theta) = -2n \log(\theta) - \frac{1}{\theta} \left( \sum_{i=1}^n X_i + \sum_{j=1}^n Y_j \right)
+$$
+$$
+\ell(\theta) = -2n \log \left( \frac{\sum_{i=1}^n X_i + \sum_{j=1}^n Y_j}{2n} \right) - 2n
+$$
+
+The log-likelihood under $H_1$ is,
+$$
+\ell(\hat{\theta}_X, \hat{\theta}_Y) = -n \log(\hat{\theta}_X) - n \log(\hat{\theta}_Y) - n
+$$
+$$
+\ell(\hat{\theta}_X, \hat{\theta}_Y) = -n \log(\bar{X}) - n \log(\bar{Y}) - n
+$$
+
+Therefore, the likelihood ratio test statistic is,
+$$
+\lambda_{LR} = -2 \left( \ell(\theta) - \ell(\hat{\theta}_X, \hat{\theta}_Y) \right)
+$$
+$$
+\lambda_{LR} = -2 \left[ -2n \log \left( \frac{\sum_{i=1}^n X_i + \sum_{j=1}^n Y_j}{2n} \right) - 2n - \left( -n \log(\bar{X}) - n \log(\bar{Y}) - n \right) \right]
+$$
+$$
+\lambda_{LR} = 2 \left[ n \log(\bar{X}) + n \log(\bar{Y}) - 2n \log \left( \frac{\sum_{i=1}^n X_i + \sum_{j=1}^n Y_j}{2n} \right) \right]
+$$
+
+Therefore, we reject $H_0$ if $\lambda_{LR} > \chi^2_{1, \alpha}$, where $\chi^2_{1, \alpha}$ is the critical value from the chi-squared distribution with 1 degree of freedom at level $\alpha$.
+
+{{< pagebreak >}}
+
+## Part D
+
+Compute the asymptotic variance-covariance matrix of the unconstrained MLE vector $\theta = (\hat{\theta}_X, \hat{\theta}_Y)$.
+
+### Solution
+
+For the Exponential($\theta$) distribution, the Fisher information is,
+$$
+I(\theta) = \frac{n}{\theta^2}
+$$
+
+The variance of $\hat{\theta}$ is,
+$$
+\text{Var}(\hat{\theta}) = \frac{\theta^2}{n}
+$$
+
+For $\theta = (\hat{\theta}_X, \hat{\theta}_Y)$, the asymptotic variance-covariance matrix is diagonal,
+$$
+\mathbf{I}^{-1} = \begin{pmatrix}
+\text{Var}(\hat{\theta}_X) & 0 \\
+0 & \text{Var}(\hat{\theta}_Y)
+\end{pmatrix} = \begin{pmatrix}
+\frac{\theta_X^2}{n} & 0 \\
+0 & \frac{\theta_Y^2}{n}
+\end{pmatrix}
+$$
+Hence, by the MLEs, we can get
+$$
+\mathbf{I}^{-1} = \begin{pmatrix}
+\frac{\bar{X}^2}{n} & 0 \\
+0 & \frac{\bar{Y}^2}{n}
+\end{pmatrix}
+$$
+
+{{< pagebreak >}}
+
+## Part E
+
+Derive a large-sample Wald test for $H_0: \theta_X - 2\theta_Y = 0$ vs. $H_1: \theta_X - 2\theta_Y \neq 0$. (*Hint: Use the Mann-Wald Theorem/Delta Method to find the distribution of $g(\theta) = \theta_X - 2\theta_Y$ under the null hypothesis*).
+
+### Solution
+
+Let $g(\theta) = \theta_X - 2\theta_Y$. Under $H_0$, $g(\theta) = 0$.
+
+The variance of $g(\theta)$ is,
+$$
+\text{Var}(g(\theta)) = \nabla g(\theta)^T \mathbf{I}^{-1} \nabla g(\theta)
+$$
+
+Where
+$$\nabla g(\theta) = \begin{pmatrix}
+1 \\
+-2
+\end{pmatrix}
+$$.
+
+Thus,
+$$
+\text{Var}(g(\theta)) = \begin{pmatrix}
+1 & -2
+\end{pmatrix} \begin{pmatrix}
+\frac{\bar{X}^2}{n} & 0 \\
+0 & \frac{\bar{Y}^2}{n}
+\end{pmatrix} \begin{pmatrix}
+1 \\
+-2
+\end{pmatrix}
+$$
+
+$$
+\text{Var}(g(\theta)) = \frac{\bar{X}^2}{n} \cdot 1^2 + \frac{\bar{Y}^2}{n} \cdot (-2)^2 = \frac{\bar{X}^2}{n} + \frac{4\bar{Y}^2}{n}
+$$
+
+The standard error is calculated as,
+$$
+\text{SE}(g(\theta)) = \sqrt{\frac{\bar{X}^2}{n} + \frac{4\bar{Y}^2}{n}}
+$$
+
+Next, the Wald test statistic is formulated as,
+$$
+W = \frac{g(\hat{\theta}) - 0}{\text{SE}(g(\hat{\theta}))} = \frac{\hat{\theta}_X - 2\hat{\theta}_Y}{\sqrt{\frac{\bar{X}^2}{n} + \frac{4\bar{Y}^2}{n}}}
+$$
+
+Under $H_0$, $W \sim N(0, 1)$. Therefore, this Wald test statistic can be used for testing $H_0: \theta_X - 2\theta_Y = 0$ vs. $H_1: \theta_X - 2\theta_Y \neq 0$.
+
+
+{{< pagebreak >}}
+
+# Question 7
+
+Let $X_1, \ldots, X_n \sim_{iid} \mathcal{N}(\mu_X, \sigma^2_X)$, and $Y_1, \ldots, Y_m \sim_{iid} \mathcal{N}(\mu_Y, \sigma^2_Y)$ be independent samples.
+
+## Part A
+
+Find the unconstrained MLE of $(\mu_X, \mu_Y, \sigma_X^2, \sigma_Y^2)$.
+
+### Solution
+
+For $X_1, \ldots, X_n \sim \mathcal{N}(\mu_X, \sigma_X^2)$, the likelihood function is,
+$$
+L(\mu_X, \sigma_X^2) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi \sigma_X^2}} \exp\left( -\frac{(X_i - \mu_X)^2}{2\sigma_X^2} \right)
+$$
+
+Take the log and we can get the log-likelihood function,
+$$
+\ell(\mu_X, \sigma_X^2) = -\frac{n}{2} \log(2\pi \sigma_X^2) - \frac{1}{2\sigma_X^2} \sum_{i=1}^n (X_i - \mu_X)^2
+$$
+
+Solve for the MLES,
+$$
+\frac{\partial \ell(\mu_X, \sigma_X^2)}{\partial \mu_X} = \frac{1}{\sigma_X^2} \sum_{i=1}^n (X_i - \mu_X) = 0 \quad \Rightarrow \quad \hat{\mu}_X = \frac{1}{n} \sum_{i=1}^n X_i = \bar{X}
+$$
+$$
+\frac{\partial \ell(\mu_X, \sigma_X^2)}{\partial \sigma_X^2} = -\frac{n}{2\sigma_X^2} + \frac{1}{2(\sigma_X^2)^2} \sum_{i=1}^n (X_i - \mu_X)^2 = 0 \quad \Rightarrow \quad \hat{\sigma}_X^2 = \frac{1}{n} \sum_{i=1}^n (X_i - \bar{X})^2
+$$
+
+Use similar steps to solve for $Y_1, \ldots, Y_m \sim \mathcal{N}(\mu_Y, \sigma_Y^2)$. After some algebra we get,
+$$
+\hat{\mu}_Y = \frac{1}{m} \sum_{j=1}^m Y_j = \bar{Y}
+$$
+$$
+\hat{\sigma}_Y^2 = \frac{1}{m} \sum_{j=1}^m (Y_j - \bar{Y})^2
+$$
+
+Hence, the unconstrained MLEs of $(\mu_X, \mu_Y, \sigma_X^2, \sigma_Y^2)$ are $(\hat{\mu}_X, \hat{\mu}_Y, \hat{\sigma}_X^2, \hat{\sigma}_Y^2) = (\bar{X}, \bar{Y}, \hat{\sigma}_X^2, \hat{\sigma}_Y^2)$.
+
+{{< pagebreak >}}
+
+## Part B
+
+Find the constrained MLE of $(\mu_X, \mu_Y, \sigma_X^2, \sigma_Y^2)$ under the constraint $\mu_X = \mu_Y$.
+
+### Solution
+
+Under the constraint $\mu_X = \mu_Y = \mu$, the combined likelihood function is,
+$$
+L(\mu, \sigma_X^2, \sigma_Y^2) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi \sigma_X^2}} \exp\left( -\frac{(X_i - \mu)^2}{2\sigma_X^2} \right) \prod_{j=1}^m \frac{1}{\sqrt{2\pi \sigma_Y^2}} \exp\left( -\frac{(Y_j - \mu)^2}{2\sigma_Y^2} \right)
+$$
+
+Solving for the log-likelihood function,
+$$
+\ell(\mu, \sigma_X^2, \sigma_Y^2) = -\frac{n}{2} \log(2\pi \sigma_X^2) - \frac{1}{2\sigma_X^2} \sum_{i=1}^n (X_i - \mu)^2 - \frac{m}{2} \log(2\pi \sigma_Y^2) - \frac{1}{2\sigma_Y^2} \sum_{j=1}^m (Y_j - \mu)^2
+$$
+
+Find the MLE,
+$$
+\frac{\partial \ell(\mu, \sigma_X^2, \sigma_Y^2)}{\partial \mu} = \frac{1}{\sigma_X^2} \sum_{i=1}^n (X_i - \mu) + \frac{1}{\sigma_Y^2} \sum_{j=1}^m (Y_j - \mu) = 0
+$$
+
+Solving for $\mu$, we can get,
+$$
+\hat{\mu} = \frac{\frac{1}{\sigma_X^2} \sum_{i=1}^n X_i + \frac{1}{\sigma_Y^2} \sum_{j=1}^m Y_j}{\frac{n}{\sigma_X^2} + \frac{m}{\sigma_Y^2}}
+$$
+
+Since we don't know $\sigma_X^2$ and $\sigma_Y^2$ yet, we can use their MLEs from the unconstrained case,
+$$
+\hat{\mu} = \frac{\frac{1}{\hat{\sigma}_X^2} \sum_{i=1}^n X_i + \frac{1}{\hat{\sigma}_Y^2} \sum_{j=1}^m Y_j}{\frac{n}{\hat{\sigma}_X^2} + \frac{m}{\hat{\sigma}_Y^2}}
+$$
+
+Now, substituting this $\hat{\mu}$ back, we re-estimate $\sigma_X^2$ and $\sigma_Y^2$,
+$$
+\hat{\sigma}_X^2 = \frac{1}{n} \sum_{i=1}^n (X_i - \hat{\mu})^2
+$$
+$$
+\hat{\sigma}_Y^2 = \frac{1}{m} \sum_{j=1}^m (Y_j - \hat{\mu})^2
+$$
+
+{{< pagebreak >}}
+
+## Part C
+
+Find the score function for $(\mu_X, \sigma_X^2)$.
+
+### Solution
+
+The score function is the first derivative of the log-likelihood function with respect to the parameter of interest. For $(\mu_X, \sigma_X^2)$, the log-likelihood function is,
+$$
+\ell(\mu_X, \sigma_X^2) = -\frac{n}{2} \log(2\pi \sigma_X^2) - \frac{1}{2\sigma_X^2} \sum_{i=1}^n (X_i - \mu_X)^2
+$$
+
+The score functions are calculated as follows,
+$$
+U_{\mu_X} = \frac{\partial \ell(\mu_X, \sigma_X^2)}{\partial \mu_X} = \frac{1}{\sigma_X^2} \sum_{i=1}^n (X_i - \mu_X)
+$$
+
+$$
+U_{\sigma_X^2} = \frac{\partial \ell(\mu_X, \sigma_X^2)}{\partial \sigma_X^2} = -\frac{n}{2\sigma_X^2} + \frac{1}{2(\sigma_X^2)^2} \sum_{i=1}^n (X_i - \mu_X)^2
+$$
+
+Therefore, the score functions for $(\mu_X, \sigma_X^2)$ are,
+$$
+U_{\mu_X} = \frac{1}{\sigma_X^2} \sum_{i=1}^n (X_i - \mu_X)
+$$
+$$
+U_{\sigma_X^2} = -\frac{n}{2\sigma_X^2} + \frac{1}{2(\sigma_X^2)^2} \sum_{i=1}^n (X_i - \mu_X)^2
+$$
+

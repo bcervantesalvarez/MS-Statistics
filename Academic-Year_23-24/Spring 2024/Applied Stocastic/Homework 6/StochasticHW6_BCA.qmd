@@ -1,0 +1,192 @@
+---
+title: "Homework 6"
+subtitle: "ST 543: Applied Stochastic Models"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# Problem 1
+
+### Solution
+
+The chance that any male and female will mate in a small time interval
+$h$ is given by $\lambda h + o(h)$. The total number of mating events
+depends on how many males $N_1(t)$ and females $N_2(t)$ there are
+because each male can mate with each female. So, the rate at which
+mating happens in the population is, $$
+\nu(N_1, N_2) = \lambda N_1 N_2
+$$ When a mating event happens, one offspring is produced, which is
+equally likely to be a male or a female. This means that the transitions
+from state $(N_1, N_2)$ can be described as, $$
+(N_1, N_2) \rightarrow
+\begin{cases}
+(N_1 + 1, N_2) & \text{with probability } \frac{1}{2} \\
+(N_1, N_2 + 1) & \text{with probability } \frac{1}{2}
+\end{cases}
+$$ Now, given the state $(N_1, N_2)$, the next state is either
+$(N_1 + 1, N_2)$ or $(N_1, N_2 + 1)$ each with probability
+$\frac{1}{2}$: $$
+P_{(N_1, N_2) \rightarrow (N_1+1, N_2)} = \frac{1}{2}
+$$ $$
+P_{(N_1, N_2) \rightarrow (N_1, N_2+1)} = \frac{1}{2}
+$$ Therefore, the rate at which mating events occur is, $$
+\nu(N_1, N_2) = \lambda N_1 N_2
+$$
+
+{{< pagebreak >}}
+
+# Problem 2
+
+## Solution
+
+### Part A
+
+**True:** $N(t) < n$ means that the count of events by time $t$ is less
+than $n$. This implies that the $n^{th}$ event has not occurred by time
+$t$, which is equivalent to saying $S_n > t$. Here, $S_n$ is the time of
+the $n^{th}$ event.
+
+### Part B
+
+**True:** $N(t) \leq n$ means that the count of events by time $t$ is at
+most $n$. This implies that the $n^{th}$ event occurs at or after time
+$t$, which is equivalent to saying $S_n \geq t$. Again, $S_n$ is the
+time of the $n^{th}$ event.
+
+### Part C
+
+**True:** $N(t) > n$ means that the count of events by time $t$ is
+greater than $n$. This implies that the $n^{th}$ event has already
+occurred by time $t$, which is equivalent to saying $S_n < t$. Once
+again, $S_n$ is the time of the $n^{th}$ event.
+
+{{< pagebreak >}}
+
+# Problem 3
+
+## Part A
+
+Let us denote:
+
+- $T_{\text{work}}$: the time the machine is working.
+- $T_{\text{repair}}$: the total time the machine is being repaired, which is the sum of the times for each repair phase.
+- $P_{ij}:$ Proportion of time in phase i
+
+The time for each phase $i$ of the repair is exponential with rate $\mu_i$. Therefore, the expected time for each phase $i$ is $1/\mu_i$.
+
+The total repair time $T_{\text{repair}}$ is the sum of $k$ independent exponential r.v.s,
+$$ T_{\text{repair}} = \sum_{i=1}^k T_i $$
+where $T_i$ is exponential with rate $\mu_i$. The expected total repair time is,
+$$ E[T_{\text{repair}}] = \sum_{i=1}^k \frac{1}{\mu_i} $$
+
+The proportion of time the machine is undergoing a phase $i$ repair is given by the ratio of the expected time spent in phase $i$ to the total expected time,
+$$ P_{ij} = \frac{E[T_i]}{E[T_{\text{work}}] + E[T_{\text{repair}}]} $$
+
+Since $E[T_i] = \frac{1}{\mu_i}$ and $E[T_{\text{work}}] = \frac{1}{\lambda}$, we get the expression,
+$$ P_{ij} = \frac{\frac{1}{\mu_i}}{\frac{1}{\lambda} + \sum_{j=1}^k \frac{1}{\mu_j}} $$
+{{< pagebreak >}}
+
+## Part B
+
+Let us denote:
+
+- $W_{i}:$ \text{Proportion of time working}
+
+The proportion of time the machine is working is given by the ratio of the expected working time to the total expected time,
+$$ W_{i} = \frac{E[T_{\text{work}}]}{E[T_{\text{work}}] + E[T_{\text{repair}}]} $$
+
+Using $E[T_{\text{work}}] = \frac{1}{\lambda}$ and $E[T_{\text{repair}}] = \sum_{i=1}^k \frac{1}{\mu_i}$, the final expression is,
+$$ W_{i} = \frac{\frac{1}{\lambda}}{\frac{1}{\lambda} + \sum_{i=1}^k \frac{1}{\mu_i}} $$
+
+{{< pagebreak >}}
+
+
+# Problem 4
+
+## Part A
+
+To find the distribution of $S_n$, we need to understand that $S_n = \sum_{i=1}^n X_i$, where each $X_i$ is an independent Poisson random variable with mean $\mu$. Plus, when you add up $n$ independent Poisson random variables, each with mean $\mu$, the result is also a Poisson random variable with mean $n\mu$.
+
+Hence, the distribution of $S_n$ follows,
+$$
+S_n \sim \text{Poisson}(n\mu)
+$$
+
+{{< pagebreak >}}
+
+## Part B
+
+The number of arrivals $N(t)$ in a renewal process up to time $t$ is Poisson distributed with parameter $\lambda t$, where $\lambda$ is the rate of the Poisson process. Since the time between arrivals $X_n$ is Poisson distributed with mean $\mu$, the rate $\lambda$ is $\frac{1}{\mu}$.
+
+Thus, the distribution of $N(t)$ follows,
+$$
+N(t) \sim \text{Poisson}\left(\frac{t}{\mu}\right)
+$$
+
+Therefore, the probability that $N(t) = n$ is:
+$$
+P(N(t) = n) = \frac{\left(\frac{t}{\mu}\right)^n e^{-\frac{t}{\mu}}}{n!}, \quad n = 0, 1, 2, \ldots
+$$
+
+{{< pagebreak >}}
+
+# Problem 5
+
+## Part A
+
+The interarrival times of $\{N_1(t), t \geq 0\}$ and $\{N_2(t), t \geq 0\}$ are independent by definition, since they are independent renewal processes. When combining these two processes into $\{N(t), t \geq 0\}$, the resulting interarrival times are sums of independent interarrival times from the two original processes. However, the interarrival times of $\{N(t), t \geq 0\}$ are not independent because they depend on the occurrences in both $\{N_1(t), t \geq 0\}$ and $\{N_2(t), t \geq 0\}$.
+
+Therefore, $\{N_1(t), t \geq 0\}$ are **NOT** independent
+
+## Part B
+
+The interarrival times of $\{N_1(t), t \geq 0\}$ and $\{N_2(t), t \geq 0\}$ are identically distributed within each process. However, the combined process $\{N(t), t \geq 0\}$ has interarrival times that are not identically distributed. The distribution of interarrival times for $\{N(t), t \geq 0\}$ depends on the sum of the distributions of the interarrival times of $\{N_1(t), t \geq 0\}$ and $\{N_2(t), t \geq 0\}$, leading to a more complex distribution.
+
+Hence, $\{N_1(t), t \geq 0\}$ are **NOT** identically distributed.
+
+## Part C
+
+A renewal process requires that the interarrival times be independent and identically distributed. 
+
+By the logic of parts A and B, $\{N_1(t), t \geq 0\}$ is **NOT** a renewal process
+
+{{< pagebreak >}}
+
+# Problem 6
+
+## Part A
+
+
+The probability that an event occurs within a time $d$ of the previous event is given by the exponential distribution, which is the interarrival time distribution of a Poisson process. So, the probability that the interarrival time $X$ is less than or equal to $d$ is given,
+$$
+P(X \leq d) = 1 - e^{-\lambda d}
+$$
+
+Since the events occur at rate $\lambda$, the rate of $d$-events becomes,
+$$
+\lambda_d = \lambda \cdot P(X \leq d) = \lambda (1 - e^{-\lambda d})
+$$
+
+## Part B
+
+The proportion of all events that are $d$-events is simply the probability that an event occurs within time $d$ of the previous event, which is,
+$$
+P(X \leq d) = 1 - e^{-\lambda d}
+$$
+
+Therefore, the proportion of all events that are $d$-events can be given as,
+$$
+1 - e^{-\lambda d}
+$$
+
+
+
+
+
+

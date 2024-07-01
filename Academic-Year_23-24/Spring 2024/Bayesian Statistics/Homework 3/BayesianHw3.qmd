@@ -1,0 +1,265 @@
+---
+title: "Homework 3"
+subtitle: "ST 559 Bayesian Statistics"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute:
+  warning: false
+  message: false
+---
+
+# Question 1
+
+## Part A
+
+Given the priors $\theta_A \sim \text{Gamma}(120, 10)$ and $\theta_B \sim \text{Gamma}(12, 1)$, we have strong prior information about $\theta_A$ because of the larger sample size and previous studies. On the other hand, the prior for $\theta_B$ is more uncertain, reflecting that we know less about strain B. 
+
+If we think that the tumor rates in strain B are influenced by those in strain A, we might consider a joint prior distribution that shows some kind of dependence between $\theta_A$ and $\theta_B$. However, without clear evidence of such a relationship, it is reasonable to assume they are independent to keep things simple.
+
+So, assuming $p(\theta_A, \theta_B) = p(\theta_A)p(\theta_B)$ makes sense without specific evidence showing a dependence between the two populations.
+
+{{< pagebreak >}}
+
+## Part B
+
+To calculate $\Pr(\theta_B < \theta_A \mid \mathbf{y}_A, \mathbf{y}_B)$, we can apply Monte Carlo sampling. The posterior distributions for $\theta_A$ and $\theta_B$ are given,
+$$
+\theta_A \mid \mathbf{y}_A \sim \text{Gamma}(120 + \sum y_A, 10 + n_A) = \text{Gamma}(120 + 117, 10 + 10) = \text{Gamma}(237, 20)
+$$
+$$
+\theta_B \mid \mathbf{y}_B \sim \text{Gamma}(12 + \sum y_B, 1 + n_B) = \text{Gamma}(12 + 113, 1 + 13) = \text{Gamma}(125, 14)
+$$
+Next, we can draw samples from these posterior distributions and compute the proportion of samples where $\theta_B < \theta_A$. Using R, we can compute the simulation and get $0.9996$
+
+{{< pagebreak >}}
+
+## Part C
+
+We perform a sensitivity analysis by varying the hyperparameter $n_0$ in the prior for $\theta_B$. To be precise, we compute $\Pr(\theta_B < \theta_A \mid \mathbf{y}_A, \mathbf{y}_B)$ for different values of $n_0$ while keeping the prior for $\theta_A$ fixed. The prior for $\theta_B$ is updated to $\theta_B \sim \text{Gamma}(12 \times n_0, n_0)$. We evaluate $n_0$ ranging from 1 to 20 and plot the figure below.
+
+```{r}
+#| echo: false
+set.seed(503)
+# Parameters for the Gamma dist
+alphaA <- 237
+betaA <- 20
+alphaB <- 125
+betaB <- 14
+# Number of samples
+nSamples <- 100000
+# Draw samples from the posterior
+thetaASamples <- rgamma(nSamples, shape = alphaA, rate = betaA)
+thetaBSamples <- rgamma(nSamples, shape = alphaB, rate = betaB)
+
+# Range of n_0 values
+n0Range <- 1:20
+prob <- numeric(length(n0Range))
+
+for (i in seq_along(n0Range)) {
+  n0 <- n0Range[i]
+  
+  # Parameters for the Gamma distribution of theta_B with varying n0
+  alphaBNew <- 12 * n0
+  betaBNew <- n0
+  
+  # Draw samples from the updated posterior distribution of theta_B
+  thetaBNewSamples <- rgamma(nSamples, shape = alphaBNew + 113, rate = betaBNew + 13)
+  
+  # Compute the probability
+  prob[i] <- mean(thetaBNewSamples < thetaASamples)
+}
+
+sensitivityDs <- data.frame(n0 = n0Range, Probability = prob)
+
+# Plot the sensitivity analysis
+library(ggplot2)
+ggplot(sensitivityDs, aes(x = n0, y = Probability)) +
+  geom_line() +
+  geom_point() +
+  labs(x = expression(n[0]), 
+       y = expression(P(theta[B] < theta[A] ~ "|" ~ bold(y[A]), bold(y[B])))) +
+  theme_minimal()
+
+```
+
+The sensitivity plot shows how $P(\theta_B < \theta_A \mid \mathbf{y}_A, \mathbf{y}_B)$ varies with different values of $n_0$. Hence, helps us understand conceptually that the choice of the hyperparameter in the prior distribution for $\theta_B$ matters.
+
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part A
+
+| Statistic        | Value    |
+|------------------|----------|
+| Posterior Mean   | 0.3207547|
+| Posterior Mode   | 0.3137255|
+| Posterior SD     | 0.0635189|
+| 95% CI Lower     | 0.2032978|
+| 95% CI Upper     | 0.4510240|
+
+: Posterior statistics for Beta(2, 8) prior {.striped .hover}
+
+```{r}
+#| echo: false
+library(ggplot2)
+library(gridExtra)
+
+# Parameters
+n <- 43
+y <- 15
+
+# Beta(2, 8) prior
+alpha_prior <- 2
+beta_prior <- 8
+
+# Posterior parameters
+alpha_post <- alpha_prior + y
+beta_post <- beta_prior + n - y
+
+# Theta values
+theta <- seq(0, 1, length.out = 1000)
+
+# Priors
+prior <- dbeta(theta, alpha_prior, beta_prior)
+
+# Likelihood
+likelihood <- dbinom(y, n, theta)
+
+# Posterior
+posterior <- dbeta(theta, alpha_post, beta_post)
+
+# Plots
+p1 <- ggplot(data.frame(theta, prior), aes(x = theta, y = prior)) +
+  geom_line() +
+  ggtitle("Prior: Beta(2, 8)") +
+  xlab(expression(theta)) + ylab(expression(p(theta))) + 
+  theme_minimal()
+
+p2 <- ggplot(data.frame(theta, likelihood), aes(x = theta, y = likelihood)) +
+  geom_line() +
+  ggtitle("Likelihood") +
+  xlab(expression(theta)) + ylab(expression(p(y | theta))) + 
+  theme_minimal()
+
+p3 <- ggplot(data.frame(theta, posterior), aes(x = theta, y = posterior)) +
+  geom_line() +
+  ggtitle("Posterior: Beta(17, 36)") +
+  xlab(expression(theta)) + ylab(expression(p(theta | y))) + 
+  theme_minimal()
+
+grid.arrange(p1, p2, p3, nrow = 3)
+
+# Posterior mean, mode, sd, and 95% CI
+posterior_mean <- alpha_post / (alpha_post + beta_post)
+posterior_mode <- (alpha_post - 1) / (alpha_post + beta_post - 2)
+posterior_sd <- sqrt((alpha_post * beta_post) / ((alpha_post + beta_post)^2 * (alpha_post + beta_post + 1)))
+posterior_ci <- qbeta(c(0.025, 0.975), alpha_post, beta_post)
+```
+
+This prior suggests that the probability of teens reoffending after being released is quite low. It reflects a strong belief that most teens will not reoffend based on previous data or studies. Essentially, we are starting with the assumption that reoffending is unlikely.
+
+{{< pagebreak >}}
+
+## Part B
+
+| Statistic        | Value    |
+|------------------|----------|
+| Posterior Mean   | 0.4339622|
+| Posterior Mode   | 0.4313725|
+| Posterior SD     | 0.0674453|
+| 95% CI Lower     | 0.3046956|
+| 95% CI Upper     | 0.5679528|
+
+: Posterior statistics for Beta(8, 2) prior {.striped .hover}
+
+```{r}
+#| echo: false
+# Beta(8, 2) prior
+alpha_prior2 <- 8
+beta_prior2 <- 2
+
+# Posterior parameters
+alpha_post2 <- alpha_prior2 + y
+beta_post2 <- beta_prior2 + n - y
+
+# Priors
+prior2 <- dbeta(theta, alpha_prior2, beta_prior2)
+
+# Posterior
+posterior2 <- dbeta(theta, alpha_post2, beta_post2)
+
+# Plots
+p4 <- ggplot(data.frame(theta, prior2), aes(x = theta, y = prior2)) +
+  geom_line() +
+  ggtitle("Prior: Beta(8, 2)") +
+  xlab(expression(theta)) + ylab(expression(p(theta))) + 
+  theme_minimal()
+
+p5 <- ggplot(data.frame(theta, likelihood), aes(x = theta, y = likelihood)) +
+  geom_line() +
+  ggtitle("Likelihood") +
+  xlab(expression(theta)) + ylab(expression(p(y | theta))) + 
+  theme_minimal()
+
+p6 <- ggplot(data.frame(theta, posterior2), aes(x = theta, y = posterior2)) +
+  geom_line() +
+  ggtitle("Posterior: Beta(23, 30)") +
+  xlab(expression(theta)) + ylab(expression(p(theta | y))) + 
+  theme_minimal()
+
+grid.arrange(p4, p5, p6, nrow = 3)
+
+# Posterior mean, mode, sd, and 95% CI
+posterior_mean2 <- alpha_post2 / (alpha_post2 + beta_post2)
+posterior_mode2 <- (alpha_post2 - 1) / (alpha_post2 + beta_post2 - 2)
+posterior_sd2 <- sqrt((alpha_post2 * beta_post2) / ((alpha_post2 + beta_post2)^2 * (alpha_post2 + beta_post2 + 1)))
+posterior_ci2 <- qbeta(c(0.025, 0.975), alpha_post2, beta_post2)
+```
+
+This prior indicates that the probability of teens reoffending is high. It shows a belief that a significant number of teens will reoffend after being released. We are beginning with the assumption that reoffending is more likely, possibly based on different past data or studies.
+
+{{< pagebreak >}}
+
+## Part C
+
+$$
+p(\theta) = \frac{1}{4} \frac{\Gamma(10)}{\Gamma(2)\Gamma(8)} \left[3\theta(1 - \theta)^7 + \theta^7(1 - \theta)\right]
+$$
+
+```{r}
+#| echo: false
+# Mixture prior parameters
+mixture_prior <- function(theta) {
+  0.75 * dbeta(theta, 2, 8) + 0.25 * dbeta(theta, 8, 2)
+}
+
+mixture_prior_values <- sapply(theta, mixture_prior)
+
+# Plot mixture prior
+p7 <- ggplot(data.frame(theta, mixture_prior_values), aes(x = theta, y = mixture_prior_values)) +
+  geom_line() +
+  ggtitle("Mixture Prior: 75% Beta(2, 8) + 25% Beta(8, 2)") +
+  xlab(expression(theta)) + ylab(expression(p(theta))) + 
+  theme_minimal()
+
+# Compare priors
+p8 <- ggplot() +
+  geom_line(data = data.frame(theta, prior), aes(x = theta, y = prior), color = "blue", linetype = "dashed") +
+  geom_line(data = data.frame(theta, prior2), aes(x = theta, y = prior2), color = "red", linetype = "dotted") +
+  geom_line(data = data.frame(theta, mixture_prior_values), aes(x = theta, y = mixture_prior_values), color = "green") +
+  ggtitle("Comparison of Priors") +
+  xlab(expression(theta)) + ylab(expression(p(theta))) +
+  scale_color_manual(name = "Priors", values = c("blue3" = "Beta(2, 8)", "red3" = "Beta(8, 2)", "green2" = "Mixture")) + 
+  theme_minimal()
+
+grid.arrange(p7, p8, nrow = 2)
+```
+
+This prior combines two different beliefs: One that reoffending is unlikely and another that it is likely. It leans more towards the belief that reoffending is unlikely but still considers the possibility that it could be likely. This mixture approach represents a balanced view, taking into account both low and high chances of reoffending based on mixed evidence or diverse opinions.
+
+{{< pagebreak >}}
+
+
+

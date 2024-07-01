@@ -1,0 +1,265 @@
+---
+title: "Homework 4"
+subtitle: "ST 543 Applied Stochastic Models"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+---
+
+# Question 1
+
+## Part A
+
+### Solution
+
+We are told that coin 1 lands on heads 60% of the time and tails 40% of the time. Additionally, coin 2 lands on heads 50% of the time and tails 50% of the time. Since we stop flipping when we see tails, we can expect to flip coin 1 about 2.5 times and coin 2 about 2 times before stopping. To find out how often we use coin 1 compared to the total flips, we calculate:
+
+$$
+\frac{2.5}{2.5 + 2} = \frac{2.5}{4.5} \approx 0.5556
+$$
+
+Thus, coin 1 is used approximately 55.56% of the time.
+
+{{< pagebreak >}}
+
+## Part B
+
+### Solution
+For this to happen, Coin 1 must land heads four times in a row, and then we switch to Coin 2 on the fifth flip. The chance for this sequence is:
+
+$$
+(0.6)^4 \times 0.5 = 0.1296 \times 0.5 = 0.0648
+$$
+
+So, there's about a 6.48% chance we'll switch to Coin 2 on the fifth flip.
+
+{{< pagebreak >}}
+
+# Question 2
+
+### Solution
+
+This matrix type means that each state's total chances add up to 1. Since the matrix doesn't favor any particular state over time and all states are reachable and revisitable, each state has an equal chance of being the next state. Thus, each state's long-term chance is $\frac{1}{M}$.
+
+Another way to put it is that since $\sum_{i=1}^M P_{ij} = 1$ for all $j$, and the chain is irreducible and aperiodic, the system reaches the equilibrium distribution, where each state is equally probable. Therefore, each $\pi_j = \frac{1}{M}$.
+
+$$
+\pi_j \sum_{i=1}^M P_{ij} = \pi_j = \frac{1}{M}
+$$
+
+
+
+{{< pagebreak >}}
+
+# Question 3
+
+### Solution
+
+The transition probabilities for each urn are determined as follows:
+
+1. **From the Red urn**: 
+   - $P_{RR} = \frac{1}{5}$ 
+   - $P_{RW} = 0$ 
+   - $P_{RB} = \frac{4}{5}$ 
+
+2. **From the White urn**: 
+   - $P_{WR} = \frac{2}{7}$ 
+   - $P_{WW} = \frac{3}{7}$ 
+   - $P_{WB} = \frac{2}{7}$ 
+
+3. **From the Blue urn**: 
+   - $P_{BR} = \frac{3}{9} = \frac{1}{3}$ 
+   - $P_{BW} = \frac{4}{9}$ 
+   - $P_{BB} = \frac{2}{9}$ 
+
+We can use the transition probabilities to contruct the transition matrix $\mathbf{P}$, 
+$$
+\mathbf{P} = \left[
+\begin{array}{ccc}
+\frac{1}{5} & 0 & \frac{4}{5} \\
+\frac{2}{7} & \frac{3}{7} & \frac{2}{7} \\
+\frac{1}{3} & \frac{4}{9} & \frac{2}{9} \\
+\end{array}
+\right]
+$$
+
+The stationary distribution $\pi$ satisfies $\pi \mathbf{P} = \pi$ and $\pi_1 + \pi_2 + \pi_3 = 1$. We can solve this system of linear equations to find $\pi$. 
+
+$$
+\pi\mathbf{P} = \pi \Rightarrow \left[
+\begin{array}{ccc}
+\frac{1}{5} & 0 & \frac{4}{5} \\
+\frac{2}{7} & \frac{3}{7} & \frac{2}{7} \\
+\frac{1}{3} & \frac{4}{9} & \frac{2}{9} \\
+\end{array}
+\right] \cdot \left[
+\begin{array}{c}
+\pi_1  \\
+\pi_2  \\
+\pi_3  \\
+\end{array}
+\right] = \left[
+\begin{array}{c}
+\pi_1  \\
+\pi_2  \\
+\pi_3  \\
+\end{array}
+\right]
+$$
+
+We end up getting:
+
+- $\pi_R = 0.281$: Long-run proportion of times a Red ball is drawn.
+- $\pi_W = 0.315$: Long-run proportion of times a White ball is drawn.
+- $\pi_B = 0.404$: Long-run proportion of times a Blue ball is drawn.
+
+This means that in the long run, about 28.1% of the balls drawn will be Red, 31.5% will be White, and 40.4% will be Blue.
+
+
+{{< pagebreak >}}
+
+# Question 4
+
+## Solution
+
+Let $N$ denote the total number of pairs of shoes Alf possesses.
+
+Let $X$ be a random variable representing the number of shoes left at the front door each morning. Thus, $X$ follows a binomial distribution with parameters $N$ and $p = 0.5$, i.e., $X \sim \text{Binomial}(N, 0.5)$.
+
+The probability that there are no shoes at either door is the sum of the probabilities that there are no shoes at the front door $P(X = 0)$ and the probability that there are no shoes at the back door $P(X = N)$.
+
+$$P(X = 0) = \binom{N}{0} (0.5)^0 (0.5)^{N-0} = (0.5)^N$$
+$$P(X = N) = \binom{N}{N} (0.5)^N (0.5)^{N-N} = (0.5)^N$$
+
+Since the probabilities of having no shoes at either door are equal and independent, the total probability of running barefoot is twice the probability of having no shoes at one door.
+
+$$P(\text{Barefoot}) = P(X = 0) + P(X = N) = (0.5)^N + (0.5)^N = 2 \times (0.5)^N = 2^{1-N}$$
+
+Therefore, the proportion of time Alf runs barefoot is $2^{1-N}$.
+{{< pagebreak >}}
+
+# Problem 5
+
+## Part A
+
+### Solution
+
+$\pi_i$ represents how often a Markov chain is in state $i$ over a long period. Since the chain can reach any state from any other state (this is what irreducible means), $\pi_i$ shows how often the chain moves into state $i$. It also shows how often the chain moves out of state $i$. This is because, over time, the chain enters and leaves each state at a rate proportional to $\pi_i$.
+
+{{< pagebreak >}}
+
+## Part B
+
+### Solution
+
+$\pi_i P_{ij}$ is the fraction of moves that go from state $i$ to state $j$ over many uses of the chain. This tells us how often, after many steps, the chain moves directly from $i$ to $j$.
+
+{{< pagebreak >}}
+
+## Part C
+
+### Solution
+
+$\sum_i \pi_i P_{ij}$ adds up all the ways the chain can end up in state $j$ from any state. Each term in the sum shows how transitions from a particular state $i$ contribute to reaching state $j$.
+
+{{< pagebreak >}}
+
+## Part D
+
+### Solution
+
+Given what $\pi_i P_{ij}$ means from Part B (the chance of moving from state $i$ to $j$), adding these probabilities for all states $i$ (as done in Part C) gives the total chance of arriving at state $j$ from any state. Since $\pi_j$ is the overall chance of being in state $j$, we conclude that $\pi_j = \sum_i \pi_i P_{ij}$, showing consistency in our understanding of how the chain behaves.
+
+{{< pagebreak >}}
+
+# Question 6
+
+## Part A
+
+### Solution
+
+Let's examine whether $\{X_n, n \geq 0\}$ is a Markov chain. Initially, the state $X_0 = 1$. The chain's subsequent behavior depends on a coin flip: if heads, it follows $P(1)$, if tails, it follows $P(2)$. After this flip, the chain does not rely on any more coin flips and continues with the chosen transition matrix. This initial choice affects all future states, but each state $X_n$ for $n \geq 1$ only depends on $X_{n-1}$ and not on the choice made at $X_0$. Hence, $\{X_n, n \geq 0\}$ is a Markov chain because the transition depends solely on the current state from $X_1$ onward.
+
+{{< pagebreak >}}
+
+## Part B
+
+### Solution
+
+To find $\lim_{n \to \infty} P(X_n = i)$, consider the initial choice made by the coin flip. With probability $p$, the system uses $P(1)$ and converges to $\pi(1)$, and with probability $(1-p)$, it uses $P(2)$, converging to $\pi(2)$. Therefore, the long-term probability that $X_n = i$ is a weighted average of these stationary distributions:
+$$
+\lim_{n \to \infty} P(X_n = i) = p \pi_i(1) + (1-p) \pi_i(2)
+$$
+where $\pi_i(1)$ and $\pi_i(2)$ are the probabilities of being in state $i$ under the stationary distributions for $P(1)$ and $P(2)$, respectively.
+
+{{< pagebreak >}}
+
+## Part C
+
+### Solution
+
+Here, a coin is flipped at each step to decide whether to use $P(1)$ or $P(2)$. Each transition depends on the current state and the outcome of the coin flip, not just the previous state. Thus, the process $\{X_n\}$ does not satisfy the Markov property under the usual definition because future states depend both on the current state and an independent coin flip. To make it a Markov chain, one would need to redefine the state space to include the outcome of the coin flip, creating a larger compound state space that considers both the current physical state and the matrix used due to the latest coin flip.
+
+If the state space and transition processes are extended to include the coin flip outcome, the transition probabilities become:
+$$
+P'(i, j) = p P_{ij}(1) + (1-p) P_{ij}(2)
+$$
+where $P_{ij}(1)$ and $P_{ij}(2)$ are the probabilities of moving from state $i$ to state $j$ under $P(1)$ and $P(2)$, respectively, and $p$ is the probability of the coin coming up heads.
+
+{{< pagebreak >}}
+
+## Part D
+
+### Solution
+
+A counterexample to show that the limiting probabilities for the process in Part C are not the same as for the process in Part A can be constructed by choosing $P(1)$ and $P(2)$ such that their stationary distributions are markedly different, and the coin has a non-trivial bias (e.g., $p \neq 0.5$).
+
+Consider $P(1)$ and $P(2)$ that transition with certainty between two states in a different manner. For instance, $P(1)$ always transitions from state 1 to 2 and back, and $P(2)$ always transitions from state 2 to 1 and back. If $p = 0.9$, the chain in Part A will almost surely follow $P(1)$ after the initial coin flip and thus converge to $\pi(1)$, while the chain in Part C would mix the behaviors of $P(1)$ and $P(2)$ each step, leading to a different mixed stationary distribution. Therefore, the limiting probabilities $\lim_{n \to \infty} P(X_n = i)$ for Part C would be a mixture of those in Part A, reflecting the ongoing influence of both transition matrices at each step, not just the initial one.
+{{< pagebreak >}}
+
+# Question 7
+
+## Solution
+
+Given the future states depend only on the present state and not on how the position was reached. We describe the probability $P(i)$, for a gambler's net gain of $i$ dollars, through a recurrence relation:
+$$
+P(i) = p P(i+1) + q P(i-1)
+$$
+with boundary conditions:
+$$
+P(n) = 1 \quad \text{(quitting as a winner)}, \quad P(-m) = 0 \quad \text{(quitting as a loser)}
+$$
+
+We can use the form $P(i) = r^i$, which gives a quadratic equation:
+$$
+p r^2 - r + q = 0
+$$
+Solving for $r$, we obtain:
+$$
+r = \frac{1 \pm \sqrt{1-4pq}}{2p}
+$$
+Under the condition $p + q = 1$, it further simplifies to:
+$$
+r = \frac{1 \pm |2p-1|}{2p}
+$$
+yielding the roots $r_1 = 1$ and $r_2 = \frac{q}{p}$.
+
+The general solution to the difference equation combines these roots:
+$$
+P(i) = A + B \left(\frac{q}{p}\right)^i
+$$
+Using the boundary conditions $P(n) = 1$ and $P(-m) = 0$, we calculate constants $A$ and $B$ as:
+$$
+A = 1, \quad B = \frac{1 - \left(\frac{q}{p}\right)^{-m}}{\left(\frac{q}{p}\right)^n - \left(\frac{q}{p}\right)^{-m}}
+$$
+
+Hence, the probability that the gambler quits a winner starting from zero dollars,
+$$
+P(0) = 1 - \frac{1 - \left(\frac{q}{p}\right)^{-m}}{\left(\frac{q}{p}\right)^n - \left(\frac{q}{p}\right)^{-m}}
+$$
+When $p = q$, the formula reduces to:
+$$
+P(0) = \frac{m}{n + m}
+$$

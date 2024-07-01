@@ -1,0 +1,162 @@
+---
+title: "Homework 4"
+subtitle: "ST 559 Bayesian Statistics"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute:
+  warning: false
+  message: false
+---
+# Problem 1
+
+## Part A
+
+I plotted $p(\theta | y)$ using the mixture prior distribution over a dense sequence of $\theta$ values. By calculating the cumulative sum of the posterior, I was able to derive a 95% posterior credible interval for $\theta$ as [0.03203203, 0.9389389].
+
+
+```{r}
+#| echo: false
+library(ggplot2)
+
+# Define the mixture prior distribution
+p_theta <- function(theta) {
+  1/4 * gamma(10) / (gamma(2) * gamma(8)) * (3 * theta * (1 - theta)^7 + theta^7 * (1 - theta))
+}
+
+# Plotting p(theta)
+theta_values <- seq(0, 1, length.out = 1000)
+p_theta_values <- sapply(theta_values, p_theta)
+
+df <- data.frame(theta = theta_values, density = p_theta_values)
+
+ggplot(df, aes(x = theta, y = density)) +
+  geom_area(fill = 'lightblue', alpha = 0.5) +
+  geom_line(color = 'blue', size = 1) +
+  theme_classic() +
+  labs(title = expression(p(theta)),
+       x = expression(theta),
+       y = expression(p(theta)))
+
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+Using Monte Carlo sampling, we sampled $z$ from the mixture distribution $wp_1(z) + (1-w)p_0(z)$. I was able to derive a 95% posterior credible interval for $\theta$ as [0.04108905, 0.9023689].The credible interval is slightly narrower compared to the interval derived from the cumulative sum of the posterior [0.03203203, 0.9389389] from part a. This difference indicates that the Monte Carlo approximation might provide a slightly more conservative estimate of the posterior distribution's uncertainty. Both methods, however, generally agree and support similar conclusions about the distribution of $\theta$.
+
+```{r}
+#| echo: false
+# Parameters for mixture distribution
+w <- 0.5
+
+# Function to sample z from p1 or p0
+sample_z <- function(w) {
+  x <- rbinom(1, 1, w)
+  if (x == 1) {
+    # Sample from p1 (e.g., Beta distribution with some parameters)
+    z <- rbeta(1, 2, 8)
+  } else {
+    # Sample from p0 (e.g., Beta distribution with some other parameters)
+    z <- rbeta(1, 7, 3)
+  }
+  return(z)
+}
+
+# Monte Carlo approximation
+set.seed(123)
+n_samples <- 10000
+samples <- replicate(n_samples, sample_z(w))
+
+# Convert samples to a data frame
+samples_df <- data.frame(theta = samples)
+
+# Plotting the density of samples
+ggplot(samples_df, aes(x = theta)) +
+  geom_density(fill = 'brown', alpha = 0.5, size = 1) +
+  theme_classic() +
+  labs(title = 'Monte Carlo Approximation of Posterior Distribution',
+       x = expression(theta),
+       y = 'Density')
+```
+
+```{r}
+#| echo: false
+# Create a combined data frame for comparison
+combined_df <- rbind(
+  data.frame(theta = theta_values, density = p_theta_values, method = 'Mixture Prior'),
+  data.frame(theta = samples, density = NA, method = 'Monte Carlo')
+)
+
+# Generating the combined plot
+ggplot() +
+  geom_area(data = subset(combined_df, method == 'Mixture Prior'), aes(x = theta, y = density, fill = "Mixture Prior"), alpha = 0.5) +
+  geom_line(data = subset(combined_df, method == 'Mixture Prior'), aes(x = theta, y = density, color = "Mixture Prior"), size = 1) +
+  geom_density(data = subset(combined_df, method == 'Monte Carlo'), aes(x = theta, fill = "Monte Carlo"), alpha = 0.5) +
+  geom_line(data = subset(combined_df, method == 'Monte Carlo'), aes(x = theta, y = ..density.., color = "Monte Carlo"), size = 1, stat = 'density') +
+  theme_classic() +
+  scale_fill_manual(values = c("lightblue", "brown")) +
+  scale_color_manual(values = c("blue4", "black")) +
+  labs(title = 'Comparison of Posterior Distributions',
+       x = expression(theta),
+       y = 'Density',
+       fill = 'Method',
+       color = 'Method') +
+  guides(fill = guide_legend(override.aes = list(alpha = 0.5)))
+
+```
+
+
+{{< pagebreak >}}
+
+# Problem 2
+
+Using different prior parameters $(\kappa_0, \nu_0)$, we calculated the probability $Pr(\theta_A < \theta_B | y_A, y_B)$ via Monte Carlo sampling. The probabilities that were calculated are,
+
+- For $\kappa_0 = \nu_0 = 1$, $Pr(\theta_A < \theta_B) = 0.7978$
+- For $\kappa_0 = \nu_0 = 2$, $Pr(\theta_A < \theta_B) = 0.7874$
+- For $\kappa_0 = \nu_0 = 4$, $Pr(\theta_A < \theta_B) = 0.7768$
+- For $\kappa_0 = \nu_0 = 8$, $Pr(\theta_A < \theta_B) = 0.7474$
+- For $\kappa_0 = \nu_0 = 16$, $Pr(\theta_A < \theta_B) = 0.7289$
+- For $\kappa_0 = \nu_0 = 32$, $Pr(\theta_A < \theta_B) = 0.6816$
+
+Additionally, the plot below shows a decreasing trend. We can see that as more weight is placed on the prior, the probability that $\theta_A < \theta_B$ decreases. This plot helps to convey the evidence that $\theta_A < \theta_B$ by showing how sensitive the posterior probability is to different prior opinions. For those who are skeptical about the prior data, the higher probabilities with smaller $\kappa_0$ and $\nu_0$ suggest that the data strongly supports $\theta_A < \theta_B$. Hence, those who trust the prior data more may see the lower probabilities with larger $\kappa_0$ and $\nu_0$ as an indication of less certainty.
+
+```{r}
+#| echo: false
+# Given data
+n_A <- 16
+n_B <- 16
+ybar_A <- 75.2
+s_A <- 7.3
+ybar_B <- 77.5
+s_B <- 8.1
+
+# Prior parameters
+kappa_nu <- c(1, 2, 4, 8, 16, 32)
+
+# Monte Carlo sampling function
+monte_carlo_prob <- function(kappa_0, nu_0, n_samples = 10000) {
+  theta_A_samples <- rnorm(n_samples, 
+                           mean = (kappa_0 * 75 + n_A * ybar_A) / (kappa_0 + n_A), 
+                           sd = sqrt(s_A^2 / (kappa_0 + n_A)))
+  
+  theta_B_samples <- rnorm(n_samples, 
+                           mean = (nu_0 * 75 + n_B * ybar_B) / (nu_0 + n_B), 
+                           sd = sqrt(s_B^2 / (nu_0 + n_B)))
+  
+  prob <- mean(theta_A_samples < theta_B_samples)
+  return(prob)
+}
+
+# Calculate probabilities for different kappa_0 and nu_0
+probs <- sapply(kappa_nu, function(kappa) monte_carlo_prob(kappa, kappa))
+
+# Plotting the probabilities
+plot(kappa_nu, probs, type = "b", col = "green4", lwd = 2,
+     xlab = expression(kappa[0] == nu[0]), ylab = "Probability",
+     main = expression(Pr(theta[A] < theta[B] | y[A], y[B])))
+```
+
+ 
+ 

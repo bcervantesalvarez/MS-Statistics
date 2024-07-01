@@ -1,0 +1,30 @@
+---
+title: "Report"
+subtitle: "ST 559 Bayesian Statistics"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute:
+  warning: false
+  message: false
+---
+# Bayesian Data Analysis in Science Education Research
+
+## Motivation
+The article I chose to review is titled “Beyond p-values: Using Bayesian Data Analysis in Science Education Research” by Marcus Kubsch and his colleagues (2021). My interest in this paper stems from its focus on methodological advancements within the field of science education, particularly the use of Bayesian methods to enhance the robustness and clarity of research findings.
+
+## Summary
+In their article, Kubsch et al. address the ongoing replication crisis in psychological and social sciences, critiquing the prevalent use of null-hypothesis significance testing (NHST) and p-values, which are often misunderstood and provide limited information. The authors advocate for Bayesian Data Analysis (BDA) as a superior alternative that incorporates existing knowledge into statistical analysis. This approach is particularly pertinent in science education, a field heavily reliant on the accumulation and integration of theoretical and empirical insights. The paper employs a case from science education to demonstrate how BDA facilitates more nuanced interpretations and reliable conclusions about educational theories and practices.
+
+{{< pagebreak >}}
+
+## Statistical Analysis
+The statistical challenge tackled by Kubsch et al. involves examining differences in perceptions among high school students, graduate students, and professors concerning typical scientific activities. The authors use Bayesian linear models to integrate prior information into their analysis, producing posterior distributions of the model parameters. This method contrasts with traditional frequentist approaches, which depend solely on p-values to assess statistical significance. The Bayesian framework offers a more comprehensive analysis by evaluating the likelihood of various hypotheses based on the data and prior information. The paper details the Bayesian analysis process using real data, illustrating how priors are selected and how posterior probabilities are interpreted, providing a practical example of how Bayesian inference is implemented.
+
+## Conclusions
+Kubsch et al. demonstrate that Bayesian Data Analysis provides a powerful alternative to traditional statistical methods, especially within the context of science education research. A significant benefit of Bayesian methods, highlighted in the paper, is their capability to formally incorporate prior knowledge into the analysis, enhancing the precision and relevance of the results, particularly in scenarios involving complex or limited data. The authors effectively argue that Bayesian approaches are not only more informative but also more aligned with the iterative nature of scientific research, where each study builds upon previous findings. This characteristic makes Bayesian analysis especially appealing in educational research, where prior theories and studies critically influence research questions and interpretations. The discussion in the paper emphasizes the potential of Bayesian methods to improve the transparency and credibility of educational research, advocating for their wider adoption in the field.
+
+{{< pagebreak >}}
+
+## Citations
+
+Kubsch, M., Stamer, I., Steiner, M., Neumann, K., Parchmann, I. (2021). “Beyond p-values: Using Bayesian Data Analysis in Science Education Research”. Practical Assessment, Research & Evaluation 26(4).

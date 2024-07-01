@@ -1,0 +1,184 @@
+---
+title: "Homework 5"
+subtitle: "ST 553 Statistical Methods"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute: 
+  warning: false
+  message: false
+---
+
+## Part 1
+
+Based on the graphs we examined, it seems there are issues with the assumptions typically made for an analysis of variance. Firstly, the spread of the data isn't consistent throughout, as seen in the residuals plotted against predicted values. Additionally, the data doesn't perfectly follow a normal pattern, particularly evident in the Q-Q plot. These findings suggest that adjustments, like transforming the response variable or using alternative techniques, might be needed to ensure the assumptions for CRD are met.
+
+{{< pagebreak >}}
+
+## Part 2
+
+Let $\mu$ be the overall mean, $\alpha_i$ be the effect of manufacturer $i$ (where $i = A, B, C$), $\beta_j$ be the effect of stress level $j$ (where $j = \text{low, medium, high}$), $\gamma_{ij}$ be the interaction effect between manufacturer $i$ and stress level $j$. The model is:
+
+$$
+Y_{ijk} = \mu + \alpha_i + \beta_j + \gamma_{ij} + \epsilon_{ijk}
+$$
+
+{{< pagebreak >}}
+
+
+## Part 3
+
+### CRD Model Assumptions
+
+- **Independence** Each measurement must be independent of the others. Again, this is important because the analysis assumes that the behavior of one unit does not affect another.
+
+- **Normality** The model assumes that errors are normally distributed with a mean of zero and a constant variance ($\epsilon_{ijk} \sim N(0, \sigma^2)$). 
+
+- **Constant Variance:** The variance of the response variable should be the same across all treatments and levels. 
+
+- **Sum-to-Zero Constraints:** The effects of each factor are assumed to sum to zero ($\sum \alpha_i = 0$, $\sum \beta_j = 0$, and for each level of $i$, $\sum \gamma_{ij} = 0$). This prevents redundancy in the parameters, ensuring each one has a distinct and interpretable effect on the response variable.
+
+{{< pagebreak >}}
+
+### Part 4
+
+The vector $\beta$ is,
+$$
+\beta = [\mu, \alpha_A, \alpha_B, \alpha_C, \beta_{\text{low}}, \beta_{\text{med}}, \beta_{\text{high}}, \gamma_{A\text{low}}, \gamma_{A\text{med}}, \gamma_{A\text{high}}, \gamma_{B\text{low}}, \gamma_{B\text{med}}, \gamma_{B\text{high}}, \gamma_{C\text{low}}, \gamma_{C\text{med}}, \gamma_{C\text{high}}]^T
+$$
+
+Here are the unique rows of the matrix $X$, each corresponding to a different combination of manufacturer and stress level,
+
+| $\mu$ | $\alpha_A$ | $\alpha_B$ | $\alpha_C$ | $\beta_{\text{low}}$ | $\beta_{\text{med}}$ | $\beta_{\text{high}}$ | $\gamma_{A\text{low}}$ | $\gamma_{A\text{med}}$ | $\gamma_{A\text{high}}$ | $\gamma_{B\text{low}}$ | $\gamma_{B\text{med}}$ | $\gamma_{B\text{high}}$ | $\gamma_{C\text{low}}$ | $\gamma_{C\text{med}}$ | $\gamma_{C\text{high}}$ |
+|-------|-----------|-----------|-----------|----------------------|----------------------|-----------------------|------------------------|------------------------|-------------------------|------------------------|------------------------|-------------------------|------------------------|------------------------|-------------------------|
+| 1     | 1         | 0         | 0         | 1                    | 0                    | 0                     | 1                      | 0                      | 0                       | 0                      | 0                      | 0                       | 0                      | 0                      | 0                       |
+| 1     | 1         | 0         | 0         | 0                    | 1                    | 0                     | 0                      | 1                      | 0                       | 0                      | 0                      | 0                       | 0                      | 0                      | 0                       |
+| 1     | 1         | 0         | 0         | 0                    | 0                    | 1                     | 0                      | 0                      | 1                       | 0                      | 0                      | 0                       | 0                      | 0                      | 0                       |
+| 1     | 0         | 1         | 0         | 1                    | 0                    | 0                     | 0                      | 0                      | 0                       | 1                      | 0                      | 0                       | 0                      | 0                      | 0                       |
+| 1     | 0         | 1         | 0         | 0                    | 1                    | 0                     | 0                      | 0                      | 0                       | 0                      | 1                      | 0                       | 0                      | 0                      | 0                       |
+| 1     | 0         | 1         | 0         | 0                    | 0                    | 1                     | 0                      | 0                      | 0                       | 0                      | 0                      | 1                       | 0                      | 0                      | 0                       |
+| 1     | 0         | 0         | 1         | 1                    | 0                    | 0                     | 0                      | 0                      | 0                       | 0                      | 0                      | 0                       | 1                      | 0                      | 0                       |
+| 1     | 0         | 0         | 1         | 0                    | 1                    | 0                     | 0                      | 0                      | 0                       | 0                      | 0                      | 0                       | 0                      | 1                      | 0                       |
+| 1     | 0         | 0         | 1         | 0                    | 0                    | 1                     | 0                      | 0                      | 0                       | 0                      | 0                      | 0                       | 0                      | 0                      | 1                       |
+
+{{< pagebreak >}}
+
+## Part 5
+
+![](q5.jpeg)
+
+{{< pagebreak >}}
+
+## Part 6
+
+The diagnostic plots provide solid evidence supporting the validity of our model assumptions. Residual analysis indicates no conspicuous violations of homogeneity or independence, and normality assumptions are largely upheld.  The R-F plot suggests a robust model fit, with no significant outliers or influential points skewing the regression results.
+
+
+![](q6.jpeg)
+
+{{< pagebreak >}}
+
+## Part 7
+
+```{r}
+ALT <- read.csv("ALT.csv")
+# Log-transform the response variable
+ALT$log_life <- log(ALT$life)
+
+# Fit the model with interaction
+model <- lm(log_life ~ manuf * stress, data = ALT)
+
+# Extract coefficient estimates
+coefficients <- coef(model)
+
+# Display estimates
+coefficients
+```
+
+
+
+{{< pagebreak >}}
+
+## Part 8
+
+### Saturated Model
+- **Full Model (FM)**: `life_log ~ manuf + stress + manuf*stress`
+  - Includes all main effects and interaction terms.
+- **Reduced Models (RM)**:
+  - For testing main effect of `manuf`: `life_log ~ stress + manuf*stress`
+  - For testing main effect of `stress`: `life_log ~ manuf + manuf*stress`
+  - For testing interaction `manuf*stress`: `life_log ~ manuf + stress`
+
+### F-Tests
+1. **Main Effect of Manufacturer (manuf)**
+   - **Type I SS**: 
+     - F-Value: 4.65
+     - p-Value: 0.0184
+   - **Type III SS**:
+     - F-Value: 4.65
+     - p-Value: 0.0184
+   - **Full Model for Test**: Includes manuf, stress, manuf*stress
+   - **Reduced Model for Test**: Includes stress, manuf*stress
+
+2. **Main Effect of Stress (stress)**
+   - **Type I SS**:
+     - F-Value: 64.07
+     - p-Value: <.0001
+   - **Type III SS**:
+     - F-Value: 64.07
+     - p-Value: <.0001
+   - **Full Model for Test**: Includes manuf, stress, manuf*stress
+   - **Reduced Model for Test**: Includes manuf, manuf*stress
+
+3. **Interaction Effect (manuf x stress)**
+   - **Type I SS**:
+     - F-Value: 2.77
+     - p-Value: 0.0478
+   - **Type III SS**:
+     - F-Value: 2.77
+     - p-Value: 0.0478
+   - **Full Model for Test**: Includes manuf, stress, manuf*stress
+   - **Reduced Model for Test**: Includes manuf, stress
+
+{{< pagebreak >}}
+
+## Part 9
+
+**Null Hypothesis:** There is no interaction between manufacturers and stress levels. This implies that the interaction effects are all equal to zero,
+$$
+H_0: \gamma_{ij} = 0 \quad \text{for all } i,j
+$$
+
+**Alternative Hypothesis:** There is at least one interaction effect that is not zero, indicating that the effect of a manufacturer on the lifespan of capacitors depends on the stress level,
+$$
+H_A: \gamma_{ij} \neq 0 \quad \text{for at least one } i,j
+$$
+In our study of capacitor lifespans from different manufacturers under various stress conditions, we found convincing evidence that the impact of the manufacturing source on capacitor lifespan varies depending on the level of stress applied. This suggests that some manufacturers' capacitors may perform better or worse under different conditions, highlighting the importance of considering both the manufacturer and stress conditions when evaluating capacitor reliability. This variability must be taken into account for accurate reliability assessments and quality control processes.
+
+{{< pagebreak >}}
+
+## Part 10
+
+![](q10.jpeg)
+
+The interaction between manufacturer and stress level is suggestive in determining the lifespan of capacitors. This plot effectively demonstrates that while some manufacturers produce capacitors that perform optimally at moderate stress levels, others may offer products that, although not excelling at any particular stress level, provide consistent performance across conditions. In this case, manufacturer C performed excellently under medium and high stress.
+
+{{< pagebreak >}}
+
+## Part 11
+
+```{r}
+#| eval: false
+proc glm data=ALT;
+    class manuf stress;
+    model life_log = manuf|stress; /* Full factorial model */
+
+    /* Filtering to only include high stress level data */
+    where stress = 'high';
+
+    /* Estimating simple effects for high stress */
+    estimate 'Difference C vs B at High Stress' manuf 1 -1 0; /* C vs B */
+    estimate 'Difference C vs A at High Stress' manuf 1 0 -1; /* C vs A */
+run;
+```
+
+![](q11.jpeg)

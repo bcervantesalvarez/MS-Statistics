@@ -1,0 +1,585 @@
+---
+title: "Homework 3"
+subtitle: "ST 563 Theory of Statistics III"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+execute:
+  warning: false
+  message: false
+---
+
+# Question 1
+
+## Part A
+
+### Solution
+
+For iid exponential random variables, the joint likelihood of $X_1, \ldots, X_n$ given $\theta$ is,
+$$
+L(\theta; \mathbf{X}) = \left(\frac{1}{\theta}\right)^n e^{-\frac{1}{\theta} \sum_{i=1}^n X_i}.
+$$
+
+Under $H_0$ (i.e., $\theta = \theta_0$), the likelihood is,
+$$
+L(\theta_0; \mathbf{X}) = \left(\frac{1}{\theta_0}\right)^n e^{-\frac{1}{\theta_0} \sum_{i=1}^n X_i}.
+$$
+
+Under $H_1$, the MLE of $\theta$ maximizes $L(\theta; \mathbf{X})$. Setting $\frac{d}{d\theta} \log L(\theta; \mathbf{X}) = 0$, the MLE of $\theta$, denoted $\hat{\theta}$, is,
+$$
+\hat{\theta} = \frac{1}{n} \sum_{i=1}^n X_i.
+$$
+
+The likelihood ratio test statistic, $\lambda(\mathbf{X})$, is given by,
+$$
+\lambda(\mathbf{X}) = \frac{L(\theta_0; \mathbf{X})}{L(\hat{\theta}; \mathbf{X})} = \left(\frac{\hat{\theta}}{\theta_0}\right)^n e^{-n\left(\frac{1}{\theta_0} - \frac{1}{\hat{\theta}}\right) \sum_{i=1}^n X_i}.
+$$
+
+Given $\sum_{i=1}^n X_i = n \hat{\theta}$, this simplifies to,
+$$
+\lambda(\mathbf{X}) = \left(\frac{\hat{\theta}}{\theta_0}\right)^n e^{-n \left(\frac{\hat{\theta} - \theta_0}{\theta_0 \hat{\theta}}\right) n \hat{\theta}} = \left(\frac{\hat{\theta}}{\theta_0}\right)^n e^{-n \left(\frac{\hat{\theta} - \theta_0}{\theta_0}\right)}.
+$$
+
+The critical function, which indicates when to reject $H_0$, is generally given by,
+$$
+g(\mathbf{X}) = \begin{cases} 
+1 & \text{if } \lambda(\mathbf{X}) \leq c, \\
+0 & \text{otherwise}.
+\end{cases}
+$$
+
+For practical computation, one might use,
+$$
+c = e^{-\frac{1}{2}\chi^2_{1,\alpha}},
+$$
+where $\chi^2_{1,\alpha}$ is the critical value from the chi-square distribution with 1 degree of freedom that captures the upper $\alpha$ quantile. This relationship arises from the asymptotic distribution of $-2 \log \lambda(\mathbf{X})$.
+
+
+{{< pagebreak >}}
+
+## Part B
+
+### Solution
+
+Let $n = 50$, $\theta_0 = 1$, and $\alpha = 0.05$ for this case,
+
+```{r}
+#| echo: false
+# Define parameters
+n <- 50
+theta_0 <- 1
+alpha <- 0.05
+
+# Calculate the critical value from the chi-square distribution
+chi_square_critical_value <- qchisq(1 - alpha, df = 1)
+c <- exp(-0.5 * chi_square_critical_value)
+
+# Create a sequence of T(X) values
+t_values <- seq(0, 3 * n * theta_0, length.out = 300)
+
+# Calculate lambda values based on T(X)
+lambda_values <- (t_values / (n * theta_0))^n * exp(- (t_values / theta_0 - n))
+
+# Plot Lambda(X) versus T(X)
+plot(t_values, lambda_values, type = 'l', col = 'blue', lwd = 2,
+     xlab = 'T(X)', ylab = 'Lambda(X)',
+     main = 'LRT vs. T(X)')
+
+# Add the critical value line
+abline(h = c, col = 'red', lty = 2)
+text(x = 120, y = c, labels = 'Critical value (c)', pos = 3, col = 'red')
+
+# Shade the rejection region
+polygon(c(t_values, rev(t_values)), c(rep(c, length(t_values)), rev(lambda_values)), col = 'red', border = NA, density = 20)
+```
+
+Since $\lambda(\mathbf{X})$ is small for very low and very high values of $T(\mathbf{X})$, we'd expect to set upper and lower bounds around extreme values of $T(\mathbf{X})$ where $\lambda(\mathbf{X}) \leq c$.
+
+{{< pagebreak >}}
+
+## Part C
+
+### Solution
+
+The textbook makes a mistake by thinking that the extreme values at both ends of the distribution of $T(\mathbf{X})$ are equally likely when we're checking under the null hypothesis, which isn't always true when using the likelihood ratio test method. It overlooks how the test statistic, which we use to decide if we should reject the null hypothesis, is actually shaped by the distribution of $T(\mathbf{X})$. When running a test at a specific significance level $\alpha$, it's crucial to ensure that the total chance of making a type I error is properly managed. However, if we only look at the extreme ends of the distribution without considering how the test statistic depends on $\theta$, we might end up with misleading results about our error rate.
+
+
+{{< pagebreak >}}
+
+# Question 2
+
+## Part A
+
+### Solution
+
+We are given two independent random samples where $X_1, \ldots, X_n$ are drawn from an Exponential distribution with rate parameter $\theta$, and $Y_1, \ldots, Y_m$ are drawn from an Exponential distribution with rate parameter $\mu$. Each sample's probability density function is defined as follows,
+
+- For $X_i$, $f(x | \theta) = \frac{1}{\theta} e^{-x/\theta}$ for $x > 0$.
+- For $Y_i$, $f(y | \mu) = \frac{1}{\mu} e^{-y/\mu}$ for $y > 0$.
+
+The likelihood functions for the $X_i$ and $Y_i$ samples are,
+
+- $L_X(\theta; \mathbf{X}) = \left(\frac{1}{\theta}\right)^n e^{-\frac{1}{\theta} \sum_{i=1}^n X_i}$,
+- $L_Y(\mu; \mathbf{Y}) = \left(\frac{1}{\mu}\right)^m e^{-\frac{1}{\mu} \sum_{i=1}^m Y_i}$.
+
+
+Under the null hypothesis $H_0$ ($\theta = \mu$),
+$$
+L(\theta; \mathbf{X}, \mathbf{Y}) = \left(\frac{1}{\theta}\right)^{n+m} e^{-\frac{1}{\theta} \left(\sum_{i=1}^n X_i + \sum_{i=1}^m Y_i\right)}.
+$$
+Under the alternative hypothesis $H_1$ ($\theta \neq \mu$),
+$$
+L(\theta, \mu; \mathbf{X}, \mathbf{Y}) = \left(\frac{1}{\theta}\right)^n \left(\frac{1}{\mu}\right)^m e^{-\frac{1}{\theta} \sum_{i=1}^n X_i - \frac{1}{\mu} \sum_{i=1}^m Y_i}.
+$$
+
+Under $H_0$, the combined MLE for $\theta$ (equating $\theta$ to $\mu$) is $\hat{\theta} = \frac{\sum_{i=1}^n X_i + \sum_{i=1}^m Y_i}{n+m}$.
+
+Under $H_1$, the separate MLEs are,
+
+  - For $X_i$, $\hat{\theta}_X = \frac{\sum_{i=1}^n X_i}{n}$,
+  - For $Y_i$, $\hat{\mu}_Y = \frac{\sum_{i=1}^m Y_i}{m}$.
+
+The likelihood ratio, $\lambda$, is calculated as,
+$$
+\lambda = \frac{L(\hat{\theta}; \mathbf{X}, \mathbf{Y})}{L(\hat{\theta}_X, \hat{\mu}_Y; \mathbf{X}, \mathbf{Y})} = \frac{\left(\frac{1}{\hat{\theta}}\right)^{n+m} e^{-\frac{1}{\hat{\theta}} \left(\sum_{i=1}^n X_i + \sum_{i=1}^m Y_i\right)}}{\left(\frac{1}{\hat{\theta}_X}\right)^n \left(\frac{1}{\hat{\mu}_Y}\right)^m e^{-\frac{1}{\hat{\theta}_X} \sum_{i=1}^n X_i - \frac{1}{\hat{\mu}_Y} \sum_{i=1}^m Y_i}}.
+$$
+
+{{< pagebreak >}}
+
+## Part B
+
+### Solution
+
+By basing the test on $T$, we reduce the complexity of computing the full likelihood ratio $\lambda$ while retaining the ability to test the equality of $\theta$ and $\mu$. The statistic $T$ captures the essence of the likelihood comparison by focusing on how much of the total observed data in both samples can be attributed proportionally to the first sample. This approach simplifies the analytic form, making it practical for testing the hypothesis with easily computable distributions under the null hypothesis.
+
+{{< pagebreak >}}
+
+## Part C
+
+### Solution
+
+$T$ is defined as,
+$$
+T = \frac{\sum_{i=1}^{n} X_i}{\sum_{i=1}^{n} X_i + \sum_{i=1}^{m} Y_i}.
+$$
+This ratio represents the proportion of the total sum of $X_i$ and $Y_i$ that is contributed by the $X_i$ variables. 
+
+For exponential random variables $X_i$ with rate parameter $\theta$, the sum $\sum_{i=1}^n X_i$ follows a Gamma distribution with shape parameter $n$ and scale parameter $\theta$, denoted as $\text{Gamma}(n, \theta)$. Similarly, the sum $\sum_{i=1}^m Y_i$ for exponential variables $Y_i$ with rate parameter $\mu$ follows a $\text{Gamma}(m, \mu)$. 
+
+Under the null hypothesis $H_0, \theta = \mu$, both sets of random variables have the same rate parameter. Thus, the sums,
+
+- $\sum_{i=1}^n X_i \sim \text{Gamma}(n, \theta)$,
+- $\sum_{i=1}^m Y_i \sim \text{Gamma}(m, \theta)$.
+
+The ratio $T$ can be viewed as a ratio of two gamma-distributed random variables scaled by their respective rate parameters. When two independent gamma random variables $U$ and $V$ with parameters $(\alpha, \theta)$ and $(\beta, \theta)$ respectively are considered, the ratio $\frac{U}{U + V}$ follows a Beta distribution, specifically $\text{Beta}(\alpha, \beta)$. 
+
+Therefore, $T$ implies,
+$$
+T = \frac{\sum_{i=1}^n X_i}{\sum_{i=1}^n X_i + \sum_{i=1}^m Y_i} \sim \text{Beta}(n, m).
+$$
+
+{{< pagebreak >}}
+
+# Question 3
+
+### Solution 
+
+The likelihood function for the shifted exponential distribution given by $f(x|\theta,\lambda) = \frac{1}{\lambda}e^{-(x-\theta)/\lambda} \mathbf{1}\{x > \theta\}$ is,
+$$
+L(\theta, \lambda | \mathbf{x}) = \left(\frac{1}{\lambda}\right)^n e^{-\sum_{i=1}^n \frac{x_i - \theta}{\lambda}} \prod_{i=1}^n \mathbf{1}\{x_i > \theta\}
+$$
+
+The log-likelihood function simplifies and its derivatives with respect to $\theta$ and $\lambda$ give,
+$$
+\frac{\partial \log L}{\partial \theta} = \frac{n}{\lambda} - \frac{\sum_{i=1}^n (x_i - \theta)}{\lambda^2} = 0 \implies \hat{\theta} = x_{(1)}
+$$
+$$
+\frac{\partial \log L}{\partial \lambda} = -\frac{n}{\lambda} + \frac{\sum_{i=1}^n (x_i - \hat{\theta})}{\lambda^2} = 0 \implies \hat{\lambda} = \overline{x} - x_{(1)}
+$$
+Where $x_{(1)}$ is the smallest observation and $\overline{x}$ is the sample mean.
+
+Under $H_0, \theta \leq 0$,
+
+- The MLE of $\theta$ is constrained by $\theta \leq 0$. If $x_{(1)} > 0$, then $\hat{\theta}_0 = 0$. If $x_{(1)} \leq 0$, then $\hat{\theta}_0 = x_{(1)}$.
+- Maximizing with respect to $\lambda$, we find $\hat{\lambda}_0 = \overline{x}$ if $\hat{\theta}_0 = 0$ and $\hat{\lambda}_0 = \overline{x} - x_{(1)}$ if $\hat{\theta}_0 = x_{(1)}$.
+
+The likelihood ratio is,
+$$
+\lambda(x) = \frac{L(\hat{\theta}_0, \hat{\lambda}_0 | x)}{L(\hat{\theta}_1, \hat{\lambda}_1 | x)} = \left(\frac{\hat{\lambda}_1}{\hat{\lambda}_0}\right)^n e^{-n \left(\frac{\overline{x} - \hat{\theta}_1}{\hat{\lambda}_1} - \frac{\overline{x} - \hat{\theta}_0}{\hat{\lambda}_0}\right)}
+$$
+
+The test decides in favor of $H_1$ if the likelihood ratio $\lambda(x)$ is less than a critical value $c$, which is set based on the significance level of the test. This decision is equivalent to testing if a transformed statistic $\frac{x_{(1)}}{\sqrt{\overline{x}}}$ is less than some constant $c^*$, derived from the critical value.
+
+{{< pagebreak >}}
+
+# Question 4
+
+## Part A
+
+### Solution
+
+Given the distribution is $N(\theta, a\theta)$, the likelihood function for the sample is,
+$$
+L(\theta, a \mid x) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi a\theta}} \exp\left(-\frac{(x_i-\theta)^2}{2a\theta}\right)
+$$
+
+Taking the natural logarithm of the likelihood, we get the log-likelihood function,
+$$
+\log L(\theta, a \mid x) = -\frac{n}{2} \log(2\pi a \theta) - \frac{1}{2a\theta} \sum_{i=1}^n (x_i - \theta)^2
+$$
+
+Derivative with respect to $\theta$,
+   $$
+   \frac{\partial \log L}{\partial \theta} = \frac{n}{2\theta} - \frac{1}{2a\theta^2} \sum_{i=1}^n (x_i - \theta)^2 + \frac{1}{a\theta} \sum_{i=1}^n (x_i - \theta)
+   $$
+   Setting this to zero gives,
+   $$
+   n\theta - \frac{1}{2a} \sum_{i=1}^n (x_i - \theta)^2 + \sum_{i=1}^n (x_i - \theta) = 0
+   $$
+
+Derivative with respect to $a$,
+   $$
+   \frac{\partial \log L}{\partial a} = -\frac{n}{2a} + \frac{1}{2a^2\theta} \sum_{i=1}^n (x_i - \theta)^2
+   $$
+   Setting this to zero simplifies to,
+   $$
+   a = \frac{1}{n\theta} \sum_{i=1}^n (x_i - \theta)^2
+   $$
+
+Using the expression for $\theta$ from the derivative equation and substituting back, one can find,
+$$
+\hat{\theta} = \bar{x}, \quad \hat{a} = \frac{1}{n\bar{x}} \sum_{i=1}^n (x_i - \bar{x})^2
+$$
+
+Under the null hypothesis, the distribution simplifies to $N(\theta, \theta)$. The log-likelihood under this model is,
+$$
+\log L(\theta \mid x) = -\frac{n}{2} \log(2\pi \theta) - \frac{1}{2\theta} \sum_{i=1}^n (x_i - \theta)^2
+$$
+Taking the derivative with respect to $\theta$ and solving, similar calculations as above will yield,
+$$
+\hat{\theta}_R = -\frac{1}{2} + \sqrt{\frac{1}{4} + \bar{x}^2}
+$$
+
+The LRT statistic $\lambda(x)$ is then given by,
+$$
+\lambda(x) = \frac{L(\hat{\theta}_R \mid x)}{L(\hat{a}, \hat{\theta} \mid x)}
+$$
+
+
+Substituting the expressions for the likelihood functions,
+$$
+L(\hat{\theta}_R \mid x) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi \hat{\theta}_R^2}} \exp\left(-\frac{(x_i - \hat{\theta}_R)^2}{2\hat{\theta}_R^2}\right)
+$$
+$$
+L(\hat{a}, \hat{\theta} \mid x) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi \hat{a} \hat{\theta}^2}} \exp\left(-\frac{(x_i - \hat{\theta})^2}{2\hat{a} \hat{\theta}^2}\right)
+$$
+This results in,
+$$
+\lambda(x) = \left(\frac{\hat{\sigma}^2}{\hat{\theta}_R^2}\right)^{n/2} \exp\left(\frac{n}{2} - \frac{1}{2\hat{\theta}_R^2} \sum_{i=1}^n (x_i - \hat{\theta}_R)^2 + \frac{1}{2\hat{a} \hat{\theta}^2} \sum_{i=1}^n (x_i - \hat{\theta})^2\right)
+$$
+
+We simplify this expression using the formula for the variances,
+$$
+\lambda(x) = \left(\frac{\hat{\sigma}^2}{\hat{\theta}_R^2}\right)^{n/2} \exp\left(\frac{n}{2}\left(1 - \frac{\hat{\sigma}^2}{\hat{\theta}_R^2}\right)\right)
+$$
+
+{{< pagebreak >}}
+
+## Part B
+
+### Solution
+
+For a Normal($\theta, a\theta^2$) distribution,
+$$
+\log L(\theta, a \mid x) = -\frac{n}{2} \log(2\pi a \theta^2) - \frac{1}{2a\theta^2} \sum_{i=1}^n (x_i - \theta)^2
+$$
+
+Derivative with respect to $\theta$,
+   $$
+   \frac{\partial \log L}{\partial \theta} = -\frac{n}{\theta} + \frac{1}{a\theta^3} \sum_{i=1}^n (x_i - \theta)^2 + \frac{2}{a\theta^3} \sum_{i=1}^n (x_i - \theta)
+   $$
+Solving this derivative equation leads to,
+   $$
+   \hat{\theta} = \frac{\sum_{i=1}^n x_i}{n} = \bar{x}
+   $$
+
+Derivative with respect to $a$,
+   $$
+   \frac{\partial \log L}{\partial a} = -\frac{n}{2a} + \frac{1}{2a^2\theta^2} \sum_{i=1}^n (x_i - \theta)^2 = 0
+   $$
+Solving this provides,
+   $$
+   \hat{a} = \frac{1}{n\hat{\theta}^2} \sum_{i=1}^n (x_i - \hat{\theta})^2 = \frac{\hat{\sigma}^2}{\bar{x}^2}
+   $$
+
+Next,
+$$
+\hat{\theta}_R = \bar{x} + \sqrt{\bar{x}^2 + 4(\hat{\sigma}^2)} / 2
+$$
+where $\hat{\sigma}^2 = \frac{1}{n} \sum_{i=1}^n (x_i - \bar{x})^2$.
+
+Given the formula for the LRT statistic,
+$$
+\lambda(x) = \frac{L(\hat{\theta}_R \mid x)}{L(\hat{a}, \hat{\theta} \mid x)}
+$$
+which yields the final LRT,
+$$
+\lambda(x) = \left(\frac{\hat{\sigma}}{\hat{\theta}_R}\right)^n \exp\left(\frac{n}{2} - \frac{1}{2\hat{\theta}_R^2} \sum_{i=1}^n (x_i - \hat{\theta}_R)^2 + \frac{1}{2\hat{a} \hat{\theta}^2} \sum_{i=1}^n (x_i - \hat{\theta})^2\right)
+$$
+
+{{< pagebreak >}}
+
+# Question 5
+
+### Part A
+
+$\lambda$ has a Gamma($\alpha, \beta$) distribution, which is given by,
+$$
+\pi(\lambda) = \frac{\beta^\alpha}{\Gamma(\alpha)} \lambda^{\alpha-1} e^{-\beta\lambda}
+$$
+
+Given $X_1, \ldots, X_n$ are iid Poisson($\lambda$), the likelihood function is,
+$$
+L(\lambda \mid x) = \prod_{i=1}^n \frac{e^{-\lambda} \lambda^{x_i}}{x_i!} = \frac{e^{-n\lambda} \lambda^{\sum x_i}}{\prod x_i!}
+$$
+
+The posterior distribution is proportional to the product of the prior and the likelihood,
+$$
+\pi(\lambda \mid x) \propto L(\lambda \mid x) \pi(\lambda) = e^{-n\lambda} \lambda^{\sum x_i} \cdot \lambda^{\alpha-1} e^{-\beta\lambda} = \lambda^{\alpha + \sum x_i - 1} e^{-(\beta + n)\lambda}
+$$
+Recognizing the kernel of a Gamma distribution, we can find the posterior distribution is,
+$$
+\pi(\lambda \mid x) = \text{Gamma}(\alpha + \sum x_i, \beta + n)
+$$
+
+For a Gamma($\alpha', \beta'$) distribution, the mean and variance are,
+$$
+E[\lambda \mid x] = \frac{\alpha'}{\beta'}, \quad \text{Var}[\lambda \mid x] = \frac{\alpha'}{\beta'^2}
+$$
+Substituting $\alpha' = \alpha + \sum x_i$ and $\beta' = \beta + n$, we have,
+$$
+E[\lambda \mid x] = \frac{\alpha + \sum x_i}{\beta + n}, \quad \text{Var}[\lambda \mid x] = \frac{\alpha + \sum x_i}{(\beta + n)^2}
+$$
+
+{{< pagebreak >}}
+
+## Part B
+
+### Solution
+
+The Bayes estimator for $\lambda$ under squared error loss is the posterior mean of $\lambda$. Therefore, the Bayes estimator is,
+$$
+\hat{\lambda} = \frac{\alpha + \sum x_i}{\beta + n}
+$$
+
+{{< pagebreak >}}
+
+## Part C
+
+### Solution
+
+To figure out the chances of $\lambda$ being less than or equal to a specific value $\lambda_0$ or being greater than $\lambda_0$, we can use the cdf of the Gamma distribution,
+
+$$
+P(\lambda \leq \lambda_0 \mid x) = F_{\text{Gamma}}(\lambda_0; \alpha + \sum x_i, \beta + n)
+$$
+It can tell us the probability that $\lambda$ is less than or equal to $\lambda_0$ after taking into account all the data we have observed and our initial beliefs (given by $\alpha$ and $\beta$).
+
+We can use R to do so! Here's an example,
+
+```{r}
+#| echo: false
+# Load necessary library
+library(ggplot2)
+
+# Define parameters and data
+alpha <- 2      # Example value for alpha
+beta <- 3       # Example value for beta
+data <- c(1, 2, 3, 4, 5)  # Example data vector
+lambda_0 <- 4   # The lambda value you are testing against
+
+# Calculate sum of data
+sum_xi <- sum(data)
+
+# Compute the parameters for the posterior Gamma distribution
+post_alpha <- alpha + sum_xi
+post_beta <- beta + length(data)  # length(data) gives the count of observations n
+
+# Define a sequence of lambda values for plotting
+lambda_values <- seq(0, 10, length.out = 100)
+
+# Compute the density of the Gamma distribution at these lambda values
+gamma_densities <- dgamma(lambda_values, shape=post_alpha, rate=post_beta)
+
+# Create the plot
+plot_df <- data.frame(lambda_values, gamma_densities)
+ggplot(plot_df, aes(x=lambda_values, y=gamma_densities)) +
+  geom_line(color="seagreen4") +
+  geom_area(aes(ifelse(lambda_values <= lambda_0, lambda_values, NA)), fill="seagreen2", alpha=0.3) +
+  geom_vline(xintercept=lambda_0, linetype="dashed", color="red") +
+  labs(title = "Posterior Gamma Distribution",
+       subtitle = paste("Area represents P(lambda <= ", lambda_0, ")", sep=""),
+       x = "Lambda",
+       y = "Density") +
+  theme_minimal()
+
+```
+
+The vertical dashed line at $\lambda_0$ indicates the threshold.
+
+{{< pagebreak >}}
+
+# Question 6
+
+## Part A
+
+### Solution
+
+Given that $X_1, \ldots, X_n$ are iid Uniform(0, $\theta$) and $\vartheta$ has a prior distribution Pareto($\alpha, \beta$),
+
+$$
+h(\theta) = \beta \alpha^\beta \theta^{-(\beta + 1)} \mathbf{1}\{\alpha < \theta\}
+$$
+Since $X_i \sim \text{Uniform}(0, \theta)$, the likelihood function given $\vartheta = \theta$ is:
+$$
+L(\theta \mid x) = \prod_{i=1}^n \frac{1}{\theta} \mathbf{1}\{0 \leq x_i \leq \theta\} = \frac{1}{\theta^n} \mathbf{1}\{x_{(n)} \leq \theta\}
+$$
+where $x_{(n)} = \max \{ x_1, \ldots, x_n \}$
+
+Then, just like in question 5,
+$$
+\pi(\theta \mid x) \propto L(\theta \mid x) h(\theta) = \frac{1}{\theta^n} \mathbf{1}\{x_{(n)} \leq \theta\} \cdot \beta \alpha^\beta \theta^{-(\beta + 1)} \mathbf{1}\{\alpha < \theta\}
+$$
+Combining terms and indicators,
+$$
+\pi(\theta \mid x) \propto \theta^{-(n + \beta + 1)} \mathbf{1}\{\max(x_{(n)}, \alpha) < \theta\}
+$$
+This confirms that the posterior distribution is a Pareto distribution with parameters,
+$$
+\alpha' = \max(x_{(n)}, \alpha), \quad \beta' = n + \beta
+$$
+
+{{< pagebreak >}}
+
+## Part B
+
+### Solution
+
+If the mean exists for the Pareto distribution, then it can serve as the Bayes estimator under squared error loss. The mean of a Pareto distribution Pareto($\alpha', \beta'$) exists if $\beta' > 1$ and is given by,
+$$
+E[\theta] = \frac{\alpha' \beta'}{\beta' - 1}
+$$
+Therefore, the Bayes estimator for $\theta$ is,
+$$
+\hat{\theta} = \frac{\alpha' (n + \beta)}{n + \beta - 1}
+$$
+
+{{< pagebreak >}}
+
+## Part C
+
+### Solution
+
+Let,
+
+- $n = 10$
+- $X_{(n)} = 1.5$
+- $\alpha = 1$
+- $\beta = 20$
+
+The posterior distribution parameters are,
+$$
+\alpha' = \max(1.5, 1) = 1.5, \quad \beta' = 10 + 20 = 30
+$$
+The probability $P(\theta \leq 2 \mid x)$ is computed using the CDF of the Pareto distribution,
+$$
+P(\theta \leq 2 \mid x) = 1 - \left(\frac{1.5}{2}\right)^{30}
+$$
+
+Using R to compute this yields,
+```{r}
+#| echo: false
+alpha_prime <- 1.5
+beta_prime <- 30
+theta_0 <- 2
+
+posterior_prob <- 1 - (alpha_prime / theta_0)^beta_prime
+print(posterior_prob)
+```
+
+{{< pagebreak >}}
+
+# Question 7
+
+## Who teaches better?
+
+Gavin, the President of the Statistics Club, has collected exam scores from two different teaching methods to determine their efficacy. Method A, known as "Daniel's Way", has been the standard, while Method B, "Evan's Way", is a new approach that is hypothesized to improve scores. Given the set of exam scores for each method, we are tasked with determining if Method B provides a statistically significant improvement in exam scores compared to Method A. We'll assume the scores are normally distributed and we will test the hypothesis $H_0: \theta = 80$ versus $H_1: \theta \neq 80$, where $\theta$ represents the mean score for Method B. Help Gavin determine which method was effective so he can ultimately remove one of the "teaching" methods!
+
+## The Data
+- **Method A (Daniel's Way)**: Sample size $n_A = 30$, Mean $\bar{x}_A = 78$, Standard Deviation $s_A = 10$.
+- **Method B (Evan's Way)**: Sample size $n_B = 30$, Mean $\bar{x}_B = 82$, Standard Deviation $s_B = 9$.
+
+### Solution
+To determine if Method B provides a significant improvement, we will perform a Likelihood Ratio Test on the scores from Method B using the normal distribution. We will use the hypothesis $H_0: \theta = 80$ (no improvement) against $H_1: \theta \neq 80$ (improvement).
+
+**Calculate the test statistic for Method B**:
+
+   - Under $H_0$, the mean $\theta = 80$.
+   - Under $H_1$, we estimate $\theta$ using the sample mean, $\bar{x}_B = 82$.
+
+**Formulate the Likelihoods**,
+
+- **Likelihood under $H_0$**:
+     $$
+     L(\theta = 80) = \prod_{i=1}^{n_B} \frac{1}{\sqrt{2\pi} s_B} \exp\left(-\frac{(x_i - 80)^2}{2s_B^2}\right)
+     $$
+- **Likelihood under $H_1$** (using MLE $\theta = \bar{x}_B$):
+     $$
+     L(\theta = 82) = \prod_{i=1}^{n_B} \frac{1}{\sqrt{2\pi} s_B} \exp\left(-\frac{(x_i - 82)^2}{2s_B^2}\right)
+     $$
+
+Let's continue with the calculation details, focusing on the LRT for comparing teaching methods, using a significance level of $\alpha = 0.01$.
+
+**Compute the Likelihoods Ratio**,
+
+The Likelihood Ratio $\lambda$ is given by:
+$$
+\lambda = \frac{L(\theta = 80)}{L(\theta = 82)}
+$$
+Assuming a normal distribution, the likelihoods are:
+$$
+L(\theta = 80) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi} s_B} \exp\left(-\frac{(x_i - 80)^2}{2s_B^2}\right)
+$$
+$$
+L(\theta = 82) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi} s_B} \exp\left(-\frac{(x_i - 82)^2}{2s_B^2}\right)
+$$
+Assuming the sample mean $x_i$ is close to $\bar{x}_B$ for each $i$, the ratio simplifies to:
+$$
+\lambda = \exp\left(-\frac{1}{2s_B^2} \left[\sum_{i=1}^{n} ((x_i - 82)^2 - (x_i - 80)^2)\right]\right)
+$$
+Expanding and simplifying:
+$$
+\lambda = \exp\left(-\frac{1}{2s_B^2} \left[\sum_{i=1}^{n} (4x_i - 324)\right]\right)
+$$
+Substituting $x_i \approx \bar{x}_B = 82$:
+$$
+\lambda = \exp\left(-\frac{1}{2s_B^2} n (4 \cdot 82 - 324)\right) = \exp\left(-\frac{1}{2s_B^2} n (4)\right)
+$$
+
+Using the above simplification:
+$$
+-2 \log(\lambda) = -2 \left(-\frac{4n}{2s_B^2}\right) = \frac{4n}{s_B^2} = \frac{4 \cdot 30}{81} = \frac{120}{81}
+$$
+Calculating this gives:
+$$
+-2 \log(\lambda) \approx 1.481
+$$
+
+### Decision (Who will be punished)
+To determine whether to reject $H_0$ at the $\alpha = 0.01$ significance level:
+
+- Look up the critical value of the chi-squared distribution with 1 degree of freedom for $\alpha = 0.01$, which is $\chi^2_{0.01, 1} \approx 6.635$.
+
+Since $1.481 < 6.635$, we **do not reject** $H_0$. Therefore, there is no sufficient evidence at the 1% significance level to conclude that Method B provides a statistically significant improvement in exam scores compared to the hypothesized mean score of 80. Therefore, Gavin should fire both of these individuals for failing to improve student success and/or should send them to the gym as punishment.
+
+
+
