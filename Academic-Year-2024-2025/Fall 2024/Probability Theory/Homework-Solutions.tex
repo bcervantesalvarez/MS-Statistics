@@ -1,0 +1,314 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+\KOMAoption{captions}{tableheading}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Probability Theory},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Probability Theory}
+\author{Brian}
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Welcome to my Probability Theory Homework Solutions
+\end{abstract}
+
+
+\section{Exercises}\label{exercises}
+
+\textbf{1.1.1.} Let \$ \Omega = \mathbb{R} \$, \$ \mathcal{F} \$ be all
+subsets so that \$ A \$ or \$ A\^{}c \$ is countable, \$ P(A) = 0 \$ in
+the first case and \$ = 1 \$ in the second. Show that \$ (\Omega,
+\mathcal{F}, P) \$ is a probability space.
+
+\textbf{1.1.2.} Recall the definition of \$ S\_d \$ from Example 1.1.5.
+Show that \$ \sigma(S\_d) = \mathcal{R}\^{}d \$, the Borel subsets of \$
+\mathbb{R}\^{}d \$.
+
+\textbf{1.1.3.} A \$ \sigma \$-field \$ \mathcal{F} \$ is said to be
+\emph{countably generated} if there is a countable collection \$ C
+\subset \mathcal{F} \$ so that \$ \sigma(C) = \mathcal{F} \$. Show that
+\$ \mathbb{R}\^{}d \$ is countably generated.
+
+\textbf{1.1.4.} (i) Show that if \$ \mathcal{F}\_1
+\subset \mathcal{F}\_2 \subset \dots \$ are \$ \sigma \$-algebras, then
+\$ \cup\_i \mathcal{F}\_i \$ is an algebra. (ii) Give an example to show
+that \$ \cup\_i \mathcal{F}\_i \$ need not be a \$ \sigma \$-algebra.
+
+\textbf{1.1.5.} A set \$ A \subset \{1, 2, \dots\} \$ is said to have
+\emph{asymptotic density} \$ \theta \$ if \[
+\lim_{n \to \infty} \frac{|A \cap \{1, 2, \dots, n\}|}{n} = \theta.
+\] Let \$ \mathcal{A} \$ be the collection of sets for which the
+asymptotic density exists. Is \$ \mathcal{A} \$ a \$ \sigma \$-algebra?
+An algebra?
+
+\textbf{1.2.1.} Suppose \$ X \$ and \$ Y \$ are random variables on \$
+(\Omega, \mathcal{F}, P) \$ and let \$ A \in \mathcal{F} \$. Show that
+if we let \$ Z(\omega) = X(\omega) \$ for \$ \omega \in A \$ and \$
+Z(\omega) = Y(\omega) \$ for \$ \omega \in A\^{}c \$, then \$ Z \$ is a
+random variable.
+
+\textbf{1.2.2.} Let \$ \chi \$ have the standard normal distribution.
+Use Theorem 1.2.6 to get upper and lower bounds on \$ P(\chi \geq 4) \$.
+
+\textbf{1.2.3.} Show that a distribution function has at most countably
+many discontinuities.
+
+\textbf{1.2.4.} Show that if \$ F(x) = P(X \leq x) \$ is continuous,
+then \$ Y = F(X) \$ has a uniform distribution on \$ (0,1) \$, that is,
+if \$ y \in [0,1] \$, \$ P(Y \leq y) = y \$.
+
+\textbf{1.2.5.} Suppose \$ X \$ has continuous density \$ f \$, \$
+P(\alpha \leq X \leq \beta) = 1 \$ and \$ g \$ is a function that is
+strictly increasing and differentiable on \$ (\alpha, \beta) \$. Then \$
+g(X) \$ has density \$ \frac{f(g^{-1}(y))}{g'(g^{-1}(y))} \$ for \$ y
+\in (g(\alpha), g(\beta)) \$ and 0 otherwise. When \$ g(x) = ax + b \$
+with \$ a \textgreater{} 0 \$, \$ g\^{}\{-1\}(y) = \frac{y - b}{a} \$,
+so the answer is \$ \frac{1}{a}f\left(\frac{y - b}{a}\right) \$.
+
+\textbf{1.2.6.} Suppose \$ X \$ has a normal distribution. Use the
+previous exercise to compute the density of \$ \exp(X) \$. (The answer
+is called the \emph{lognormal distribution}.)
+
+\textbf{1.2.7.} (i) Suppose \$ X \$ has a density function \$ f \$.
+Compute the distribution function of \$ X\^{}2 \$ and then differentiate
+to find its density function. (ii) Work out the answer when \$ X \$ has
+a standard normal distribution to find the density of the
+\emph{chi-square distribution}.
+
+\textbf{1.3.1.} Show that if \$ \mathcal{A} \$ generates \$ \mathcal{S}
+\$, then \$ X\^{}\{-1\}(\mathcal{A}) \equiv \left\{\{X \in A\} : A
+\in \mathcal{A}\right\} \$ generates \$ \sigma(X) = \left\{\{X \in B\} :
+B \in \mathcal{S}\right\} \$.
+
+\textbf{1.3.2.} Prove Theorem 1.3.6 when \$ n = 2 \$ by checking \$
+\{X\_1 + X\_2 \leq x\} \in \mathcal{F} \$.
+
+\textbf{1.3.3.} Show that if \$ f \$ is continuous and \$ X\_n \to X \$
+almost surely then \$ f(X\_n) \to f(X) \$ almost surely.
+
+\textbf{1.3.4.} (i) Show that a continuous function from \$
+\mathbb{R}\^{}d \to \mathbb{R} \$ is a measurable map from \$
+(\mathbb{R}\^{}d, \mathcal{R}\^{}d) \$ to \$ (\mathbb{R}, \mathcal{R})
+\$. (ii) Show that \$ \mathcal{R}\^{}d \$ is the smallest \$
+\sigma \$-field that makes all the continuous functions measurable.
+
+\textbf{1.3.5.} A function \$ f \$ is said to be \emph{lower
+semicontinuous} or l.s.c. if \[
+\liminf_{y \to x} f(y) \geq f(x)
+\] and \emph{upper semicontinuous} (u.s.c.) if \$ -f \$ is l.s.c. Show
+that \$ f \$ is l.s.c. if and only if \$ \{x : f(x) \leq a\} \$ is
+closed for each \$ a \in \mathbb{R} \$ and conclude that semicontinuous
+functions are measurable.
+
+\textbf{1.3.6.} Let \$ f : \mathbb{R}\^{}d \to \mathbb{R} \$ be an
+arbitrary function and let \$ f\^{}\delta(x) = \sup\{f(y) : \textbar y -
+x\textbar{} \textless{} \delta\} \$ and \$ f\_\delta(x) = \inf\{f(y) :
+\textbar y - x\textbar{} \textless{} \delta\} \$ where \$
+\textbar z\textbar{} = (z\_1\^{}2 + \dots +
+z\_d\textsuperscript{2)}\{1/2\} \$. Show that \$ f\^{}\delta \$ is
+l.s.c. and \$ f\_\delta \$ is u.s.c. Let \$ f\^{}0 =
+\lim\emph{\{\delta \to 0\} f\^{}\delta \$, \$ f\_0 =
+\lim}\{\delta \to 0\} f\_\delta \$, and conclude that the set of points
+at which \$ f \$ is discontinuous is \$ \{f\^{}0 \neq f\_0\} \$ and that
+\$ \{f\^{}0 \neq f\_0\} \$ is measurable.
+
+\textbf{1.3.7.} A function \$ \varphi : \Omega \to \mathbb{R} \$ is said
+to be simple if \[
+\varphi(\omega) = \sum_{m=1}^{n} c_m 1_{A_m} (\omega).
+\]
+
+\textbf{1.4.1.} Show that if \$ f \geq 0 \$ and \$ \int f , d\mu = 0 \$
+then \$ f = 0 \$ a.e.
+
+\textbf{1.4.2.} Let \$ f \geq 0 \$ and \$ E\_\{n,m\} = \{x :
+\frac{m}{2^n} \leq f(x) \textless{} \frac{m+1}{2^n}\} \$. As \$ n
+\to \infty \(,\)\$ \sum\emph{\{m=1\}\^{}\{\infty\} \frac{m}{2^n}
+\mu(E}\{n,m\}) \uparrow \int f , d\mu. \$\$
+
+\textbf{1.4.3.} Let \$ g \$ be an integrable function on \$ \mathbb{R}
+\$ and \$ \epsilon \textgreater{} 0 \$. (i) Use the definition of the
+integral to conclude there is a simple function \$ \varphi = \sum\emph{k
+b\_k 1}\{A\_k\} \$ with \$ \int \textbar g - \varphi\textbar{} , dx
+\textless{} \epsilon \$. (ii) Use Exercise A.2.1 to approximate the \$
+A\_k \$ by finite unions of intervals to get a step function \[
+q = \sum_{j=1}^{k} c_j 1_{(a_{j-1}, a_j)}
+\] with \$ a\_0 \textless{} a\_1 \textless{} \dots \textless{} a\_k \$,
+so that \$ \int \textbar{}\varphi - q\textbar{} , dx \textless{}
+\epsilon \$. (iii) Round the corners of \$ q \$ to get a continuous
+function \$ r \$ so that \$ \int \textbar q - r\textbar{} , dx
+\textless{} \epsilon \$.
+
+\begin{enumerate}
+\def\labelenumi{(\roman{enumi})}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  To make a continuous function, replace each \$ c\_j 1\_\{(a\_\{j-1\},
+  a\_j)\} \$ by a function that is 0 on \$ (a\_\{j-1\}, a\_j)\^{}c \$,
+  \$ c\_j \$ on \$ {[}a\_\{j-1\} + \delta, a\_j - \delta{]} \$, and
+  linear otherwise. If the \$ \delta\emph{j \$ are small enough and we
+  let \$ r(x) = \sum}\{k=j\}\^{}\{k\} r\_j(x) \(, then\)\$
+  \int \textbar q(x) - r(x)\textbar{} , d\mu = \sum\_\{j=1\}\^{}\{k\}
+  \delta\_j c\_j \textless{} \epsilon. \$\$
+\end{enumerate}
+
+\textbf{1.4.4.} Prove the Riemann-Lebesgue lemma. If \$ g \$ is
+integrable then \[
+\lim_{n \to \infty} \int g(x) \cos(nx) \, dx = 0.
+\] Hint: If \$ g \$ is a step function, this is easy. Now use the
+previous exercise.
+
+
+
+
+\end{document}
