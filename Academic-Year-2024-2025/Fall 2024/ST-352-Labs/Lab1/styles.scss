@@ -1,0 +1,54 @@
+$colors: (
+  "white": #FFFFFF,
+  "black": #222222,
+  "green": #A2B479,
+  "blue": #3A388A,
+  "purple": #7371AD
+);
+
+/*-- scss:functions --*/
+
+@function theme-color($color) {
+  @return map-get($colors, $color);
+}
+
+/*-- scss:defaults --*/
+
+@import url('https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&family=Sanchez:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap');
+
+$font-family-sans-serif: "Dosis", sans-serif;
+
+$body-bg: lighten(theme-color("black"), 70%);
+$body-color: theme-color("black");
+$link-color: darken(theme-color("green"), 20%);
+
+/*-- scss:rules --*/
+
+// Slide decks
+
+.slide-deck {
+  width: 70%;
+  height: 500px;
+  border-radius: 7px;
+  margin-bottom: 10px !important;
+  box-shadow: 0 7px 7px theme-color("black");
+}
+
+// codewindow
+.sourceCode.markdown {
+  span {
+    text-wrap: balance;
+    word-wrap: break-word;
+  }
+}
+
+.reveal .slide-logo {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    right: 12px;
+    max-height: 10vh !important;
+    width: auto;
+    z-index: 2;
+}

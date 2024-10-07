@@ -1,0 +1,20 @@
+---
+title: "Creating Plots"
+format: revealjs
+---
+```r
+library(ggplot2)
+
+# Histogram
+ggplot(tv_data, aes(x = minutes)) + 
+  geom_histogram(binwidth = 30) + 
+  labs(title = "TV Minutes per Day", x = "Minutes", y = "Count") +
+  theme_minimal()
+
+# Normal Probability Plot
+ggplot(tv_data, aes(sample = minutes)) + 
+  stat_qq() + 
+  stat_qq_line() + 
+  labs(title = "Normal Q-Q Plot") +
+  theme_minimal()
+```

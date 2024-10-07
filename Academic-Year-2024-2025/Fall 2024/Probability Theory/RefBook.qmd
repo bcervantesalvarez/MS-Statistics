@@ -1,0 +1,289 @@
+---
+title: "Probability Theory Textbook Reference"
+subtitle: "MTH 664"
+author: "Brian Cervantes Alvarez"
+date: today
+format: pdf
+toc: true
+---
+
+**THIS DOES NOT BELONG TO ME NOR DO I TAKE CREDIT FOR THIS CONTENT. THIS IS FOR EDUCATIONAL PURPOSES**
+
+\chapter{Measure Theory}
+
+In this chapter, we will recall some definitions and results from measure theory. Our purpose here is to provide an introduction for readers who have not seen these concepts before and to review that material for those who have. Harder proofs, especially those that do not contribute much to one’s intuition, are hidden away in the appendix. Readers with a solid background in measure theory can skip Sections 1.4, 1.5, and 1.7, which were previously part of the appendix.
+
+\section{Probability Spaces}
+
+Here and throughout the book, terms being defined are set in \textbf{boldface}. We begin with the most basic quantity. A \textbf{probability space} is a triple $(\Omega, \mathcal{F}, P)$ where $\Omega$ is a set of “outcomes,” $\mathcal{F}$ is a set of “events,” and $P : \mathcal{F} \rightarrow [0, 1]$ is a function that assigns probabilities to events. We assume that $\mathcal{F}$ is a $\sigma$-field (or $\sigma$-algebra), i.e., a (nonempty) collection of subsets of $\Omega$ that satisfy
+
+\begin{enumerate}[(i)]
+  \item If $A \in \mathcal{F}$ then $A^c \in \mathcal{F}$, and
+  \item If $A_i \in \mathcal{F}$ is a countable sequence of sets then $\bigcup_i A_i \in \mathcal{F}$.
+\end{enumerate}
+
+Here and in what follows, \textit{countable} means finite or countably infinite. Since $\bigcap_i A_i = \left(\bigcup_i A_i^c\right)^c$, it follows that a $\sigma$-field is closed under countable intersections. We omit the last property from the definition to make it easier to check.
+
+Without $P$, $(\Omega, \mathcal{F})$ is called a \textbf{measurable space}, i.e., it is a space on which we can put a measure. A \textbf{measure} is a nonnegative countably additive set function; that is, a function $\mu : \mathcal{F} \rightarrow \mathbb{R}$ with
+\begin{enumerate}[(i)]
+  \item $\mu(A) \geq \mu(\emptyset) = 0$ for all $A \in \mathcal{F}$, and
+  \item if $A_i \in \mathcal{F}$ is a countable sequence of disjoint sets, then
+  \[
+  \mu\left( \bigcup_i A_i \right) = \sum_i \mu(A_i)
+  \]
+\end{enumerate}
+
+If $\mu(\Omega) = 1$, we call $\mu$ a \textbf{probability measure}. In this book, probability measures are usually denoted by $P$.
+
+The next result gives some consequences of the definition of a measure that we will need later. In all cases, we assume that the sets we mention are in $\mathcal{F}$.
+
+\begin{theorem}[1.1.1]
+Let $\mu$ be a measure on $(\Omega, \mathcal{F})$
+\begin{enumerate}[(i)]
+  \item \textbf{Monotonicity.} If $A \subset B$ then $\mu(A) \leq \mu(B)$.
+  \item \textbf{Subadditivity.} If $A \subset \bigcup_{m=1}^{\infty} A_m$ then $\mu(A) \leq \sum_{m=1}^{\infty} \mu(A_m)$.
+  \item \textbf{Continuity from below.} If $A_i \uparrow A$ (i.e., $A_1 \subset A_2 \subset \dots$ and $\bigcup_i A_i = A$) then $\mu(A_i) \uparrow \mu(A)$.
+  \item \textbf{Continuity from above.} If $A_i \downarrow A$ (i.e., $A_1 \supset A_2 \supset \dots$ and $\bigcap_i A_i = A$), with $\mu(A_1) < \infty$ then $\mu(A_i) \downarrow \mu(A)$.
+\end{enumerate}
+\end{theorem}
+
+\textbf{Proof.}
+\begin{enumerate}[(i)]
+  \item Let $B - A = B \cap A^c$ be the \textbf{difference} of the two sets. Using $+$ to denote disjoint union, $B = A + (B - A)$ so
+  \[
+  \mu(B) = \mu(A) + \mu(B - A) \geq \mu(A)
+  \]
+  
+  \item Let $A'_n = A_n \cap A$, $B_1 = A'_1$ and for $n > 1$, $B_n = A'_n - \bigcup_{m=1}^{n-1} A'_m$. Since the $B_n$ are disjoint and have union $A$, we have using (ii) of the definition of measure, $B_m \subset A_m$, and (i) of this theorem:
+  \[
+  \mu(A) = \sum_{m=1}^{\infty} \mu(B_m) \leq \sum_{m=1}^{\infty} \mu(A_m)
+  \]
+  
+  \item Let $B_n = A_n - A_{n-1}$. Then the $B_n$ are disjoint and have $\bigcup_{m=1}^{n} B_m = A_n$, $\bigcup_{m=1}^{\infty} B_m = A$ so
+  \[
+  \mu(A) = \sum_{m=1}^{\infty} \mu(B_m) = \lim_{n \rightarrow \infty} \sum_{m=1}^{n} \mu(B_m) = \lim_{n \rightarrow \infty} \mu(A_n)
+  \]
+  
+  \item $A_1 - A_n \uparrow A_1 - A$ so (iii) implies $\mu(A_1 - A_n) \uparrow \mu(A_1 - A)$. Since $A_1 \supset A$, we have $\mu(A_1 - A) = \mu(A_1) - \mu(A)$ and it follows that $\mu(A_i) \downarrow \mu(A)$.
+\end{enumerate}
+
+\textbf{Example 1.1.2 (Discrete probability spaces).} Let $\Omega$ be a countable set, i.e., finite or countably infinite. Let $\mathcal{F}$ be the set of all subsets of $\Omega$. Let
+\[
+P(A) = \sum_{\omega \in A} p(\omega)
+\]
+where $p(\omega) \geq 0$ and $\sum_{\omega \in \Omega} p(\omega) = 1$.
+
+A little thought reveals that this is the most general probability measure on this space. In many cases when $\Omega$ is a finite set, we have $p(\omega) = 1 / |\Omega|$ where $|\Omega|$ is the number of points in $\Omega$.
+
+For a simple concrete example that requires this level of generality consider the astragali, dice used in ancient Egypt made from the ankle bones of sheep. This die could come to rest on the top side of the bone for four points or on the bottom for three points. The side of the bone was slightly rounded. The die could come to rest on a flat and narrow piece for six points or somewhere on the rest of the side for one point. There is no reason to think that all four outcomes are equally likely so we need probabilities $p_1$, $p_3$, $p_4$, and $p_6$ to describe $P$.
+
+To prepare for our next definition, we need note that it follows easily from the definition. If $\mathcal{F}_i, i \in I$ are $\sigma$-fields then $\bigcap_{i \in I} \mathcal{F}_i$ is. Here $I \neq \emptyset$ is an arbitrary index set (i.e., possibly uncountable). From this it follows that if we are given a set $\Omega$ and a collection $\mathcal{A}$ of subsets of $\Omega$, then there is a smallest $\sigma$-field containing $\mathcal{A}$. We will call this the $\sigma$-field \textbf{generated by} $\mathcal{A}$ and denote it by $\sigma(\mathcal{A})$.
+
+Let $\mathbb{R}^d$ be the set of vectors $(x_1, \dots, x_d)$ of real numbers and $\mathbb{R}^d$ be the Borel sets, the smallest $\sigma$-field containing the open sets. When $d = 1$ we drop the superscript.
+
+\textbf{Example 1.1.3 (Measures on the real line).} Measures on $(\mathbb{R}, \mathcal{R})$ are defined by giving a Stieltjes measure function with the following properties:
+\begin{enumerate}[(i)]
+  \item $F$ is nondecreasing.
+  \item $F$ is right continuous, i.e. $\lim_{y \downarrow x} F(y) = F(x)$.
+\end{enumerate}
+
+\textbf{Theorem 1.1.4.} Associated with each Stieltjes measure function $F$ there is a unique measure $\mu$ on $(\mathbb{R}, \mathcal{R})$ with
+\[
+\mu((a,b]) = F(b) - F(a)
+\]
+When $F(x) = x$ the resulting measure is called Lebesgue measure.
+
+\textbf{Proof.} The proof of Theorem 1.1.4 is a long and winding road, so we will content ourselves to describe the main ideas involved in this section and to hide the remaining details in the appendix in Section A.1. The choice of “closed on the right” in $(a, b]$ is dictated by the fact that if $b_n \downarrow b$ then we have
+\[
+\bigcap_n (a, b_n] = (a, b]
+\]
+The next definition will explain the choice of “open on the left.”
+
+A collection $\mathcal{S}$ of sets is said to be a \textbf{semialgebra} if (i) it is closed under intersection, i.e., $S, T \in \mathcal{S}$ implies $S \cap T \in \mathcal{S}$, and (ii) if $S \in \mathcal{S}$ then $S^c$ is a finite disjoint union of sets in $\mathcal{S}$. An important example of a semialgebra is
+
+\textbf{Example 1.1.5.} $\mathcal{S}_d = $ the empty set plus all sets of the form
+\[
+(a_1, b_1] \times \cdots \times (a_d, b_d] \subset \mathbb{R}^d
+\]
+where $-\infty \leq a_i < b_i \leq \infty$
+
+The definition in (1.1.1) gives the values of $\mu$ on the semialgebra $\mathcal{S}_1$. To go from semialgebra to $\sigma$-algebra we use an intermediate step. A collection $\mathcal{A}$ of subsets of $\Omega$ is called an \textbf{algebra} (or field) if $A, B \in \mathcal{A}$ implies $A^c$ and $A \cup B$ are in $\mathcal{A}$. Since $A \cap B = (A^c \cup B^c)^c$, it follows that $A \cap B \in \mathcal{A}$. Obviously, a $\sigma$-algebra is an algebra. An example in which the converse is false is:
+
+\textbf{Example 1.1.6.} Let $\Omega = \mathbb{Z}$ be the integers. $\mathcal{A} = $ the collection of $A \subset \mathbb{Z}$ so that $A$ or $A^c$ is finite is an algebra.
+
+\textbf{Lemma 1.1.7.} If $\mathcal{S}$ is a semialgebra then $\overline{\mathcal{S}} = \{ \text{finite disjoint unions of sets in } \mathcal{S} \}$ is an algebra, called the algebra generated by $\mathcal{S}$.
+
+\textbf{Proof.} Suppose $A = +_i S_i$ and $B = +_j T_j$, where $+$ denotes disjoint union and we assume the index sets are finite. Then $A \cap B = +_{i,j} (S_i \cap T_j) \in \overline{\mathcal{S}}$. As for complements, if $A = +_i S_i$ then $A^c = \bigcap_i S_i^c$. The definition of $\mathcal{S}$ implies $S_i^c \in \overline{\mathcal{S}}$. We have shown that $\overline{\mathcal{S}}$ is closed under intersection, so it follows by induction that $A^c \in \overline{\mathcal{S}}$.
+
+\textbf{Example 1.1.8.} Let $\Omega = \mathbb{R}$ and $\mathcal{S} = \mathcal{S}_1$ then $\overline{\mathcal{S}}_1 =$ the empty set plus all sets of the form
+\[
+\bigcup_{i=1}^{k} (a_i, b_i]
+\]
+where $-\infty \leq a_i < b_i \leq \infty$
+
+Given a set function $\mu$ on $\mathcal{S}$ we can extend it to $\overline{\mathcal{S}}$ by
+\[
+\mu\left( +_{i=1}^{n} A_i \right) = \sum_{i=1}^{n} \mu(A_i)
+\]
+By a measure on an algebra $\mathcal{A}$, we mean a set function $\mu$ with
+\begin{enumerate}[(i)]
+  \item $\mu(A) \geq \mu(\emptyset) = 0$ for all $A \in \mathcal{A}$, and
+  \item if $A_i \in \mathcal{A}$ are disjoint and their union is in $\mathcal{A}$, then
+  \[
+  \mu\left( \bigcup_{i=1}^{\infty} A_i \right) = \sum_{i=1}^{\infty} \mu(A_i)
+  \]
+\end{enumerate}
+
+$\mu$ is said to be \textbf{$\sigma$-finite} if there is a sequence of sets $A_n \in \mathcal{A}$ so that $\mu(A_n) < \infty$ and $\bigcup_n A_n = \Omega$. Letting $A'_1 = A_1$ and for $n \geq 2$, 
+\[
+A'_n = \bigcup_{m=1}^{n} A_m \quad \text{or} \quad A'_n = A_n \cap \left( \bigcap_{m=1}^{n-1} A_m^c \right) \in \mathcal{A}
+\]
+we can without loss of generality assume that $A_n \uparrow \Omega$ or the $A_n$ are disjoint.
+
+\textbf{Theorem 1.1.9.} Let $\mathcal{S}$ be a semialgebra and let $\mu$ defined on $\mathcal{S}$ have $\mu(\emptyset) = 0$. Suppose (i) if $S \in \mathcal{S}$ is a finite disjoint union of sets $S_i \in \mathcal{S}$ then $\mu(S) = \sum_i \mu(S_i)$, and (ii) if $S_i \in \mathcal{S}$ with $S = \bigcup_{i=1}^{\infty} S_i$ then $\mu(S) \leq \sum_{i=1}^{\infty} \mu(S_i)$. Then $\mu$ has a unique extension $\bar{\mu}$ that is a measure on $\overline{\mathcal{S}}$, the algebra generated by $\mathcal{S}$. If $\mu$ is $\sigma$-finite, then there is a unique extension $\nu$ that is a measure on $\sigma(\mathcal{S})$.
+
+In (ii) above, and in what follows, $i \geq 1$ indicates a countable union, while a plain subscript $i$ or $j$ indicates a finite union. The proof of Theorem 1.1.9 is rather involved so it is given in Section A.1. To check condition (ii) in the theorem the following is useful.
+
+\textbf{Lemma 1.1.10.} Suppose only that (i) holds.
+\begin{enumerate}[(a)]
+  \item If $A, B_i \in \overline{\mathcal{S}}$ with $A = +_{i=1}^{n} B_i$, then $\bar{\mu}(A) = \sum_{i=1}^{n} \bar{\mu}(B_i)$.
+  \item If $A, B_i \in \overline{\mathcal{S}}$ with $A \subset \bigcup_{i=1}^{n} B_i$ then $\bar{\mu}(A) \leq \sum_{i=1}^{n} \bar{\mu}(B_i)$.
+\end{enumerate}
+
+\textbf{Proof.} Observe that it follows from the definition that if $A = +_i B_i$ is a finite disjoint union of sets in $\overline{\mathcal{S}}$ and $B_i = +_j S_{i,j}$, then
+\[
+\bar{\mu}(A) = \sum_{i,j} \mu(S_{i,j}) = \sum_i \bar{\mu}(B_i)
+\]
+To prove (b), we begin with the case $n = 1$, $B_1 = B$. $B = A + (B \cap A^c)$ and $B \cap A^c \in \overline{\mathcal{S}}$, so
+\[
+\bar{\mu}(A) \leq \bar{\mu}(A) + \bar{\mu}(B \cap A^c) = \bar{\mu}(B)
+\]
+To handle $n > 1$ now, let $F_k = B_1^c \cap \dots \cap B_{k-1}^c \cap B_k$ and note
+\[
+\bigcup_i B_i = F_1 + \dots + F_n
+\]
+\[
+A \cap \left(\bigcup_i B_i\right) = (A \cap F_1) + \dots + (A \cap F_n)
+\]
+so using (a), (b) with $n = 1$, and (a) again
+\[
+\bar{\mu}(A) = \sum_{k=1}^{n} \bar{\mu}(A \cap F_k) \leq \sum_{k=1}^{n} \bar{\mu}(F_k) = \bar{\mu}\left(\bigcup_i B_i\right)
+\]
+
+\textbf{Proof of Theorem 1.1.4.} Let $\mathcal{S}$ be the semi-algebra of half-open intervals $(a, b]$ with $-\infty \leq a < b \leq \infty$. To define $\mu$ on $\mathcal{S}$, we begin by observing that
+\[
+F(\infty) = \lim_{x \uparrow \infty} F(x) \quad \text{and} \quad F(-\infty) = \lim_{x \downarrow -\infty} F(x)
+\]
+and $\mu((a, b]) = F(b) - F(a)$ makes sense for all $-\infty \leq a < b \leq \infty$ since $F(\infty) > -\infty$ and $F(-\infty) < \infty$.
+
+If $(a, b] = +_{i=1}^{n} (a_i, b_i]$ then after relabeling the intervals we must have $a_1 = a$, $b_n = b$, and $a_i = b_{i-1}$ for $2 \leq i \leq n$, so condition (i) in Theorem 1.1.9 holds. To check (ii), suppose first that $-\infty < a < b < \infty$, and $(a, b] \subset \bigcup_{i=1}^{\infty} (a_i, b_i]$ where (without loss of generality) $-\infty < a^i < b^i < \infty$. Pick $\delta > 0$ so that $F(a + \delta) < F(a) + \epsilon$ and pick $\eta_i$ so that
+\[
+F(b_i + \eta_i) < F(b_i) + \epsilon 2^{-i}
+\]
+The open intervals $(a_i, b_i + \eta_i]$ cover $[a + \delta, b]$, so there is a finite subcover $(\alpha_j, \beta_j]$, $1 \leq j \leq J$. Since $(a + \delta, b] \subset \bigcup_{j=1}^{J} (\alpha_j, \beta_j]$, (b) in Lemma 1.1.10 implies
+\[
+F(b) - F(a + \delta) \leq \sum_{j=1}^{J} F(\beta_j) - F(\alpha_j) \leq \sum_{i=1}^{\infty} F(b_i + \eta_i) - F(a_i)
+\]
+So, by the choice of $\delta$ and $\eta_i$,
+\[
+\mu((a, b]) \leq 2\epsilon + \sum_{i=1}^{\infty} \mu((a^i, b^i])
+\]
+and since $\epsilon$ is arbitrary, we have proved the result in the case $-\infty < a < b < \infty$. To remove the last restriction, observe that if $(a, b] \subset \bigcup_{i} (a^i, b^i]$ and $(A, B] \subset (a, b]$ has $-\infty < A < B < \infty$, then we have
+\[
+F(B) - F(A) \leq \sum_{i=1}^{\infty} (F(b_i) - F(a_i))
+\]
+Since the last result holds for any finite $(A, B] \subset (a, b]$, the desired result follows.
+
+\subsection*{Measures on $\mathbb{R}^d$}
+
+Our next goal is to prove a version of Theorem 1.1.4 for $\mathbb{R}^d$. The first step is to introduce the assumptions on the defining function $F$. By analogy with the case $d = 1$, it is natural to assume:
+\begin{enumerate}[(i)]
+  \item It is nondecreasing, i.e., if $x \leq y$ (meaning $x_i \leq y_i$ for all $i$) then $F(x) \leq F(y)$.
+  \item $F$ is right continuous, i.e., $\lim_{y \downarrow x} F(y) = F(x)$ (here $y \downarrow x$ means each $y_i \downarrow x_i$).
+  \item If $x_n \downarrow -\infty$, i.e., each coordinate does, then $F(x_n) \downarrow 0$. If $x_n \uparrow -\infty$, i.e., each coordinate does then $F(x_n) \uparrow 1$.
+\end{enumerate}
+However, this time it is not enough. Consider the following $F$
+\[
+F(x_1, x_2) =
+\begin{cases} 
+  1 & \text{if } x_1, x_2 \geq 1 \\
+  2/3 & \text{if } x_1 \geq 1 \text{ and } 0 \leq x_2 < 1 \\
+  2/3 & \text{if } x_2 \geq 1 \text{ and } 0 \leq x_1 < 1 \\
+  0 & \text{otherwise}
+\end{cases}
+\]
+
+We will let $\mu(A) = \Delta_A F$, so we must assume 
+\[
+\Delta_A F \geq 0 \quad \text{for all rectangles } A.
+\]
+
+\textbf{Theorem 1.1.11.} Suppose $F : \mathbb{R}^d \to [0, 1]$ satisfies (i)-(iv) given above. Then there is a unique probability measure $\mu$ on $(\mathbb{R}^d, \mathcal{R}^d)$ so that
+\[
+\mu(A) = \Delta_A F
+\]
+for all finite rectangles $A$.
+
+\textbf{Example 1.1.12.} Suppose $F(x) = \prod_{i=1}^{d} F_i(x)$, where the $F_i$ satisfy (i) and (ii) of Theorem 1.1.4. In this case,
+\[
+\Delta_A F = \prod_{i=1}^{d} (F_i(b_i) - F_i(a_i)).
+\]
+When $F_i(x) = x$ for all $i$, the resulting measure is Lebesgue measure on $\mathbb{R}^d$.
+
+\textbf{Proof.} We let $\mu(A) = \Delta_A F$ for all finite rectangles and then use monotonicity to extend the definition to $\mathcal{S}_d$. To check (ii) of Theorem 1.1.9, call $A = +_k B_k$ a \textbf{regular subdivision} of $A$ if there are sequences $a_i = \alpha_{i, 0} < \alpha_{i, 1} < \cdots < \alpha_{i, n_i} = b_i$ so that each rectangle $B_k$ has the form
+\[
+(\alpha_{1, j_1-1}, \alpha_{1, j_1}] \times \cdots \times (\alpha_{d, j_d-1}, \alpha_{d, j_d}]
+\]
+where $1 \leq j_i \leq n_i$.
+
+It is easy to see that for regular subdivisions
+\[
+\lambda(A) = \sum_k \lambda(B_k).
+\]
+(First consider the case in which all the endpoints are finite and then take limits to get the general case.) To extend this result to a general finite subdivision $A = +_j A_j$, subdivide further to get a regular one.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\textwidth]{figure_1_2}
+    \caption{Conversion of a subdivision to a regular one}
+\end{figure}
+
+The proof of (ii) is almost identical to that in Theorem 1.1.4. To make things easier to write and to bring out the analogies with Theorem 1.1.4, we let
+\[
+(x, y) = (x_1, y_1) \times \cdots \times (x_d, y_d)
+\]
+\[
+(x, y] = (x_1, y_1] \times \cdots \times (x_d, y_d]
+\]
+\[
+[x, y] = [x_1, y_1] \times \cdots \times [x_d, y_d].
+\]
+For $x, y \in \mathbb{R}^d$, suppose first that $-\infty < a < b < \infty$, where the inequalities mean that each component is finite, and suppose $(a, b] \subset \bigcup_{i=1}^{\infty} (a^i, b^i]$, and pick $\delta > 0$ so that
+\[
+\mu((a + \delta 1, b]) < \mu((a, b]) + \epsilon
+\]
+and pick $\eta_i$ so that
+\[
+\mu((a^i, b^i + \eta_i]) < \mu((a^i, b^i]) + \epsilon 2^{-i}.
+\]
+The open rectangles $(a^i, b^i + \eta_i]$ cover $[a + \delta 1, b]$, so there is a finite subcover $(\alpha^j, \beta^j]$, $1 \leq j \leq J$. Since $(a + \delta 1, b] \subset \bigcup_{j=1}^{J} (\alpha^j, \beta^j]$, Lemma 1.1.10 implies
+\[
+\mu((a, b]) \leq 2\epsilon + \sum_{i=1}^{\infty} \mu((a^i, b^i])
+\]
+and since $\epsilon$ is arbitrary, we have proved the result in the case $-\infty < a < b < \infty$. The proof can now be completed exactly as before.
+
+\section*{Exercises}
+
+\textbf{Exercise 1.1.1.} Let $\Omega = \mathbb{R}$, $\mathcal{F}$ = all subsets so that $A$ or $A^c$ is countable, $P(A) = 0$ in the first case and $1$ in the second. Show that $(\Omega, \mathcal{F}, P)$ is a probability space.
+
+\textbf{Exercise 1.1.2.} Recall the definition of $\mathcal{S}_d$ from Example 1.1.5. Show that $\sigma(\mathcal{S}_d) = \mathcal{R}^d$, the Borel subsets of $\mathbb{R}^d$.
+
+\textbf{Exercise 1.1.3.} A $\sigma$-field $\mathcal{F}$ is said to be countably generated if there is a countable collection $\mathcal{C} \subset \mathcal{F}$ so that $\sigma(\mathcal{C}) = \mathcal{F}$. Show that $\mathbb{R}^d$ is countably generated.
+
+\textbf{Exercise 1.1.4.} (i) Show that if $\mathcal{F}_1 \subset \mathcal{F}_2 \subset \dots$ are $\sigma$-algebras, then $\bigcup_i \mathcal{F}_i$ is an algebra. (ii) Give an example to show that $\bigcup_i \mathcal{F}_i$ need not be a $\sigma$-algebra.
+
+\textbf{Exercise 1.1.5.} A set $A \subset \{1, 2, \dots \}$ is said to have \textbf{asymptotic density} $\theta$ if
+\[
+\lim_{n \to \infty} \frac{|A \cap \{1, 2, \dots, n\}|}{n} = \theta.
+\]
+Let $\mathcal{A}$ be the collection of sets for which the asymptotic density exists. Is $\mathcal{A}$ a $\sigma$-algebra? An algebra?

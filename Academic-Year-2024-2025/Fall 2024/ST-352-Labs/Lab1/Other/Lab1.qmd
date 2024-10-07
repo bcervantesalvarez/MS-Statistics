@@ -1,0 +1,135 @@
+---
+title: "ST 352 | Lab Assignment 1"
+subtitle: "Lab Demonstration"
+author: "Brian Cervantes Alvarez"
+date: "08-12-2024"
+date-format: long
+format:
+  html: 
+    theme: cosmo
+    fontsize: 1.1em
+    linestretch: 1.6
+    toc: true
+    toc-location: right
+    toc-depth: 5
+    html-math-method: katex
+    page-layout: full
+execute: 
+  echo: true
+  warning: false
+webr:
+  packages: ['mosaic', 'ggplot2', 'readr', 'dplyr', 'tidyr']
+  show-startup-message: false
+filters:
+- webr
+---
+
+## Reminder of the Honor Code
+Lab assignments are to be completed individually! Number your answers. Put the questions in order! Once completed, upload your assignment to Gradescope. After uploading, remember to link each question to the page on which that question appears in your document. Failure to do so will result in a 1-point deduction.
+
+### Example
+
+In Week 1, you participated in a one-question survey about how many minutes of TV you typically watch in a day. The number of minutes watched per day for all participants in the survey is available in the `television` dataset on Canvas. For this assignment, assume the sample data is representative of the population of all OSU students. Is there evidence that OSU students watch more than 90 minutes of TV per day on average?
+
+---
+
+#### Question 1 
+
+**What is the variable of interest? Is it categorical or quantitative?**
+
+---
+
+#### Question 2 
+
+**Do you think the sample is representative of the population of all OSU students (in terms of TV watched per day)? Why or why not?**
+
+---
+
+### Exploring the Sample Data
+
+To determine whether t-methods are appropriate and to hypothesize if the null hypothesis will be rejected, you should explore the sample data by doing the following:
+
+1. Calculate **summary statistics**.
+2. Generate a **dot plot** or **histogram**.
+3. Create a **normal probability plot**.
+
+#### Question 3 (1 point)
+
+**Provide a table of summary statistics** (without directly copying from R):
+
+| Statistic             | Value        |
+|-----------------------|--------------|
+| Sample size           |              |
+| Minimum               |              |
+| 1st quartile          |              |
+| Median                |              |
+| Mean                  |              |
+| 3rd quartile          |              |
+| Maximum               |              |
+| Standard deviation    |              |
+
+---
+
+#### Question 4 (2 points)
+
+**Include your properly labeled histogram or dot plot and your normal probability plot here.**
+
+```{webr-r}
+#| label: plot
+library(ggplot2)
+# Example histogram
+ggplot(data.frame(tv_minutes = rnorm(100, mean = 50, sd = 100)), aes(x = tv_minutes)) + 
+  geom_histogram(fill = "#D73F09", color = "black", binwidth = 20) + 
+  labs(title = "TV Minutes per Day", x = "Minutes", y = "Count") +
+  theme_bw()
+```
+
+---
+
+### Inference Using t-Methods
+
+#### Question 5 (2 points)
+
+**Based on the normal probability plot, do you think t-methods can be used for inference?**
+
+---
+
+#### Question 6 (1 point)
+
+**Using the summary statistics and/or your histogram or dot plot, do you think the null hypothesis will be rejected?**
+
+---
+
+### Hypothesis Testing and p-Value
+
+#### Question 7 (3 points)
+
+**State the null and alternative hypotheses in notation. Define the parameter used in context.**
+
+---
+
+#### Question 8 (1 point)
+
+**Report the t-statistic and degrees of freedom.**
+
+---
+
+### Conclusion and Confidence Interval
+
+#### Question 9 (3 points)
+
+**Based on the p-value, state a conclusion in the context of the problem.**
+
+---
+
+#### Question 10 (1 point)
+
+**Report the 90% confidence interval for $\mu$.**
+
+---
+
+#### Question 11 (3 points)
+
+**Interpret the 90% confidence interval in the context of the problem.**
+
+---

@@ -1,0 +1,235 @@
+---
+title: "ST 352 | Lab Assignment 1 SOLUTIONS"
+subtitle: "Lab Demonstration"
+author: "Brian Cervantes Alvarez"
+date: "08-12-2024"
+format: 
+  html:
+    toc: true
+    toc-location: right
+    toc-depth: 5
+    html-math-method: katex
+    page-layout: article
+execute: 
+  echo: true
+  warning: false
+webr:
+  packages: ['mosaic', 'ggplot2', 'readr', 'dplyr', 'tidyr']
+  show-startup-message: false
+filters:
+- webr
+---
+
+
+# Reminder of the Honor Code
+
+Lab assignments are to be completed individually. Number your answers, put questions in order, and upload your assignment to Gradescope.
+
+## Example
+
+Is there evidence that OSU students watch more than 90 minutes of TV per day on average? The dataset `television.csv` contains the number of minutes per day for all participants.
+
+### Question 1
+
+**What is the variable of interest? Is it categorical or quantitative?**
+
+- Time spent watching TV per day (in minutes). This is a **quantitative** variable.
+
+### Question 2
+
+**Is the sample representative of the population of OSU students? Why or why not?**
+
+Answers may vary but should discuss whether the sample was randomly drawn. The TV-watching habits of ST 352 students may not be representative of the general OSU population.
+
+# Exploring the Sample Data
+
+### Question 3
+
+**Summary Statistics**
+
+```{r}
+# Load necessary libraries
+library(readr)
+install.packages("readr")
+
+tvDs <- read_csv("Academic-Year-2024-2025/Fall 2024/ST-352-Labs/Lab1/television.csv") 
+tvDs2 <- read.csv("Academic-Year-2024-2025/Fall 2024/ST-352-Labs/Lab1/television.csv")
+
+head(tvDs)
+max(tvDs)
+
+tv_data <- tvDs
+tv_data <- tv_data[-70, ]
+
+
+# Calculate the statistics
+sample_size <- length(tv_data$minutes)
+minimum <- min(tv_data$minutes, na.rm = TRUE)
+first_quartile <- quantile(tv_data$minutes, 0.25, na.rm = TRUE)
+median_value <- median(tv_data$minutes, na.rm = TRUE)
+mean_value <- mean(tv_data$minutes, na.rm = TRUE)
+third_quartile <- quantile(tv_data$minutes, 0.75, na.rm = TRUE)
+maximum <- max(tv_data$minutes, na.rm = TRUE)
+standard_deviation <- sd(tv_data$minutes, na.rm = TRUE)
+
+# Print results
+print(paste("Sample size:", sample_size))
+print(paste("Minimum:", minimum, "minutes"))
+print(paste("1st Quartile:", first_quartile, "minutes"))
+print(paste("Median:", median_value, "minutes"))
+print(paste("Mean:", mean_value, "minutes"))
+print(paste("3rd Quartile:", third_quartile, "minutes"))
+print(paste("Maximum:", maximum, "minutes"))
+print(paste("Standard deviation:", standard_deviation, "minutes"))
+```
+
+| Statistic             | Value             |
+|-----------------------|-------------------|
+| Sample size           | 101               |
+| Minimum               | 0 minutes         |
+| 1st quartile          | 30 minutes        |
+| Median                | 60 minutes        |
+| Mean                  | 76.80 minutes     |
+| 3rd quartile          | 90 minutes        |
+| Maximum               | 1360 minutes      |
+| Standard deviation    | 141.10 minutes    |
+
+---
+
+### Question 4
+
+**Include your histogram and normal probability plot:**
+
+```{r}
+library(ggplot2)
+
+# Histogram
+ggplot(tv_data, aes(x = minutes)) + 
+  geom_histogram(binwidth = 30) + 
+  labs(title = "TV Minutes per Day", x = "Minutes", y = "Count") +
+  theme_minimal()
+
+# Normal Probability Plot
+ggplot(tv_data, aes(sample = minutes)) + 
+  stat_qq() + 
+  stat_qq_line() + 
+  labs(title = "Normal Q-Q Plot") +
+  theme_minimal()
+```
+
+---
+
+# Inference Using t-Methods
+
+### Question 5
+
+**Can t-methods be used for inference?**
+
+Yes, due to the large sample size, t-methods are appropriate, even if the sample data appears skewed.
+
+---
+
+### Question 6
+
+**Do you think the null hypothesis will be rejected based on summary statistics or the histogram?**
+
+Answers may vary, but if the data shows a significant number of responses above 90 minutes, the null hypothesis could be rejected.
+
+---
+
+### Question 7
+
+**State the null and alternative hypotheses:**
+
+$$H_0: \mu = 90$$  
+$$H_A: \mu > 90$$  
+
+Where $\mu$ is the mean amount of TV watched per day by OSU students.
+
+---
+
+### Question 8
+
+**Report the t-statistic and degrees of freedom:**
+
+```{r}
+
+t.test(tvDs$minutes, conf.level = 0.90, mu = 90, alternative = "greater")
+
+result <- t.test(tvDs$minutes, conf.level = 0.90, mu = 90)
+
+
+
+conf.
+# Hypothesis test parameters
+mu_0 <- 90  # Null hypothesis mean
+
+# Calculate the t-statistic
+t_stat <- (mean_value - mu_0) / (standard_deviation / sqrt(sample_size))
+
+# Degrees of freedom
+df <- sample_size - 1
+
+# Print the t-statistic and degrees of freedom
+print(paste("t-statistic:", round(t_stat, 5)))
+print(paste("Degrees of freedom:", df))
+```
+
+**Results:**
+
+$$t_{100} = -0.94003$$  
+Degrees of freedom: 100
+
+
+# Conclusion and Confidence Interval
+
+### Question 9
+
+```{r}
+# Calculate the p-value for a one-sided test (alternative: mean > 90)
+p_value <- pt(t_stat, df, lower.tail = FALSE)
+
+# Print the p-value
+print(paste("p-value:", round(p_value, 5)))
+```
+
+**Result:**
+
+p-value: `0.82527`
+
+There is no evidence to suggest that OSU students watch more than 90 minutes of TV per day based on the available data.
+
+---
+
+### Question 10
+
+**Report the 90% confidence interval for $\mu$:**
+
+```{r}
+# Confidence level
+conf_level <- 0.90
+sd <- sd(tv_data$minutes, na.rm = TRUE)
+
+
+# Margin of error for the confidence interval
+t_cric <- qt((1 + conf_level) / 2, df)
+ME <- t_cric * (sd / sqrt(n))
+
+# Confidence interval bounds
+ci_lower <- mean_value - ME
+ci_upper <- mean_value + ME
+
+# Print the confidence interval
+print(paste("90% Confidence Interval: (", round(ci_lower, 2), "minutes, ", round(ci_upper, 2), "minutes)", sep = ""))
+```
+
+**Result:**
+
+(53.49 minutes, 100.11 minutes)
+
+
+### Question 11
+
+**Interpret the confidence interval:**
+
+We are 90% confident that the mean time OSU students spend watching TV per day is between 53.49 and  73.52 minutes.

@@ -1,0 +1,148 @@
+---
+title: "Probability Theory"
+author: "Brian Cervantes Alvarez"
+format: pdf
+---
+
+
+
+## Chapter 1.1 Exercises
+
+**1.1.1.** Let $\Omega = \mathbb{R}$, $\mathcal{F}$ be all subsets so that $A$ or $A^c$ is countable, $P(A) = 0$ in the first case and $= 1$ in the second. Show that $(\Omega, \mathcal{F}, P)$ is a probability space.
+
+**1.1.2.** Recall the definition of $S_d$ from Example 1.1.5. Show that $\sigma(S_d) = \mathcal{R}^d$, the Borel subsets of $\mathbb{R}^d$.
+
+**1.1.3.** A $\sigma$-field $\mathcal{F}$ is said to be *countably generated* if there is a countable collection $C \subset \mathcal{F}$ so that $\sigma(C) = \mathcal{F}$. Show that $\mathbb{R}^d$ is countably generated.
+
+**1.1.4.** 
+
+(i) Show that if $\mathcal{F}_1 \subset \mathcal{F}_2 \subset \dots$ are $\sigma$-algebras, then $\cup_i \mathcal{F}_i$ is an algebra. 
+
+(ii) Give an example to show that $\cup_i \mathcal{F}_i$ need not be a $\sigma$-algebra.
+
+**1.1.5.** A set $A \subset \{1, 2, \dots\}$ is said to have *asymptotic density* $\theta$ if
+$$
+\lim_{n \to \infty} \frac{|A \cap \{1, 2, \dots, n\}|}{n} = \theta.
+$$
+Let $\mathcal{A}$ be the collection of sets for which the asymptotic density exists. Is $\mathcal{A}$ a $\sigma$-algebra? An algebra?
+
+{{< pagebreak >}}
+
+## Chapter 1.2 Exercises
+
+**1.2.1.** Suppose $X$ and $Y$ are random variables on $(\Omega, \mathcal{F}, P)$ and let $A \in \mathcal{F}$. Show that if we let $Z(\omega) = X(\omega)$ for $\omega \in A$ and $Z(\omega) = Y(\omega)$ for $\omega \in A^c$, then $Z$ is a random variable.
+
+**1.2.2.** Let $\chi$ have the standard normal distribution. Use Theorem 1.2.6 to get upper and lower bounds on $P(\chi \geq 4)$.
+
+**1.2.3.** Show that a distribution function has at most countably many discontinuities.
+
+**1.2.4.** Show that if $F(x) = P(X \leq x)$ is continuous, then $Y = F(X)$ has a uniform distribution on $(0,1)$, that is, if $y \in [0,1]$, $P(Y \leq y) = y$.
+
+**1.2.5.** Suppose $X$ has continuous density $f$, $P(\alpha \leq X \leq \beta) = 1$ and $g$ is a function that is strictly increasing and differentiable on $(\alpha, \beta)$. Then $g(X)$ has density $\frac{f(g^{-1}(y))}{g'(g^{-1}(y))}$ for $y \in (g(\alpha), g(\beta))$ and 0 otherwise. When $g(x) = ax + b$ with $a > 0$, $g^{-1}(y) = \frac{y - b}{a}$, so the answer is $\frac{1}{a}f\left(\frac{y - b}{a}\right)$.
+
+**1.2.6.** Suppose $X$ has a normal distribution. Use the previous exercise to compute the density of $\exp(X)$. (The answer is called the *lognormal distribution*.)
+
+**1.2.7.** 
+
+(i) Suppose $X$ has a density function $f$. Compute the distribution function of $X^2$ and then differentiate to find its density function. 
+
+(ii) Work out the answer when $X$ has a standard normal distribution to find the density of the *chi-square distribution*.
+
+{{< pagebreak >}}
+
+## Chapter 1.3 Exercises
+
+**1.3.1.** Show that if $\mathcal{A}$ generates $\mathcal{S}$, then $X^{-1}(\mathcal{A}) \equiv \left\{\{X \in A\} : A \in \mathcal{A}\right\}$ generates $\sigma(X) = \left\{\{X \in B\} : B \in \mathcal{S}\right\}$.
+
+**1.3.2.** Prove Theorem 1.3.6 when $n = 2$ by checking $\{X_1 + X_2 \leq x\} \in \mathcal{F}$.
+
+**1.3.3.** Show that if $f$ is continuous and $X_n \to X$ almost surely then $f(X_n) \to f(X)$ almost surely.
+
+**1.3.4.** 
+
+(i) Show that a continuous function from $\mathbb{R}^d \to \mathbb{R}$ is a measurable map from $(\mathbb{R}^d, \mathcal{R}^d)$ to $(\mathbb{R}, \mathcal{R})$. 
+
+(ii) Show that $\mathcal{R}^d$ is the smallest $\sigma$-field that makes all the continuous functions measurable.
+
+**1.3.5.** A function $f$ is said to be *lower semicontinuous* or l.s.c. if
+$$
+\liminf_{y \to x} f(y) \geq f(x)
+$$
+and *upper semicontinuous* (u.s.c.) if $-f$ is l.s.c. Show that $f$ is l.s.c. if and only if $\{x : f(x) \leq a\}$ is closed for each $a \in \mathbb{R}$ and conclude that semicontinuous functions are measurable.
+
+**1.3.6.** Let $f : \mathbb{R}^d \to \mathbb{R}$ be an arbitrary function and let $f^\delta(x) = \sup\{f(y) : |y - x| < \delta\}$ and $f_\delta(x) = \inf\{f(y) : |y - x| < \delta\}$ where $|z| = (z_1^2 + \dots + z_d^2)^{1/2}$. Show that $f^\delta$ is l.s.c. and $f_\delta$ is u.s.c. Let $f^0 = \lim_{\delta \to 0} f^\delta$, $f_0 = \lim_{\delta \to 0} f_\delta$, and conclude that the set of points at which $f$ is discontinuous is $\{f^0 \neq f_0\}$ and that $\{f^0 \neq f_0\}$ is measurable.
+
+**1.3.7.** A function $\varphi : \Omega \to \mathbb{R}$ is said to be simple if
+$$
+\varphi(\omega) = \sum_{m=1}^{n} c_m 1_{A_m} (\omega).
+$$
+
+{{< pagebreak >}}
+
+## Chapter 1.4 Exercises
+
+**1.4.1.** Show that if $f \geq 0$ and $\int f \, d\mu = 0$ then $f = 0$ a.e.
+
+**1.4.2.** Let $f \geq 0$ and $E_{n,m} = \{x : \frac{m}{2^n} \leq f(x) < \frac{m+1}{2^n}\}$. As $n \to \infty$,
+$$
+\sum_{m=1}^{\infty} \frac{m}{2^n} \mu(E_{n,m}) \uparrow \int f \, d\mu.
+$$
+
+**1.4.3.** Let $g$ be an integrable function on $\mathbb{R}$ and $\epsilon > 0$. 
+
+(i) Use the definition of the integral to conclude there is a simple function $\varphi = \sum_k b_k 1_{A_k}$ with $\int |g - \varphi| \, dx < \epsilon$. 
+
+(ii) Use Exercise A.2.1 to approximate the $A_k$ by finite unions of intervals to get a step function
+$$
+q = \sum_{j=1}^{k} c_j 1_{(a_{j-1}, a_j)}.
+$$
+with $a_0 < a_1 < \dots < a_k$, so that $\int |\varphi - q| \, dx < \epsilon$. (iii) Round the corners of $q$ to get a continuous function $r$ so that $\int |q - r| \, dx < \epsilon$.
+
+(iii) To make a continuous function, replace each $c_j 1_{(a_{j-1}, a_j)}$ by a function that is 0 on $(a_{j-1}, a_j)^c$, $c_j$ on $[a_{j-1} + \delta, a_j - \delta]$, and linear otherwise. If the $\delta_j$ are small enough and we let $r(x) = \sum_{k=j}^{k} r_j(x)$, then
+$$
+\int |q(x) - r(x)| \, d\mu = \sum_{j=1}^{k} \delta_j c_j < \epsilon.
+$$
+
+**1.4.4.** Prove the Riemann-Lebesgue lemma. If $g$ is integrable then
+$$
+\lim_{n \to \infty} \int g(x) \cos(nx) \, dx = 0.
+$$
+Hint: If $g$ is a step function, this is easy. Now use the previous exercise.
+
+{{< pagebreak >}}
+
+## Chapter 1.5 Exercises
+
+**1.5.1.** Let $\|f\|_{\infty} = \inf\{M : \mu(\{x : |f(x)| > M\}) = 0\}$. Prove that
+$$
+\int |fg| d\mu \leq \|f\|_1 \|g\|_{\infty}.
+$$
+
+**1.5.2.** Show that if $\mu$ is a probability measure then
+$$
+\|f\|_{\infty} = \lim_{p \to \infty} \|f\|_p.
+$$
+
+**1.5.3.** Minkowski’s inequality. 
+
+(i) Suppose $p \in (1, \infty)$. The inequality $\|f + g\|_p \leq 2^p (\|f\|_p^p + \|g\|_p^p)$ shows that if $\|f\|_p$ and $\|g\|_p$ are $< \infty$ then $\|f + g\|_p < \infty$. Apply Hölder’s inequality to $|f|^{p-1}$ and $|g||f + g|^{p-1}$ to show $\|f + g\|_p \leq \|f\|_p + \|g\|_p$. 
+    
+(ii) Show that the last result remains true when $p = 1$ or $p = \infty$.
+
+**1.5.4.** If $f$ is integrable and $E_m$ are disjoint sets with union $E$ then
+$$
+\sum_{m=0}^{\infty} \int_{E_m} f d\mu = \int_{E} f d\mu.
+$$
+So if $f \geq 0$, then $\nu(E) = \int_{E} f d\mu$ defines a measure.
+
+**1.5.5.** If $g_n \uparrow g$ and $\int g_1^{-} d\mu < \infty$ then $\int g_n d\mu \uparrow \int g d\mu$.
+
+**1.5.6.** If $g_m \geq 0$ then $\int \sum_{m=0}^{\infty} g_m d\mu = \sum_{m=0}^{\infty} \int g_m d\mu$.
+
+**1.5.7.** Let $f \geq 0$. (i) Show that $\int f \land n d\mu \uparrow \int f d\mu$ as $n \to \infty$. (ii) Use (i) to conclude that if $g$ is integrable and $\epsilon > 0$ then we can pick $\delta > 0$ so that $\mu(A) < \delta$ implies $\int_A |g| d\mu < \epsilon$.
+
+**1.5.8.** Show that if $f$ is integrable on $[a, b]$, $g(x) = \int_{[a,x]} f(y) dy$ is continuous on $(a,b)$.
+
+**1.5.9.** Show that if $f$ has $\|f\|_p = (\int |f|^p d\mu)^{1/p} < \infty$, then there are simple functions $\varphi_n$ so that $\|\varphi_n - f\|_p \to 0$.
+
+**1.5.10.** Show that if $\sum_n \int |f_n| d\mu < \infty$ then $\int \sum_n f_n d\mu = \sum_n \int f_n d\mu$.
