@@ -59,7 +59,7 @@ We are using a paired t-test since the products are identical across both stores
 ```{webr-r}
 library(readr)
 # Import the dataset from the CSV file
-products <- read_csv("Academic-Year-2024-2025/Fall 2024/ST-352-Labs/Lab2/storePrices.csv")
+products <- read_csv("[Academic-Year-2024-2025/Fall 2024/ST-352-Labs/Lab2/storePrices.csv](https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/refs/heads/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab2/storePrices.csv)")
 
 names(products)
 
