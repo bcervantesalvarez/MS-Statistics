@@ -1,0 +1,148 @@
+---
+title: "ST 352 | Lab Assignment 2"
+subtitle: "Lab Demonstration"
+author: "Brian Cervantes Alvarez"
+date: "08-12-2024"
+format: 
+  html:
+    toc: true
+    toc-location: right
+    toc-depth: 5
+    html-math-method: katex
+    page-layout: article
+execute: 
+  echo: true
+  warning: false
+webr:
+  packages: ['mosaic', 'ggplot2', 'readr', 'dplyr', 'tidyr']
+  show-startup-message: false
+filters:
+- webr
+editor:
+    render-on-save: true
+---
+
+**Reminder of the honor code:**  
+*Lab assignments are to be completed individually!*
+
+# Data Collection
+
+For Lab Assignment 2, I collected data from two grocery stores: **Walmart** and **Fred Meyer**. The goal is to compare the prices of 15 identical items between the two stores to determine if there is a significant difference in average prices. Below are the data I compared:
+
+| Product                                   | WalmartPrice | FredMeyerPrice |
+|-------------------------------------------|---------------|------------------|
+| Coca-Cola 24pk                            | $12.98        | $14.99           |
+| Scrub Daddy 1pk                           | $3.88         | $4.99            |
+| First Response Pregnancy Test 2pk         | $8.98         | $11.99           |
+| Oreo Family Pack 18.12oz                  | $4.88         | $4.99            |
+| Stella Rosa Black 750ml                   | $10.98        | $12.99           |
+| Tillamook Medium Cheddar Block 32oz       | $12.48        | $13.99           |
+| Samsung 65" Crystal HDR 4K TV             | $468.00       | $499.00          |
+| Enfamil NeuroPro Baby Formula 27.4oz      | $52.00        | $54.99           |
+| Maseca Corn Masa Flour 4lbs               | $3.98         | $4.29            |
+| Cacique Ranchero Queso Fresco 10oz        | $3.68         | $3.69            |
+| Purina One Dry Dog Food 16.5lb            | $30.28        | $31.99           |
+| Bounty Paper Napkins 200ct                | $3.48         | $4.29            |
+| Luna Lemonzest Nutrition Bars 12ct        | $14.46        | $15.99           |
+| Coleman Cooler 52qt                       | $49.99        | $39.99           |
+| Corona Heavy-Duty Weeding Hoe             | $62.57        | $77.51           |
+
+Once you have your data, decide whether a two-sample t-test or paired t-test is appropriate based on how you collected your data. For my comparison, I will use a **paired t-test** since the products are identical at both stores.
+
+# Lab Assignment Walk-Thru
+
+## 1. Hypothesis Test
+
+**Hint**:  
+We are using a paired t-test since the products are identical across both stores. Use this test to check whether there is a significant difference in average prices.
+
+```{webr-r}
+library(readr)
+# Import the dataset from the CSV file
+products <- read_csv("Academic-Year-2024-2025/Fall 2024/ST-352-Labs/Lab2/storePrices.csv")
+
+names(products)
+
+# Convert price columns to numeric
+products$WalmartPrice <- as.numeric(gsub("\\$", "", as.character(products$WalmartPrice)))
+products$FredMeyerPrice <- as.numeric(gsub("\\$", "", as.character(products$FredMeyerPrice)))
+
+# Display the dataset
+head(products)
+
+```
+
+## 2. Hypotheses
+
+The hypotheses for the paired t-test:
+
+- $H_0: \mu_{\text{diff}} = 0$ (No difference in average prices between Walmart and Fred Meyer)
+- $H_1: \mu_{\text{diff}} \neq 0$ (There is a difference in average prices between Walmart and Fred Meyer)
+
+```{webr-r}
+# Calculate the price differences between Walmart and Fred Meyer
+products$Difference <- products$WalmartPrice - products$FredMeyerPrice
+products$Difference
+```
+
+## 3. Appropriateness of t-Methods
+
+Check if the price differences follow a roughly normal distribution by plotting a histogram:
+
+```{webr-r}
+# Plot a histogram of the price differences
+# Plot histogram
+hist(products$Difference, main = "Histogram of Price Differences",
+     xlab = "Price Difference (Walmart - Fred Meyer)")
+```
+
+## 4. T-Statistic and P-Value
+
+Perform the paired t-test to get the t-statistic and p-value.
+
+```{webr-r}
+# Perform paired t-test
+t_test_result <- t.test(products$WalmartPrice, products$FredMeyerPrice, paired = TRUE)
+
+# Output t-statistic, p-value, and degrees of freedom
+t_test_result$statistic   # T-statistic
+t_test_result$p.value     # P-value
+t_test_result$parameter   # Degrees of freedom
+```
+
+## 5. Conclusion
+
+Based on the p-value, we will determine whether to reject the null hypothesis.
+
+```{webr-r}
+# Conclusion
+if(t_test_result$p.value < 0.05) {
+  conclusion <- "Reject the null hypothesis: There is a significant difference in prices."
+} else {
+  conclusion <- "Fail to reject the null hypothesis: No significant difference in prices."
+}
+conclusion
+```
+
+## 6. Confidence Interval
+
+Compute the 95% confidence interval for the mean price difference.
+
+```{webr-r}
+# Confidence interval
+t_test_result$conf.int
+```
+
+## 7. Store Preference
+
+Based on the mean price difference, decide which store is cheaper overall.
+
+```{webr-r}
+# Store preference
+if(mean(t_test_result$conf.int) > 0) {
+  store_preference <- "Fred Meyer is generally cheaper"
+} else {
+  store_preference <- "Walmart is generally cheaper"
+}
+store_preference
+```

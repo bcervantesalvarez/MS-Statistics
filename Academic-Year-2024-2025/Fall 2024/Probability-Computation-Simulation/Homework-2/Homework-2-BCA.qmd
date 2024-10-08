@@ -11,7 +11,9 @@ editor:
 
 Give a method for generating a random variable having the distribution function
 
-$$ F(x) = 1 - \exp(-\alpha x^\beta), \quad 0 < x < \infty $$
+$$
+F(x) = 1 - \exp(-\alpha x^\beta), \quad 0 < x < \infty
+$$
 
 This describes a Weibull random variable.
 
