@@ -9,7 +9,7 @@ format:
     toc-location: right
     toc-depth: 5
     html-math-method: katex
-    page-layout: article
+    page-layout: full
 execute: 
   echo: true
   warning: false
@@ -37,7 +37,7 @@ For Lab Assignment 2, I collected data from two grocery stores: **Walmart** and 
 | Oreo Family Pack 18.12oz                  | $4.88         | $4.99            |
 | Stella Rosa Black 750ml                   | $10.98        | $12.99           |
 | Tillamook Medium Cheddar Block 32oz       | $12.48        | $13.99           |
-| Samsung 65" Crystal HDR 4K TV             | $468.00       | $499.00          |
+| Samsung 65in Crystal HDR 4K TV             | $468.00       | $499.00          |
 | Enfamil NeuroPro Baby Formula 27.4oz      | $52.00        | $54.99           |
 | Maseca Corn Masa Flour 4lbs               | $3.98         | $4.29            |
 | Cacique Ranchero Queso Fresco 10oz        | $3.68         | $3.69            |
@@ -57,9 +57,16 @@ Once you have your data, decide whether a two-sample t-test or paired t-test is 
 We are using a paired t-test since the products are identical across both stores. Use this test to check whether there is a significant difference in average prices.
 
 ```{webr-r}
+# Load Correct Libraries
 library(readr)
+library(mosaic) # Note I do not use this package
+
+# Download Data Remotely
+url <- "https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/refs/heads/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab2/storePrices.csv"
+download.file(url, "storePrices.csv")
+
 # Import the dataset from the CSV file
-products <- read_csv("[Academic-Year-2024-2025/Fall 2024/ST-352-Labs/Lab2/storePrices.csv](https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/refs/heads/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab2/storePrices.csv)")
+products <- read_csv("storePrices.csv")
 
 names(products)
 
@@ -94,6 +101,14 @@ Check if the price differences follow a roughly normal distribution by plotting 
 # Plot histogram
 hist(products$Difference, main = "Histogram of Price Differences",
      xlab = "Price Difference (Walmart - Fred Meyer)")
+
+# Plot the histogram using ggplot2
+ggplot(products, aes(x = Difference)) +
+  geom_histogram(binwidth = 1, color = "black", fill = "skyblue") +
+  labs(title = "Histogram of Price Differences", 
+       x = "Price Difference (Walmart - Fred Meyer)", 
+       y = "Frequency") +
+  theme_minimal()
 ```
 
 ## 4. T-Statistic and P-Value
