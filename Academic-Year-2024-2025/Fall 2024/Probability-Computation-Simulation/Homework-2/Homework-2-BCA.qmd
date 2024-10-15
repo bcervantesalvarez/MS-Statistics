@@ -19,9 +19,9 @@ This describes a Weibull random variable.
 
 **Pseudocode**
 
-1.  Generate a random number $u$ from a $Uniform(0,1)$.
-2.  Compute the inverse of the Weibull CDF: $X = \left(-\frac{\log(1-u)}{\alpha}\right)^{\frac{1}{\beta}}$.
-3.  Output the value of $X$.
+1.  We can generate a random number $u$ using a $Uniform(0,1)$.
+2.  Next, we can compute the inverse of the Weibull CDF: $X = \left(-\frac{\log(1-u)}{\alpha}\right)^{\frac{1}{\beta}}$.
+3.  Lastly, we output the random variable $X$.
 
 **Putting it in practice**
 
@@ -44,15 +44,15 @@ $$ f(x) = \frac{e^{-x}}{1 - e^{-0.05}}, \quad 0 < x < 0.05 $$
 
 **Pseudocode**
 
-1.  Generate an exponential random variable $X$ with rate 1.
-2.  If $X < 0.05$, accept it. Otherwise, repeat.
-3.  Repeat this process 1000 times to estimate the expected value.
+1.  First, generate an exponential r.v. $X$ with rate 1.
+2.  If $X < 0.05$, we can accept it. Otherwise, repeat.
+3.  Finally, we can repeat this process 10000 times to estimate its expected value.
 
 **Putting it in practice**
 
 ```{r}
 set.seed(202425)
-N <- 1000
+N <- 10000
 accepted <- replicate(N, {
   accept <- FALSE
   while(!accept) {
@@ -72,28 +72,37 @@ A casualty insurance company has 1000 policyholders, each presenting a claim wit
 
 **Pseudocode**
 
-1.  Set $N$ as the number of simulations.
-2.  For each simulation:
-    -   Generate 1000 Bernoulli random variables to model claims.
-    -   For each nonzero claim, generate an exponential random variable with mean $800$.
-    -   Sum the claim amounts.
-3.  Estimate the probability by counting the proportion of times the sum exceeds $50,000$.
+1.  Let $N$ be the number of simulations $\{N = 1, 2, ..., 10000\}$.
+2.  For each $N$ simulation:
+    -   Generate 1000 Bernoulli random variables to model the policyholder claims.
+    -   For each nonzero claim, generate an $Exponential(\lambda = \frac{1}{800})$.
+    -   Then, we sum up the claim amounts.
+3.  To end, estimate the probability by counting the proportion of times the sum exceeds $50,000$.
 
 **Putting it in practice**
 
 ```{r}
 set.seed(202425)
 N <- 10000
-mean_claim <- 800
-prob <- 0.05
+meanClaim <- 800            
+lambda <- 1 / meanClaim     
+claimProb <- 0.05
 threshold <- 50000
 
-exceed_prob <- replicate(N, {
-  claims <- rbinom(1000, 1, prob)
-  total_claim <- sum(rexp(sum(claims), mean_claim))
-  total_claim > threshold
+exceedProb <- replicate(N, {
+  claims <- rbinom(1000, 1, claimProb)                       
+  numClaims <- sum(claims)                                   
+  if (numClaims > 0) {
+    claimAmounts <- rexp(numClaims, rate = lambda)          
+    totalClaim <- sum(claimAmounts)                          
+  } else {
+    totalClaim <- 0
+  }
+  totalClaim > threshold                                      
 })
-mean(exceed_prob)
+
+estimatedProbability <- mean(exceedProb)
+print(estimatedProbability)
 ```
 
 {{< pagebreak >}}
@@ -101,24 +110,51 @@ mean(exceed_prob)
 ## Problem 19
 
 Show how to generate a random variable with the distribution function
-
-$$ F(x) = \frac{1}{2} (x + x^2), \quad 0 \leq x \leq 1 $$
+$$ 
+F(x) = \frac{1}{2} (x + x^2), \quad 0 \leq x \leq 1 
+$$
 
 ### Part A: Inverse Transform Method
 
 **Pseudocode**
 
-1.  Solve $F(x) = u$ to obtain $x$.
-2.  Rearrange to get $x = \sqrt{2u - 1} + 1$ for $u$ from $Uniform(0,1)$.
-3.  Output $x$.
+1.  We need to solve the expression $F(x) = u$ to obtain $x$.
+2.  Afterwards, we rearrange the expression to get $x = \frac{-1 + \sqrt{1 + 8u}}{2}$ for $u$ from $Uniform(0,1)$.
+3.  Return the output $x$.
 
 **Putting it in practice**
 
 ```{r}
 set.seed(202425)
 u <- runif(1)
-x <- (sqrt(2*u - 1) + 1)
+x <- (-1 + sqrt(1 + 8 * u)) / 2
 x
+```
+
+{{< pagebreak >}}
+
+## Problem 19
+
+### Part B: The Rejection Method
+
+**Pseudocode**
+
+1. Set $M = \frac{3}{2}$ and use $g(x) = 1$ for $x \in [0, 1]$.
+2. Generate $X \sim Uniform(0, 1)$.
+3. Generate $U \sim Uniform(0, 1)$.
+4. Accept $X$ if $U \leq \frac{1 + 2X}{3}$, otherwise, repeat from step 2.
+
+**Putting it in practice**
+
+```{r}
+set.seed(202425)
+M <- 1.5  
+repeat {
+  X <- runif(1)
+  U <- runif(1)
+  if (U <= (1 + 2 * X) / 3) break 
+}
+X
 ```
 
 {{< pagebreak >}}
@@ -131,20 +167,38 @@ In Example 5f, we simulated a normal random variable using the rejection techniq
 
 1.  Let $g(x) = \lambda e^{-\lambda x}$.
 2.  To minimize iterations, compare acceptance rates across different $\lambda$ values.
-3.  Use simulation to show that when $\lambda = 1$, the number of iterations is lowest.
+3.  Generate random samples using the rejection sampling method for various $\lambda$ values.
+4.  Save results to a dataset & plot results
 
 **Putting it in practice**
 
 ```{r}
+library(purrr)
+library(ggplot2)
 set.seed(202425)
-lambda <- 1
-accept <- FALSE
-iterations <- 0
-while(!accept) {
-  X <- rexp(1, rate = lambda)
-  u <- runif(1)
-  if(u <= exp(-(X^2)/2)) accept <- TRUE
-  iterations <- iterations + 1
+rejectionIterations <- function(lambda, nTrials = 1000) {
+  map_dbl(1:nTrials, function(i) {
+    accept <- FALSE
+    iterationCount <- 0
+    while (!accept) {
+      x <- rexp(1, rate = lambda)
+      u <- runif(1)
+      if (u <= exp(-(x^2) / 2)) accept <- TRUE
+      iterationCount <- iterationCount + 1
+    }
+    return(iterationCount)
+  }) %>% mean()
 }
-iterations
+
+lambdaValues <- seq(0.5, 2, by = 0.1)
+iterationsPerLambda <- map_dbl(lambdaValues, rejectionIterations)
+df <- data.frame(lambda = lambdaValues, iterations = iterationsPerLambda)
+
+ggplot(df, aes(x = lambda, y = iterations)) +
+  geom_line(color = "#D73F09") +
+  geom_point(color = "#D73F09") +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "#000000") +
+  labs(x = expression(lambda), y = "Average Iterations", 
+       title = "Average Iterations vs Lambda") +
+  theme_bw()
 ```
