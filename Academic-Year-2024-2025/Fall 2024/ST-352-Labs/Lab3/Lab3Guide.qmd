@@ -1,20 +1,14 @@
 ---
-title: "ST 352 | Lab Assignment 3"
+title: "ST 352 | Lab Assignment 3 - Guide"
 subtitle: "Regression Analysis and Inference"
 author: "Brian Cervantes Alvarez"
 date: "10-15-2024"
-format: 
-  html:
-    toc: true
-    toc-location: right
-    toc-depth: 5
-    html-math-method: katex
-    page-layout: full
+format: pdf
 execute: 
   echo: true
   warning: false
 webr:
-  packages: ['mosaic', 'ggplot2', 'readr', 'dplyr', 'tidyr']
+  packages: ['ggplot2', 'readr', 'dplyr', 'tidyr']
   show-startup-message: false
 filters:
 - webr
@@ -25,44 +19,206 @@ editor:
 **Reminder of the honor code:**  
 *Lab assignments are to be completed individually!*
 
-# Lab Assignment 3
+# Objective
 
-In this lab assignment, we will explore regression analysis and inference using two datasets: `reaction.txt` and `planets.txt`. Problem 1 focuses on investigating the relationship between age and reaction time, while Problem 2 examines the relationship between the distance from the sun and the length of a year for various celestial objects.
+In this lab assignment, you will explore regression analysis and inference using the dataset `reaction.txt`. Problem 1 focuses on investigating the relationship between age and reaction time.
 
 # Problem 1: Age and Reaction Time
 
-During Week 3, you participated in an activity to test your reaction time. For this problem, we’ll investigate the relationship between age and reaction time. Specifically, we aim to determine if there is evidence to suggest that a person's age can predict their reaction time.
+During Week 3, you participated in an activity to test your reaction time. For this problem, you will investigate the relationship between age and reaction time. Specifically, you aim to determine if there is evidence to suggest that a person's age can predict their reaction time.
 
 The data for this analysis are stored in the `reaction.txt` dataset on Canvas. The dataset contains two variables:
+
 - `age` (in years)
 - `time` (average of three reaction times in milliseconds)
 
-## 1. Assessing Conditions
+{{< pagebreak >}}
 
-### 1) Copy and paste all three properly labeled plots here.
+## Part I | Assessing Conditions
 
-```{webr-r, echo=TRUE}
-# Load necessary libraries
+### 1) 
+
+**Hint**
+
+Generate three plots: a scatterplot of reaction time versus age, a residual plot to assess residuals, and a Normal Q-Q plot to evaluate the normality of residuals.
+
+
+
+```{r}
+# Load the dataset
+reactionData <- read.table("reaction.txt", header = TRUE)
+
+# 1. Scatterplot (Base R)
+plot(reactionData$age, reactionData$time, 
+     main = "Scatterplot of Reaction Time vs. Age",
+     xlab = "Age (years)", ylab = "Reaction Time (ms)", pch = 19, col = "blue")
+
+
+# Fit the linear regression model
+modelReaction <- lm(time ~ age, data = reactionData)
+
+# Calculate residuals
+reactionData$residuals <- residuals(modelReaction)
+
+# 2. Residual Plot (Base R)
+plot(reactionData$age, reactionData$residuals, 
+     main = "Residual Plot", 
+     xlab = "Age (years)", ylab = "Residuals (ms)", pch = 19, col = "red")
+abline(h = 0, lty = 2)
+
+# 3. Normal Q-Q Plot (Base R)
+qqnorm(reactionData$residuals, main = "Normal Q-Q Plot of Residuals",
+                               pch = 19, col = "darkgreen")
+qqline(reactionData$residuals)
+```
+
+### 2) Are there any outliers or other deviations from the pattern? Which plot(s) are you using to assess the outlier condition?
+
+
+**Hint**
+
+Examine the **Residual Plot** and the **Scatterplot** to identify any data points that fall far from the general trend. Look for points that are noticeably distant from the main cluster of data.
+
+
+### 3) Is the linearity condition satisfied? Explain. In your explanation, reference the plot(s) you are using to assess the linearity condition.
+
+
+**Hint**
+
+Consider the overall trend in the **Scatterplot**. Check if the relationship between age and reaction time appears to follow a straight line without any noticeable curves.
+
+
+### 4) Is the constant variation condition satisfied? Explain. In your explanation, reference the plot(s) you are using to assess the constant variation condition.
+
+
+**Hint**
+
+Look at the spread of residuals in the **Residual Plot**. Determine if the variability of residuals remains consistent across all levels of age.
+
+
+### 5) Is the normality condition satisfied? Explain. In your explanation, reference the plot(s) you are using to assess the normality condition.
+
+
+**Hint**
+
+Review the **Normal Q-Q Plot** of the residuals. Assess whether the points approximately follow the reference line, indicating normal distribution of residuals.
+
+
+### 6) Is a transformation necessary in this example? Explain.
+
+
+**Hint**
+
+Think about whether the assumptions of linear regression are adequately met. If all conditions (linearity, constant variation, normality) are satisfied, a transformation might not be needed.
+
+{{< pagebreak >}}
+
+## Part II | Inference in Regression
+
+### 7) Write the least-squares regression equation. Define the terms in the equation in the context of the problem.
+
+
+**Hint**
+
+The regression equation relates the predicted reaction time to age. Identify the intercept and slope from the linear model.
+
+
+### 8) Is there evidence that a person’s age can be used to predict their reaction time?
+
+#### a) State the null and alternative hypotheses in notation and words.
+
+
+**Hint**
+
+Formulate the hypotheses to test whether the slope of age is significantly different from zero.
+
+
+#### b) From the regression output, report the appropriate test-statistic with degrees of freedom.
+
+
+**Hint**
+
+Identify the t-statistic and the corresponding degrees of freedom from the summary of the regression model.
+
+
+#### c) State a conclusion in the context of the problem. Support your conclusion with a p-value.
+
+
+**Hint**
+
+Based on the p-value obtained from the regression output, decide whether to reject or fail to reject the null hypothesis.
+
+
+### 9) Use R to predict the reaction time of a 22-year-old. Report your answer here.
+
+```{r}
+#| eval: false
+# Predict reaction time for a 30-year-old [Example]
+newPerson <- data.frame(age = 30) 
+predictedTime <- ...(..., newdata = ...)
+predictedTime
+```
+
+
+**Hint**
+
+Use the `predict()` function with the fitted model and a new data frame containing the age value of 22.
+
+### 10) Obtain the appropriate 95% interval. Report and interpret the appropriate interval.
+
+#### a) A student wants to estimate the average reaction time for all 22-year-old people.
+
+```{r}
+#| eval: false
+# Confidence interval for the mean reaction time at age 30 [Example]
+confIntervalMean <- ...(..., newdata = ..., ..., ...)
+confIntervalMean
+```
+
+
+**Hint**
+
+Use the `predict()` function with `interval = "confidence"` to obtain the confidence interval for the mean reaction time.
+
+
+#### b) A student wants to estimate the reaction time for a person who is 22 years old.
+
+```{r}
+#| eval: false
+# Prediction interval for an individual reaction time at age 30 [Example]
+predInterval <- ...(..., newdata = ..., ...)
+predInterval
+```
+
+
+**Hint**
+
+Use the `predict()` function with `interval = "prediction"` to obtain the prediction interval for an individual reaction time.
+
+
+{{< pagebreak >}}
+
+# Appendix
+
+## Want to do it better? Use ggplot2 & tidyverse packages!
+```{r}
+# Load tidyverse libraries
 library(readr)
 library(ggplot2)
 library(dplyr)
 
-# Download and import the reaction data
-url_reaction <- "https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab3/reaction.txt"
-download.file(url_reaction, "reaction.txt")
-reaction <- read_csv("reaction.txt")
-
-# View the first few rows of the dataset
-head(reaction)
+# Read the reaction data
+reactionData <- read_table("reaction.txt")
 
 # Fit the linear regression model
-model_reaction <- lm(time ~ age, data = reaction)
+modelReaction <- lm(time ~ age, data = reactionData)
 
 # Calculate residuals
-reaction$residuals <- resid(model_reaction)
+reactionData <- reactionData %>%
+  mutate(residuals = resid(modelReaction))
 
 # 1. Scatterplot
-ggplot(reaction, aes(x = age, y = time)) +
+ggplot(reactionData, aes(x = age, y = time)) +
   geom_point(color = "blue") +
   labs(title = "Scatterplot of Reaction Time vs. Age",
        x = "Age (years)",
@@ -70,7 +226,7 @@ ggplot(reaction, aes(x = age, y = time)) +
   theme_minimal()
 
 # 2. Residual Plot
-ggplot(reaction, aes(x = age, y = residuals)) +
+ggplot(reactionData, aes(x = age, y = residuals)) +
   geom_point(color = "red") +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(title = "Residual Plot",
@@ -78,247 +234,46 @@ ggplot(reaction, aes(x = age, y = residuals)) +
        y = "Residuals (ms)") +
   theme_minimal()
 
-# 3. Normal Probability Plot of the Residuals
-ggplot(reaction, aes(sample = residuals)) +
+# 3. Normal Q-Q Plot of the Residuals
+ggplot(reactionData, aes(sample = residuals)) +
   stat_qq(color = "darkgreen") +
   stat_qq_line(color = "black") +
   labs(title = "Normal Q-Q Plot of Residuals") +
   theme_minimal()
+
 ```
 
-### 2) Are there any outliers or other deviations from the pattern? Which plot(s) are you using to assess the outlier condition?
+## Confidence Interval vs. Prediction Interval
+```{r}
+library(broom)
 
-**Answer:**
+# Use the augment function to add fitted values and intervals
+augmentedData <- augment(modelReaction, newdata = reactionData, 
+                                        interval = "confidence", se_fit = TRUE)
 
-Upon inspecting the residual plot and the scatterplot, there are no apparent outliers. All data points fall within a reasonable range without any extreme deviations. The residual plot does not show any points that are significantly distant from the horizontal line at zero, indicating the absence of outliers. Additionally, the scatterplot does not display any unusual patterns or isolated points that would suggest outliers.
+# Add prediction intervals
+augmentedData <- augmentedData %>%
+  mutate(pred.lower = predict(modelReaction, newdata = reactionData, 
+                                             interval = "prediction")[, 2],
+         pred.upper = predict(modelReaction, newdata = reactionData,
+                                             interval = "prediction")[, 3])
 
-### 3) Is the linearity condition satisfied? Explain. In your explanation, reference the plot(s) you are using to assess the linearity condition.
-
-**Answer:**
-
-Yes, the linearity condition is satisfied. The scatterplot of reaction time versus age shows a clear linear trend, indicating that as age increases, reaction time tends to change in a consistent manner. The residual plot does not display any systematic patterns or curvature, which further supports the assumption of linearity between the variables.
-
-### 4) Is the constant variation condition satisfied? Explain. In your explanation, reference the plot(s) you are using to assess the constant variation condition.
-
-**Answer:**
-
-Yes, the constant variation (homoscedasticity) condition is satisfied. The residual plot displays a random scatter of residuals around the horizontal line at zero without any funnel shapes or patterns. This indicates that the variability of reaction times is consistent across all ages, fulfilling the constant variation assumption.
-
-### 5) Is the normality condition satisfied? Explain. In your explanation, reference the plot(s) you are using to assess the normality condition.
-
-**Answer:**
-
-Yes, the normality condition is satisfied. The Normal Q-Q plot of the residuals closely follows the reference line, suggesting that the residuals are approximately normally distributed. There are no significant deviations from the line, indicating that the normality assumption holds.
-
-### 6) Is a transformation necessary in this example? Explain.
-
-**Answer:**
-
-No, a transformation is not necessary in this example. All the regression assumptions, including linearity, constant variation, and normality of residuals, are adequately satisfied without the need for data transformation. The existing model provides a good fit to the data.
-
-## 2. Inference in Regression
-
-### 7) Write the least-squares regression equation. Define the terms in the equation in the context of the problem.
-
-**Answer:**
-
-The least-squares regression equation is:
-
-\[ \hat{\text{time}} = \beta_0 + \beta_1 \times \text{age} \]
-
-Where:
-- \( \hat{\text{time}} \) is the predicted average reaction time in milliseconds.
-- \( \beta_0 \) is the y-intercept, representing the estimated reaction time when age is 0 years.
-- \( \beta_1 \) is the slope coefficient, indicating the change in reaction time for each additional year of age.
-
-### 8) Is there evidence that a person’s age can be used to predict their reaction time?
-
-#### a) State the null and alternative hypotheses in notation and words.
-
-**Answer:**
-
-- **Null Hypothesis (\( H_0 \))**: \( \beta_1 = 0 \)  
-  *There is no linear relationship between age and reaction time.*
-
-- **Alternative Hypothesis (\( H_1 \))**: \( \beta_1 \neq 0 \)  
-  *There is a linear relationship between age and reaction time.*
-
-#### b) From the regression output, report the appropriate test-statistic with degrees of freedom.
-
-**Answer:**
-
-Assuming the regression output provided the t-statistic and degrees of freedom, it would be reported as follows (replace with actual values from your output):
-
-- **t-statistic**: 2.45
-- **Degrees of Freedom**: 28
-
-#### c) State a conclusion in the context of the problem. Support your conclusion with a p-value.
-
-**Answer:**
-
-Since the p-value is less than 0.05 (e.g., p = 0.021), we reject the null hypothesis. There is statistically significant evidence at the 5% significance level to conclude that a person's age is a predictor of their reaction time.
-
-### 9) Use R to predict the reaction time of a 22-year-old. Report your answer here.
-
-```{webr-r, echo=TRUE}
-# Predict reaction time for a 22-year-old
-new_data <- data.frame(age = 22)
-predicted_time <- predict(model_reaction, newdata = new_data)
-predicted_time
-```
-
-**Answer:**
-
-The predicted reaction time for a 22-year-old is **[Insert Predicted Value]** milliseconds.
-
-### 10) Obtain the appropriate 95% interval. Report and interpret the appropriate interval.
-
-#### a) A student wants to estimate the average reaction time for all 22-year-old people.
-
-```{webr-r, echo=TRUE}
-# Confidence interval for the mean reaction time at age 22
-conf_interval_mean <- predict(model_reaction, newdata = new_data, interval = "confidence", level = 0.95)
-conf_interval_mean
-```
-
-**Answer:**
-
-The 95% confidence interval for the average reaction time of all 22-year-olds is **[Lower Bound, Upper Bound]** milliseconds. This means we are 95% confident that the true mean reaction time for 22-year-olds lies within this interval.
-
-#### b) A student wants to estimate the reaction time for a person who is 22 years old.
-
-```{webr-r, echo=TRUE}
-# Prediction interval for an individual reaction time at age 22
-pred_interval <- predict(model_reaction, newdata = new_data, interval = "prediction", level = 0.95)
-pred_interval
-```
-
-**Answer:**
-
-The 95% prediction interval for an individual 22-year-old's reaction time is **[Lower Bound, Upper Bound]** milliseconds. This interval estimates the range within which a single person's reaction time is expected to fall with 95% confidence.
-
-# Problem 2: Distance from the Sun and Length of Year
-
-At a meeting of the International Astronomical Union (IAE) in Prague in 2006, Pluto was determined not to be a planet but rather the largest member of the Kuiper Belt of icy objects. Let's examine the relationship between the distance from the sun for nine sun-orbiting objects (including Pluto) and their length of years (Earth years) for one complete orbit around the sun.
-
-The data are in the `planets.txt` dataset on Canvas. The variables are:
-- `Distance` (distance from the sun in millions of miles)
-- `length` (length of a year in Earth years)
-
-## 11) Include the properly labeled scatterplot here and describe the relationship between these two variables.
-
-```{webr-r, echo=TRUE}
-# Download and import the planets data
-url_planets <- "https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab3/planets.txt"
-download.file(url_planets, "planets.txt")
-planets <- read_csv("planets.txt")
-
-# View the first few rows of the dataset
-head(planets)
-
-# Scatterplot of Length of Year vs. Distance from Sun
-ggplot(planets, aes(x = Distance, y = length)) +
-  geom_point(color = "purple", size = 3) +
-  labs(title = "Scatterplot of Length of Year vs. Distance from Sun",
-       x = "Distance from Sun (million miles)",
-       y = "Length of Year (Earth years)") +
+# 1. Plot with Confidence Interval
+ggplot(augmentedData, aes(x = age, y = time)) +
+  geom_point(color = "blue") +
+  geom_line(aes(y = .fitted), color = "black") +
+  geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = "blue", alpha = 0.2) +
+  labs(title = "Reaction Time vs. Age with Confidence Interval",
+       x = "Age (years)", y = "Reaction Time (ms)") +
   theme_minimal()
+
+# 2. Plot with Prediction Interval
+ggplot(augmentedData, aes(x = age, y = time)) +
+  geom_point(color = "blue") +
+  geom_line(aes(y = .fitted), color = "black") +
+  geom_ribbon(aes(ymin = pred.lower, ymax = pred.upper), fill = "red", alpha = 0.2) +
+  labs(title = "Reaction Time vs. Age with Prediction Interval",
+       x = "Age (years)", y = "Reaction Time (ms)") +
+  theme_minimal()
+
 ```
-
-**Answer:**
-
-![Scatterplot of Length of Year vs. Distance from Sun](scatterplot_planets.png)
-
-**Description:**
-
-The scatterplot displays a positive relationship between the distance from the sun and the length of a year. As the distance increases, the length of the year also tends to increase. This suggests that celestial objects farther from the sun take longer to complete one orbit around it.
-
-## 12) Write the least-squares regression equation. Define the terms in the equation in the context of the problem.
-
-**Answer:**
-
-After applying the natural logarithm transformation to both variables, the least-squares regression equation is:
-
-\[ \ln(\text{length}) = \beta_0 + \beta_1 \times \ln(\text{Distance}) \]
-
-Where:
-- \( \ln(\text{length}) \) is the natural logarithm of the length of a year in Earth years.
-- \( \ln(\text{Distance}) \) is the natural logarithm of the distance from the sun in millions of miles.
-- \( \beta_0 \) is the y-intercept of the regression line.
-- \( \beta_1 \) is the slope coefficient, representing the elasticity of the length of the year with respect to distance from the sun.
-
-## 13) Report the value of R-square. What does this value tell you about the relationship between ln(length of year) and ln(distance from the sun)?
-
-```{webr-r, echo=TRUE}
-# Transform variables using natural log
-planets$ln_length <- log(planets$length)
-planets$ln_distance <- log(planets$Distance)
-
-# Fit the transformed linear regression model
-model_planets <- lm(ln_length ~ ln_distance, data = planets)
-
-# Summary of the regression model to get R-squared
-summary_model <- summary(model_planets)
-summary_model$r.squared
-```
-
-**Answer:**
-
-The R-square value is **[Insert R-square Value]**. This indicates that **[Insert Percentage]%** of the variability in the natural logarithm of the length of a year is explained by the natural logarithm of the distance from the sun. This suggests a strong/moderate/weak linear relationship between the two variables after transformation.
-
-## 14) It has been suggested that the asteroid belt between Mars and Jupiter may be the remnants of a failed planet. Suppose that the failed planet was 285 million miles from the sun. Predict its length of year (in Earth years) using the best-fitting model. You may do this by hand (showing work) or using R.
-
-```{webr-r, echo=TRUE}
-# Predict the natural log of length for Distance = 285 million miles
-new_distance <- 285
-new_ln_distance <- log(new_distance)
-new_planet <- data.frame(ln_distance = new_ln_distance)
-
-# Predict ln(length) using the model
-predicted_ln_length <- predict(model_planets, newdata = new_planet)
-
-# Convert back to original scale by exponentiating
-predicted_length <- exp(predicted_ln_length)
-predicted_length
-```
-
-**Answer:**
-
-The predicted length of year for an object located 285 million miles from the sun is **[Insert Predicted Length]** Earth years.
-
-# Conclusion
-
-In this lab assignment, we conducted regression analyses to explore the relationships between age and reaction time, as well as the distance from the sun and the length of a year for celestial objects. Through assessing regression assumptions and interpreting statistical outputs, we gained insights into how these variables interact and influence each other.
-
-# References
-
-- Lab 3A Notes
-- Lab 3B Notes
-- [GitHub Repository for Lab Data](https://github.com/bcervantesalvarez/MS-Statistics/tree/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab3)
-
-# Acknowledgments
-
-Thank you to the course instructors and teaching assistants for providing the necessary resources and support for this lab assignment.
-
-# Appendix
-
-## Downloaded Datasets
-
-- [reaction.txt](https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab3/reaction.txt)
-- [planets.txt](https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab3/planets.txt)
-
-# Submission Instructions
-
-Please ensure that all R code runs correctly and that all plots and answers are properly labeled before submitting your lab assignment. Submit your completed lab report through Canvas by the due date.
-
-# Honor Code Reminder
-
-Remember that lab assignments must be completed individually. Collaboration or plagiarism will result in academic penalties.
-
-# Contact Information
-
-For any questions or concerns regarding this lab assignment, please contact Brian Cervantes Alvarez during office hours or via email.
-
-# Good Luck!
-
-Happy analyzing!
