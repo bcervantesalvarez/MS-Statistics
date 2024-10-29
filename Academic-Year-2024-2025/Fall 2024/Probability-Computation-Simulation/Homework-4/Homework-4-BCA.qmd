@@ -1,179 +1,210 @@
 ---
 title: "Probability, Computation and Simulation Homework 4"
 author: "Brian Cervantes Alvarez"
-date: today
+date: "`r Sys.Date()`"
 format: OSULatexTheme-pdf
 editor:
   render-on-save: true
----
-
----
-
-title: "Probability, Computation and Simulation Homework 4"
-author: "Brian Cervantes Alvarez"
-date: \today
-
+message: false
+warning: false
 ---
 
 ## Problem
 
 I've read about the birthday problem, and how you only need 23 randomly chosen people for there to be a 50% chance that two people share a birthday. But how many people would you need for there to be a 50% chance that every possible birthday is represented by at least one person?
 
-To solve this, we will estimate the probability that all birthdays (excluding February 29th and assuming each day is equally likely) are covered with $M$ people for various values of $M$, identifying the value where the probability is 0.5.
+To solve this, we will estimate the probability that all birthdays (excluding February 29th and assuming each day is equally likely) are covered with `numPeople` people for various values of `numPeople`, identifying the value where the probability is 0.5.
 
 ### Steps:
 
-1. **Write a function to estimate $p_M = P(\text{All birthdays are represented with } M \text{ people})$** using simulations.
+1.  **Write a function to estimate** $p_M = P(\text{All birthdays are represented with } M \text{ people})$ using simulations.
+2.  **Try different values for `numPeople`** to find where $p_M$ is approximately 0.2 and 0.8.
+3.  **Construct a data frame** with a range of `numPeople` values between those found in step 2.
+4.  **Add a new column `probHat`** with the estimated probs.
+5.  **Create a plot of `numPeople` versus the estimated probs**, including confidence intervals based on the Central Limit Theorem (CLT).
+6.  **Find the value of `numPeople`** that satisfies $p_M = 0.5$.
+7.  **Generalize steps 2–6** with different simulation numbers `nSim = 10000, 50000, 100000`.
+8.  **Compare the results** from different values of `nSim` and explain the findings.
 
-2. **Try different values for $M$** to find where $p_M$ is approximately 0.2 and 0.8.
+{{< pagebreak >}}
 
-3. **Construct a data frame** with a range of $M$ values between those found in step 2.
+### 1
 
-4. **Add a new column $\hat{p}$** with the estimated probabilities.
-
-5. **Create a plot of $M$ versus the estimated probabilities**, including confidence intervals based on the Central Limit Theorem (CLT).
-
-6. **Find the value of $M$** that satisfies $p_M = 0.5$.
-
-7. **Generalize steps 2–6** with different simulation numbers $B = 10000, 50000, 100000$.
-
-8. **Compare the results** from different values of $B$ and explain the findings.
-
----
-
-## Solution
-
-### 1. Writing the Function $p_{\hat{M}}$
-
-We define a function $p_{\hat{M}}$ that estimates the probability that all 365 birthdays are represented among $M$ people:
+We define a function `estBirthdayProb` that estimates the probability that all 365 birthdays are represented among `numPeople` individuals:
 
 ```{r}
-p_hat <- function(n = 365, M = 3000, B = 10000, prob = rep(1, n) / n) {
-  successes <- replicate(B, {
-    birthdays <- sample(1:n, M, replace = TRUE, prob = prob)
-    length(unique(birthdays)) == n
+# Load necessary libraries
+library(purrr)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+estBirthdayProb <- function(totBds = 365, 
+                            numPeople, nSim, 
+                            probs = rep(1, totBds) / totBds) {
+  successes <- replicate(nSim, {
+    sampBirthdays <- sample(1:totBds, numPeople, 
+                               replace = TRUE, prob = probs)
+    length(unique(sampBirthdays)) == totBds
   })
   mean(successes)
 }
 ```
 
-This function:
+{{< pagebreak >}}
 
-- Simulates $B$ groups of $M$ people.
-- For each group, samples $M$ birthdays with equal probability.
-- Checks if all $n = 365$ birthdays are represented.
-- Returns the estimated probability $\hat{p}$.
+### 2
 
-### 2. Finding $M$ Values for Approximate Probabilities 0.2 and 0.8
+We iteratively test different `numPeople` values to find where the estimated probability is approximately 0.2 and 0.8.
 
-We iteratively test different $M$ values to find where $\hat{p}$ is approximately 0.2 and 0.8.
+-   Starting with `numPeople = 1200`:
+    -   $p_M(M = 1200) \approx 0.2$
+-   Testing `numPeople = 1800`:
+    -   $p_M(M = 1800) \approx 0.8$
 
-- Starting with $M = 1200$:
-  - $p_{\hat{M}}(M = 1200) \approx 0.2$
-- Testing $M = 1800$:
-  - $p_{\hat{M}}(M = 1800) \approx 0.8$
+{{< pagebreak >}}
 
 ### 3. Constructing the Data Frame
 
-We create a sequence of $M$ values between 1200 and 1800:
+We create a sequence of `numPeople` values between 1200 and 1800:
 
 ```{r}
-M_values <- seq(1200, 1800, by = 50)
+numPeopleRange <- seq(1500, 2800, by = 50)
 ```
 
-### 4. Estimating Probabilities for Each $M$
+{{< pagebreak >}}
 
-For each $M$ in `M_values`, we estimate $\hat{p}$:
+### 4
+
+For each `numPeople` in `numPeopleRange`, we estimate `probHat` using `purrr::map_dbl`:
 
 ```{r}
 set.seed(202425)
-B <- 10000  # Number of simulations
-p_estimates <- sapply(M_values, function(M) p_hat(M = M, B = B))
+nSim <- 10000
+# Estimate probs
+probEst <- map_dbl(numPeopleRange, ~ estBirthdayProb(numPeople = .x, 
+                                                     nSim = nSim))
+simulationResults <- tibble(
+  numPeople = numPeopleRange,
+  probHat = probEst
+)
 ```
 
-We construct the data frame:
+{{< pagebreak >}}
 
-```{r}
-results <- data.frame(M = M_values, p_hat = p_estimates)
-```
+### 5
 
-### 5. Plotting $M$ Versus Estimated Probabilities with Confidence Intervals
+Using the Central Limit Theorem, the `standardError` for each `probHat` is:
 
-Using the CLT, the standard error $SE$ for each $\hat{p}$ is:
-
-\[
+$$
 SE = \sqrt{\frac{\hat{p} (1 - \hat{p})}{B}}
-\]
+$$
 
-We add confidence intervals to the data frame:
+Thus, We can add the confidence intervals:
 
 ```{r}
-results$SE <- sqrt(results$p_hat * (1 - results$p_hat) / B)
+simulationResults <- simulationResults %>%
+  mutate(
+    standardError = sqrt(probHat * (1 - probHat) / nSim),
+    lowerCI = probHat - 1.96 * standardError,
+    upperCI = probHat + 1.96 * standardError
+  )
 ```
 
-Plotting the results:
+After adding the CI, we can then plot the CDF:
 
 ```{r}
-library(ggplot2)
-ggplot(results, aes(x = M, y = p_hat)) +
+ggplot(simulationResults, aes(x = numPeople, y = probHat)) +
   geom_line(color = "blue") +
   geom_point() +
-  geom_errorbar(aes(ymin = p_hat - 1.96 * SE, ymax = p_hat + 1.96 * SE), width = 20) +
-  labs(title = "Estimated Probability vs Number of People",
-       x = "Number of People (M)",
-       y = "Estimated Probability (p_hat)") +
-  theme_minimal()
+  geom_errorbar(aes(ymin = lowerCI, ymax = upperCI), width = 30) +
+  labs(
+    title = "Estimated Probability vs Number of People",
+    x = "Number of People",
+    y = "Estimated Probability"
+  ) +
+  theme_bw()
 ```
 
-### 6. Finding $M$ Such That $p_M = 0.5$
+{{< pagebreak >}}
 
-We can interpolate to find $M$ where $\hat{p} \approx 0.5$:
+### 6
+
+We can interpolate to find `numPeople` where `probHat ≈ 0.5`:
 
 ```{r}
-approx_M <- approx(x = results$p_hat, y = results$M, xout = 0.5)$y
+interpolatedM <- approx(x = simulationResults$probHat, 
+                        y = simulationResults$numPeople, xout = 0.5)$y
+interpolatedM
 ```
 
 From the interpolation, we find:
 
-- $M \approx 1470$ gives $\hat{p} \approx 0.5$.
+-   `numPeople ≈ 2286` gives `probHat ≈ 0.5`.
 
-### 7. Generalizing with Different $B$ Values
+{{< pagebreak >}}
 
-We repeat the simulation for $B = 10000, 50000, 100000$:
+### 7
+
+We repeat the simulation for `nSim = 10000, 50000, 100000`:
 
 ```{r}
-B_values <- c(10000, 50000, 100000)
-all_results <- lapply(B_values, function(B) {
-  p_estimates <- sapply(M_values, function(M) p_hat(M = M, B = B))
-  SE <- sqrt(p_estimates * (1 - p_estimates) / B)
-  data.frame(M = M_values, p_hat = p_estimates, SE = SE, B = B)
-})
-combined_results <- do.call(rbind, all_results)
+# Define different simulation counts
+simTiers <- c(5000, 10000, 20000)
+# Function to perform simulations for a given number of simulations
+simulateCDF <- function(currentSims) {
+  probEst <- map_dbl(numPeopleRange, ~ {
+    estBirthdayProb(numPeople = .x, nSim = currentSims)
+  })
+  tibble(
+    numPeople = numPeopleRange,
+    probHat = probEst,
+    standardError = sqrt(probEst * (1 - probEst) / currentSims),
+    nSim = currentSims
+  )
+}
+# Perform simulations across different simulation counts
+simulateCDFResults <- map_dfr(simTiers, simulateCDF)
 ```
 
-### 8. Comparing Results from Different $B$ Values
+{{< pagebreak >}}
 
-We plot the results for each $B$:
+### 8
+
+We plot the results for $B = \{5000, 10000, 20000\}$
 
 ```{r}
-ggplot(combined_results, aes(x = M, y = p_hat, color = factor(B))) +
+# Combined Plot
+ggplot(simulateCDFResults, aes(x = numPeople, 
+                               y = probHat, color = factor(nSim))) +
   geom_line() +
   geom_point() +
-  labs(title = "Estimated Probability vs Number of People for Different B",
-       x = "Number of People (M)",
-       y = "Estimated Probability (p_hat)",
-       color = "Number of Simulations (B)") +
+  labs(
+    title = "Est. Probability vs Number of People",
+    x = "Number of People",
+    y = "Estimated Probability",
+    color = "Number of Simulations"
+  ) +
+  scale_color_discrete(labels = c("5000", "10000", "20000")) + 
   theme_minimal()
+
+# Facet Plot
+ggplot(simulateCDFResults, aes(x = numPeople,
+                               y = probHat, color = factor(nSim))) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Est. Probability vs Number of People",
+    x = "Number of People",
+    y = "Estimated Probability",
+    color = "Number of Simulations"
+  ) +
+  scale_color_discrete(labels = c("5000", "10000", "20000")) + 
+  theme_minimal() +
+  facet_wrap(~ nSim)
 ```
 
-**Observations:**
+## Conclusion
 
-- As $B$ increases, the estimated probabilities become more precise (smaller $SE$).
-- The curves for different $B$ values overlap, indicating consistency in the estimates.
-- The value of $M$ where $\hat{p} \approx 0.5$ remains around 1470 across different $B$.
-
----
-
-**Conclusion:**
-
-Through simulation, we estimate that approximately 1470 people are needed for there to be a 50% chance that every possible birthday is represented. Increasing the number of simulations $B$ improves the accuracy of our estimates but does not significantly change the estimated $M$ value.
+Through simulation, we estimate that approximately **2286 people** are needed for there to be a **50% chance** that every possible birthday is represented. Increasing the number of simulations improves the accuracy of our estimates but does not significantly change the estimated number of people. Intriguingly, if we wanted there to be a **80% chance** that every possible birthday is represented, we estimate that it would require approximately **2692 people**! That is just an increase of **406 people** (17.76%) to get an extra **30%** chance that every possible birthday is represented.
