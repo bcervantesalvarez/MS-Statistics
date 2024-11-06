@@ -9,7 +9,7 @@
 <meta name="author" content="Brian Cervantes Alvarez">
 <meta name="dcterms.date" content="2024-11-01">
 
-<title>ST 352 | Lab Assignment 4 - Guide</title>
+<title>ST 352 | Lab Assignment 5 - Guide</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -25,16 +25,16 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="Lab4Guide_files/libs/clipboard/clipboard.min.js"></script>
-<script src="Lab4Guide_files/libs/quarto-html/quarto.js"></script>
-<script src="Lab4Guide_files/libs/quarto-html/popper.min.js"></script>
-<script src="Lab4Guide_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="Lab4Guide_files/libs/quarto-html/anchor.min.js"></script>
-<link href="Lab4Guide_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="Lab4Guide_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="Lab4Guide_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="Lab4Guide_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="Lab4Guide_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="Lab5Guide_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Lab5Guide_files/libs/quarto-html/quarto.js"></script>
+<script src="Lab5Guide_files/libs/quarto-html/popper.min.js"></script>
+<script src="Lab5Guide_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Lab5Guide_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Lab5Guide_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Lab5Guide_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Lab5Guide_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Lab5Guide_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Lab5Guide_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs/editor/editor.main.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer">
   
@@ -184,7 +184,7 @@ ul.task-list li input[type="checkbox"] {
 const initializeWebRTimerStart = performance.now();
 
 // Determine if we need to install R packages
-var installRPackagesList = [];
+var installRPackagesList = [''];
 // Check to see if we have an empty array, if we do set to skip the installation.
 var setupRPackages = !(installRPackagesList.indexOf("") !== -1);
 var autoloadRPackages = true;
@@ -882,8 +882,7 @@ globalThis.qwebrCreateMonacoEditorInstance = function (
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">ST 352 | Lab Assignment 4 - Guide</h1>
-<p class="subtitle lead">Multiple Regression Analysis and Model Selection</p>
+<h1 class="title">ST 352 | Lab Assignment 5 - Guide</h1>
 </div>
 
 
@@ -912,26 +911,31 @@ globalThis.qwebrCreateMonacoEditorInstance = function (
 </header>
 
 
-<p><strong>Reminder of the honor code:</strong><br>
-<em>Lab assignments are to be completed individually!</em></p>
+<p><strong>Honor Code Reminder:</strong><br>
+<em>Complete lab assignments individually!</em></p>
 <section id="objective" class="level1">
 <h1>Objective</h1>
-<p>In this lab assignment, you will perform multiple regression analysis and model selection using the <code>bodyfat</code> dataset. You will explore the relationships between various explanatory variables and the response variable (percent body fat), assess regression assumptions, conduct hypothesis tests, and apply model selection techniques to build an optimal predictive model.</p>
-</section>
-<section id="data-description" class="level1">
-<h1>Data Description</h1>
-<p>The <code>bodyfat</code> dataset contains the following variables:</p>
+<p>In this lab, you’ll explore interaction terms in regression models and apply model selection using the <code>brainhead</code> dataset. You’ll examine gender-based differences, test the significance of interaction terms, and assess multiple regression conditions through transformations.</p>
+<hr>
+<section id="part-i-interaction-term-and-gender-differences-12-points" class="level2">
+<h2 class="anchored" data-anchor-id="part-i-interaction-term-and-gender-differences-12-points">Part I: Interaction Term and Gender Differences (12 points)</h2>
+<section id="problem-1-scatterplot-with-regression-lines-by-gender-2-points" class="level3">
+<h3 class="anchored" data-anchor-id="problem-1-scatterplot-with-regression-lines-by-gender-2-points">Problem 1: Scatterplot with Regression Lines by Gender (2 points)</h3>
+<p>Create a scatterplot that includes:</p>
 <ul>
-<li><code>fat</code>: Percent body fat</li>
-<li><code>age</code>: Age in years</li>
-<li><code>weight</code>: Weight in pounds</li>
-<li><code>height</code>: Height in inches</li>
-<li><code>chest</code>: Chest circumference in centimeters</li>
+<li>Different symbols for males and females</li>
+<li>Separate regression lines for each gender</li>
+<li>A legend explaining each symbol and line</li>
 </ul>
+<section id="steps" class="level4">
+<h4 class="anchored" data-anchor-id="steps">Steps</h4>
+<ol type="1">
+<li>Use <code>plot()</code> and <code>points()</code> to create scatterplots for males and females.</li>
+<li>Use <code>abline()</code> to add regression lines for each gender.</li>
+</ol>
 </section>
-<section id="problem-1-identifying-highly-correlated-explanatory-variables" class="level1">
-<h1>Problem 1: Identifying Highly Correlated Explanatory Variables</h1>
-<p>Based on both the scatterplot matrix of the explanatory variables and the correlation matrix, which two explanatory variables are “highly correlated”? Explain. You must use and refer to both the scatterplot matrix and the correlation matrix in your explanation of why these two variables are considered highly correlated. (Include the scatterplot matrix here. You do not have to include the correlation matrix.)</p>
+<section id="code-example" class="level4">
+<h4 class="anchored" data-anchor-id="code-example">Code Example</h4>
 <div id="qwebr-insertion-location-1"></div>
 <script type="module">
 // Retrieve the insertion point
@@ -947,29 +951,55 @@ currentDocumentLocation.appendChild(initializedElement);
 
 // Initialize a Monaco Editor Instance
 qwebrCreateMonacoEditorInstance(
-  `# Read the bodyfat data
-bodyfatData <- read.table("https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab4/bodyfat.txt", header = TRUE)
+  `# Read brainhead data
+brainheadData <- read.table("brainhead.txt", header = TRUE)
 
-# Select explanatory variables (age, weight, height, chest)
-explanatoryVars <- bodyfatData[c("age", "weight", "height", "chest")]
+# Separate data by gender
+maleData <- subset(brainheadData, gender == "male")
+femaleData <- subset(brainheadData, gender == "female")
 
-# Create scatterplot matrix
-pairs(explanatoryVars,
-      main = "Scatterplot Matrix of Explanatory Variables",
-      pch = 19,
-      col = "blue")`, 
+# Plot
+plot(maleData$headsize, maleData$brainwt,
+     pch = 19, col = "blue",
+     xlab = "Head Size (cm³)", 
+     ylab = "Brain Weight (g)", 
+     main = "Brain Weight vs. Head Size by Gender")
+points(femaleData$headsize, femaleData$brainwt, pch = 17, col = "red")
+
+# Fit separate regression lines
+maleModel <- lm(brainwt ~ headsize, data = maleData)
+femaleModel <- lm(brainwt ~ headsize, data = femaleData)
+
+abline(maleModel, col = "blue", lty = 1)
+abline(femaleModel, col = "red", lty = 2)
+legend("topright", 
+       legend = c("Male", "Female"), 
+       pch = c(19, 17),
+       col = c("blue", "red"))`, 
   1);
 </script>
 <noscript>Please enable JavaScript to experience the dynamic code cell content on this page.</noscript>
 </section>
-<section id="problem-2-variable-selection-based-on-correlation" class="level1">
-<h1>Problem 2: Variable Selection Based on Correlation</h1>
-<p>In the Lab 4 Notes, a strategy was shown to help with deciding which highly correlated explanatory variable to remove. From that strategy, which of the two highly correlated explanatory variables mentioned in the lab notes would be removed? Explain why that variable would be removed.</p>
-<p>Based on the strategy outlined in the Lab 4 Notes, the variable <code>height</code> would be removed. This decision is made because <code>weight</code> has a stronger theoretical or practical relevance to the response variable (<code>fat</code>) compared to <code>height</code>. Additionally, removing <code>height</code> helps to reduce multicollinearity in the model while retaining the explanatory variable that provides more meaningful information for prediction.</p>
 </section>
-<section id="problem-3-assessing-regression-assumptions" class="level1">
-<h1>Problem 3: Assessing Regression Assumptions</h1>
-<p>Include the graphical displays to assess the linearity, constant variation, and normality conditions (scatterplot matrix that includes the response variable, residual plot, and normal probability plot of the residuals).</p>
+<section id="problem-2-need-for-an-interaction-term-2-points" class="level3">
+<h3 class="anchored" data-anchor-id="problem-2-need-for-an-interaction-term-2-points">Problem 2: Need for an Interaction Term? (2 points)</h3>
+<p>Using the scatterplot, discuss if an interaction term is necessary.</p>
+<ul>
+<li><strong>Guiding Questions</strong>: Are the regression lines parallel, or do they have different slopes? If they’re similar, an interaction term may not add much value.</li>
+</ul>
+</section>
+<section id="problem-3-hypothesis-test-for-interaction-term-4-points" class="level3">
+<h3 class="anchored" data-anchor-id="problem-3-hypothesis-test-for-interaction-term-4-points">Problem 3: Hypothesis Test for Interaction Term (4 points)</h3>
+<p>Perform a hypothesis test to evaluate the significance of the interaction term between <code>headsize</code> and <code>gender</code>.</p>
+<ul>
+<li><p><strong>a.</strong> State null and alternative hypotheses.</p>
+<ul>
+<li><strong>Guiding Questions</strong>: What does it mean for the interaction term to be significant? Does <code>headsize</code> affect <code>brainwt</code> differently for each gender?</li>
+</ul></li>
+<li><p><strong>b.</strong> Report t-statistic, degrees of freedom, and p-value.</p></li>
+</ul>
+<section id="code-example-1" class="level4">
+<h4 class="anchored" data-anchor-id="code-example-1">Code Example</h4>
 <div id="qwebr-insertion-location-2"></div>
 <script type="module">
 // Retrieve the insertion point
@@ -985,67 +1015,43 @@ currentDocumentLocation.appendChild(initializedElement);
 
 // Initialize a Monaco Editor Instance
 qwebrCreateMonacoEditorInstance(
-  `# Select response and remaining explanatory variables after removing height
-responseVar <- bodyfatData$fat
-selectedExplanatory <- bodyfatData[c("age", "weight", "chest")]
-
-# Fit the initial multiple regression model
-initialModel <- lm(fat ~ age + weight + chest, data = bodyfatData)
-summary(initialModel)
-
-# Scatterplot matrix including the response variable
-pairs(bodyfatData[c("fat", "age", "weight", "chest")],
-      main = "Scatterplot Matrix Including Response Variable",
-      pch = 19,
-      col = "blue")
-
-# Residual plot
-par(mfrow = c(1, 2))  # Arrange plots side by side
-plot(initialModel$fitted.values, initialModel$residuals,
-     main = "Residuals vs Fitted Values",
-     xlab = "Fitted Values (Percent Body Fat)",
-     ylab = "Residuals",
-     pch = 19, col = "blue")
-abline(h = 0, col = "red", lwd = 2)
-
-# Normal probability plot of residuals
-qqnorm(initialModel$residuals,
-       main = "Normal Q-Q Plot of Residuals",
-       pch = 19, col = "blue")
-qqline(initialModel$residuals, col = "red", lwd = 2)
-par(mfrow = c(1,1))  # Reset plotting layout`, 
+  `# Fit model with interaction
+interactionModel <- lm(brainwt ~ headsize * gender, data = brainheadData)
+summary(interactionModel)`, 
   2);
 </script>
 <noscript>Please enable JavaScript to experience the dynamic code cell content on this page.</noscript>
-</section>
-<section id="problem-4-assessing-linearity" class="level1">
-<h1>Problem 4: Assessing Linearity</h1>
-<p>Using the appropriate graph, discuss whether or not the linearity condition is satisfied. Make sure to reference which plot you are using to assess this condition.</p>
-</section>
-<section id="problem-5-assessing-constant-variation" class="level1">
-<h1>Problem 5: Assessing Constant Variation</h1>
-<p>Using the appropriate graph, discuss whether or not the constant variation condition is satisfied. Make sure to reference which plot you are using to assess this condition.</p>
-</section>
-<section id="problem-6-assessing-normality" class="level1">
-<h1>Problem 6: Assessing Normality</h1>
-<p>Using the appropriate graph, discuss whether or not the normality condition is satisfied. Make sure to reference which plot you are using to assess this condition.</p>
-</section>
-<section id="problem-7-f-test-for-overall-significance" class="level1">
-<h1>Problem 7: F-test for Overall Significance</h1>
-<p>Perform an F-test to determine if at least one explanatory variable is helpful in predicting the response.</p>
-<section id="a." class="level3">
-<h3 class="anchored" data-anchor-id="a.">a.</h3>
-<p>State the null and alternative hypotheses in words.</p>
 <ul>
-<li><p><strong>Null Hypothesis</strong> <span class="math inline">\(H_0\)</span>: None of the explanatory variables (<code>age</code>, <code>weight</code>, <code>chest</code>) are associated with the response variable (<code>fat</code>). In other words, all regression coefficients are equal to zero.</p>
-<p>All the <span class="math inline">\(\beta_1 = \beta_2 = \beta_3 = 0\)</span></p></li>
-<li><p><strong>Alternative Hypothesis</strong> <span class="math inline">\(H_a\)</span>: At least one of the explanatory variables (<code>age</code>, <code>weight</code>, <code>chest</code>) is associated with the response variable (<code>fat</code>). In other words, at least one regression coefficient is not equal to zero.</p>
-<p>At least one <span class="math inline">\(\beta_1,\beta_2,\beta_3 \ne 0\)</span></p></li>
+<li><p><strong>c.</strong> Draw a conclusion based on the p-value.</p>
+<ul>
+<li><strong>Prompt</strong>: Is the p-value for the interaction term low enough (e.g., below 0.05) to suggest that head size’s effect on brain weight differs by gender?</li>
+</ul></li>
 </ul>
 </section>
-<section id="b." class="level3">
-<h3 class="anchored" data-anchor-id="b.">b.</h3>
-<p>Using the regression output, report the F-statistic with degrees of freedom and the p-value. (No calculations are necessary! Include the regression output from R – please put the output below your answer to this question.)</p>
+</section>
+<section id="problem-4-least-squares-regression-equation-2-points" class="level3">
+<h3 class="anchored" data-anchor-id="problem-4-least-squares-regression-equation-2-points">Problem 4: Least-Squares Regression Equation (2 points)</h3>
+<p>Write the regression equation, including the interaction term.</p>
+<ul>
+<li><strong>Guiding Questions</strong>: How do we interpret each term? What do <code>headsize</code> and <code>gender</code> contribute to the equation?</li>
+</ul>
+</section>
+<section id="problem-5-coefficient-interpretation-2-points" class="level3">
+<h3 class="anchored" data-anchor-id="problem-5-coefficient-interpretation-2-points">Problem 5: Coefficient Interpretation (2 points)</h3>
+<p>Interpret the coefficient of the interaction term in the context of gender differences in brain weight.</p>
+<ul>
+<li><strong>Guiding Questions</strong>: Does the interaction term suggest that head size’s impact on brain weight changes depending on gender? How much?</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="part-ii-multiple-linear-regression-conditions-using-the-fish.txt-dataset-12-points" class="level2">
+<h2 class="anchored" data-anchor-id="part-ii-multiple-linear-regression-conditions-using-the-fish.txt-dataset-12-points">Part II: Multiple Linear Regression Conditions Using the <code>fish.txt</code> Dataset (12 points)</h2>
+<section id="problem-6-correlation-and-scatterplot-matrix-3-points" class="level3">
+<h3 class="anchored" data-anchor-id="problem-6-correlation-and-scatterplot-matrix-3-points">Problem 6: Correlation and Scatterplot Matrix (3 points)</h3>
+<p>Construct a scatterplot matrix and correlation matrix for the variables in <code>fish.txt</code>: - <code>catch</code>: Seasonal bass catch (thousands) - <code>residences</code>: Number of lakeshore residences per square mile - <code>size</code>: Lake size (square miles) - <code>structure</code>: Structure index (measure of lakebed structure)</p>
+<section id="code-example-2" class="level4">
+<h4 class="anchored" data-anchor-id="code-example-2">Code Example</h4>
 <div id="qwebr-insertion-location-3"></div>
 <script type="module">
 // Retrieve the insertion point
@@ -1061,25 +1067,33 @@ currentDocumentLocation.appendChild(initializedElement);
 
 // Initialize a Monaco Editor Instance
 qwebrCreateMonacoEditorInstance(
-  `# Perform the F-test by summarizing the initial model
-# Initial model
-initialModel <- lm(fat ~ age + weight + chest, data = bodyfatData)
-summary(initialModel)`, 
+  `# Load fish data
+fishData <- read.table("fish.txt", header = TRUE)
+
+# Scatterplot matrix
+pairs(fishData[, c("catch", "residences", "size", "structure")])
+
+# Correlation matrix
+cor(fishData[, c("catch", "residences", "size", "structure")])`, 
   3);
 </script>
 <noscript>Please enable JavaScript to experience the dynamic code cell content on this page.</noscript>
+<ul>
+<li><strong>Guiding Questions</strong>: Are there any variables with high correlations? If so, which pairs? Could these correlations suggest multicollinearity in a regression model?</li>
+</ul>
 </section>
-<section id="c." class="level3">
-<h3 class="anchored" data-anchor-id="c.">c.&nbsp;</h3>
-<p>State a conclusion from the F-test in the context of the problem.</p>
 </section>
-</section>
-<section id="problem-8-t-tests-for-individual-explanatory-variables" class="level1">
-<h1>Problem 8: T-tests for Individual Explanatory Variables</h1>
-<p>For each explanatory variable,</p>
-<section id="a.-1" class="level3">
-<h3 class="anchored" data-anchor-id="a.-1">a.</h3>
-<p>Report the t-statistic with degrees of freedom and the p-value for the t-test (testing if that explanatory variable explains the response variable after accounting for the effects of the other variables).</p>
+<section id="problem-7-model-comparison-3-points" class="level3">
+<h3 class="anchored" data-anchor-id="problem-7-model-comparison-3-points">Problem 7: Model Comparison (3 points)</h3>
+<p>Compare different models using transformations of <code>catch</code>, <code>residences</code>, <code>size</code>, and <code>structure</code> to determine which model best satisfies linearity, constant variance, and normality conditions. Create four models to compare:</p>
+<ol type="1">
+<li>Original scale</li>
+<li>Log-transformed response variable (<code>catch</code>)</li>
+<li>Log-transformed predictor variables (<code>residences</code>, <code>size</code>, <code>structure</code>)</li>
+<li>Log-transformation of all variables (except <code>access</code>)</li>
+</ol>
+<section id="code-example-3" class="level4">
+<h4 class="anchored" data-anchor-id="code-example-3">Code Example</h4>
 <div id="qwebr-insertion-location-4"></div>
 <script type="module">
 // Retrieve the insertion point
@@ -1095,37 +1109,55 @@ currentDocumentLocation.appendChild(initializedElement);
 
 // Initialize a Monaco Editor Instance
 qwebrCreateMonacoEditorInstance(
-  `# Extract summary of the initial model
-modelSummary <- summary(initialModel)
+  `# Log transformations
+fishData$logCatch <- log(fishData$catch)
+fishData$logResidences <- log(fishData$residences)
+fishData$logSize <- log(fishData$size)
+fishData$logStructure <- log(fishData$structure)
 
-# Extract coefficients
-coefficients <- modelSummary$coefficients
+# Models
+originalModel <- lm(catch ~ residences + size + structure + access, data = fishData)
+logCatchModel <- lm(logCatch ~ residences + size + structure + access, data = fishData)
+logPredictorsModel <- lm(catch ~ logResidences + logSize + logStructure + access, data = fishData)
+logAllModel <- lm(logCatch ~ logResidences + logSize + logStructure + access, data = fishData)
 
-# Create a table of t-statistic, degrees of freedom, and p-values
-t_table <- data.frame(
-  Variable = rownames(coefficients),
-  `t-Statistic` = coefficients[, "t value"],
-  `Degrees of Freedom` = modelSummary$df[2],
-  `p-Value` = coefficients[, "Pr(>|t|)"]
-)
-
-# Remove intercept row
-t_table <- t_table[t_table$Variable != "(Intercept)", ]
-
-# Display the table
-print(t_table)`, 
+# Summaries for comparison
+summary(originalModel)
+summary(logCatchModel)
+summary(logPredictorsModel)
+summary(logAllModel)`, 
   4);
 </script>
 <noscript>Please enable JavaScript to experience the dynamic code cell content on this page.</noscript>
+<ul>
+<li><strong>Guiding Questions</strong>: Compare the residual plots, constant variance, and normality of each model’s residuals. Which model best meets these assumptions? Explain why this model is preferable.</li>
+</ul>
 </section>
-<section id="b.-1" class="level3">
-<h3 class="anchored" data-anchor-id="b.-1">b.</h3>
-<p>State a conclusion in the context of the problem based on the p-value from the t-test. (You should have three separate sentences, one for the conclusion for each explanatory variable. Much of each sentence may contain the same wording, but you still need to write three separate sentences with three separate conclusions.)</p>
 </section>
+<section id="problem-8-least-squares-regression-equation-for-chosen-model-2-points" class="level3">
+<h3 class="anchored" data-anchor-id="problem-8-least-squares-regression-equation-for-chosen-model-2-points">Problem 8: Least-Squares Regression Equation for Chosen Model (2 points)</h3>
+<p>Write the least-squares regression equation for the model that best satisfies the assumptions, defining each term.</p>
+<ul>
+<li><strong>Guiding Questions</strong>: For your chosen model, what are the predictors (<code>residences</code>, <code>size</code>, <code>structure</code>, <code>access</code>)? What does each term in the equation represent?</li>
+</ul>
+<p><span class="math display">\[
+\log(\text{Catch}) = -6.356 + 0.672 \cdot \log(\text{Residences}) + 0.220 \cdot \log(\text{Size}) + 1.111 \cdot \log(\text{Structure}) + 0.275 \cdot \text{Access}
+\]</span></p>
+<p>Here’s a breakdown of the equation components:</p>
+<ul>
+<li><strong>Intercept</strong>: <span class="math inline">\(-6.356\)</span></li>
+<li><strong>Effect of log(Residences)</strong>: <span class="math inline">\(0.672\)</span></li>
+<li><strong>Effect of log(Size)</strong>: <span class="math inline">\(0.220\)</span></li>
+<li><strong>Effect of log(Structure)</strong>: <span class="math inline">\(1.111\)</span></li>
+<li><strong>Effect of Access</strong>: <span class="math inline">\(0.275\)</span></li>
+</ul>
+<p>This model indicates that each predictor has a multiplicative effect on the catch when transformed logarithmically, with <code>Structure</code> and <code>Access</code> showing the most substantial contributions to <code>Catch</code> in this log-transformed model.</p>
 </section>
-<section id="problem-9-backwards-selection-process" class="level1">
-<h1>Problem 9: Backwards Selection Process</h1>
-<p>Suppose a backwards selection process was performed. Would any of the explanatory variables drop out? Why or why not? If so, which one would drop out first? Why?</p>
+<section id="problem-9-predicting-seasonal-bass-catch-2-points" class="level3">
+<h3 class="anchored" data-anchor-id="problem-9-predicting-seasonal-bass-catch-2-points">Problem 9: Predicting Seasonal Bass Catch (2 points)</h3>
+<p>Use your final model to predict the seasonal bass catch for a lake with: - 1.25 square miles in size - 70 lakeshore residences per square mile - Structure index of 45 - Public access (represented by <code>1</code>)</p>
+<section id="code-example-4" class="level4">
+<h4 class="anchored" data-anchor-id="code-example-4">Code Example</h4>
 <div id="qwebr-insertion-location-5"></div>
 <script type="module">
 // Retrieve the insertion point
@@ -1141,150 +1173,41 @@ currentDocumentLocation.appendChild(initializedElement);
 
 // Initialize a Monaco Editor Instance
 qwebrCreateMonacoEditorInstance(
-  `# Perform backwards selection using step from base R
+  `# Model from model selection
+finalModel <- lm(formula = logCatch ~ logResidences + logSize + logStructure + access, data = fishData)
+summary(finalModel)
 
-# Initial model
-initialModel <- lm(fat ~ age + weight + chest, data = bodyfatData)
+# Define new data point with transformed predictors
+newLake <- data.frame(
+  logResidences = log(70),
+  logSize = log(1.25),
+  logStructure = log(45),
+  access = 1
+)
 
-# Perform backwards selection
-backwardModel <- step(initialModel, direction = "backward", trace = FALSE)
+# Predict using the chosen model
+predictedLogCatch <- predict(finalModel, newdata = newLake)
 
-# Summary of the final model after backward selection
-summary(backwardModel)`, 
+# Convert the log prediction back to the original scale if needed
+predictedCatch <- exp(predictedLogCatch)
+predictedCatch`, 
   5);
 </script>
 <noscript>Please enable JavaScript to experience the dynamic code cell content on this page.</noscript>
-</section>
-<section id="problem-10-final-model-after-backwards-selection" class="level1">
-<h1>Problem 10: Final Model After Backwards Selection</h1>
-<p>If needed, perform a backwards selection process to obtain a model with only significant explanatory variables. Use the model with only significant explanatory variables to answer these questions:</p>
-<div id="qwebr-insertion-location-6"></div>
-<script type="module">
-// Retrieve the insertion point
-const currentDocumentLocation = document.getElementById("qwebr-insertion-location-6");
-
-// Initalize an interactive element
-const initializedElement =   qwebrCreateInteractiveElement(
-    6
-  );
-
-// Add the interactive element into the document scope
-currentDocumentLocation.appendChild(initializedElement);
-
-// Initialize a Monaco Editor Instance
-qwebrCreateMonacoEditorInstance(
-  `# Perform backwards selection using step from base R
-
-# Initial model
-initialModel <- lm(fat ~ age + weight + chest, data = bodyfatData)
-
-# Perform backwards selection
-backwardModel <- step(initialModel, direction = "backward", trace = FALSE)`, 
-  6);
-</script>
-<noscript>Please enable JavaScript to experience the dynamic code cell content on this page.</noscript>
-<section id="a.-2" class="level3">
-<h3 class="anchored" data-anchor-id="a.-2">a.</h3>
-<p>Include the regression output of your final model.</p>
-<div id="qwebr-insertion-location-7"></div>
-<script type="module">
-// Retrieve the insertion point
-const currentDocumentLocation = document.getElementById("qwebr-insertion-location-7");
-
-// Initalize an interactive element
-const initializedElement =   qwebrCreateInteractiveElement(
-    7
-  );
-
-// Add the interactive element into the document scope
-currentDocumentLocation.appendChild(initializedElement);
-
-// Initialize a Monaco Editor Instance
-qwebrCreateMonacoEditorInstance(
-  `# Summary of the final model after backward selection
-summary(backwardModel)`, 
-  7);
-</script>
-<noscript>Please enable JavaScript to experience the dynamic code cell content on this page.</noscript>
-<p><strong>Final Model Regression Output:</strong></p>
-</section>
-<section id="b.-2" class="level3">
-<h3 class="anchored" data-anchor-id="b.-2">b.</h3>
-<p>Write the least-squares regression equation. Define the terms in the equation (i.e., what the x’s and <span class="math inline">\(\hat{y}\)</span> represent in the context of the problem).</p>
-<p>The least-squares regression equation outline:</p>
-<p><span class="math display">\[
-\hat{y_i} = \beta_0 + \beta_1 \times \text{age_i} + \beta_2 \times \text{weight_i} + \beta_3 \times \text{chest_i} + \epsilon
-\]</span></p>
-<p>Where:</p>
 <ul>
-<li><span class="math inline">\(\hat{y}\)</span> is the predicted percent body fat.</li>
-<li><strong>age</strong> is the age of the individual in years.</li>
-<li><strong>weight</strong> is the weight of the individual in pounds.</li>
-<li><strong>chest</strong> is the chest circumference in centimeters.</li>
+<li><strong>Guiding Questions</strong>: Interpret the prediction in the context of the model. If a log transformation was used, remember to back-transform the predicted value.</li>
 </ul>
 </section>
-<section id="c.-1" class="level3">
-<h3 class="anchored" data-anchor-id="c.-1">c.&nbsp;</h3>
-<p>Interpret the coefficient of Age in the context of the problem.</p>
 </section>
-<section id="d." class="level3">
-<h3 class="anchored" data-anchor-id="d.">d.&nbsp;</h3>
-<p>Predict percent body fat for a 23-year-old who is 73 inches tall, and has a chest circumference of 120 cm. Use R to find this predicted value.</p>
-<div id="qwebr-insertion-location-8"></div>
-<script type="module">
-// Retrieve the insertion point
-const currentDocumentLocation = document.getElementById("qwebr-insertion-location-8");
-
-// Initalize an interactive element
-const initializedElement =   qwebrCreateInteractiveElement(
-    8
-  );
-
-// Add the interactive element into the document scope
-currentDocumentLocation.appendChild(initializedElement);
-
-// Initialize a Monaco Editor Instance
-qwebrCreateMonacoEditorInstance(
-  `# Define the new data point
-# Note: Since 'height' was removed from the model, it is not included in the prediction
-newData <- data.frame(
-  age = 23,
-  weight = 180,    # Assuming weight in pounds
-  chest = 120      # Chest circumference in centimeters
-)
-
-# Predict percent body fat
-predictedBodyFat <- predict(backwardModel, newdata = newData)
-predictedBodyFat`, 
-  8);
-</script>
-<noscript>Please enable JavaScript to experience the dynamic code cell content on this page.</noscript>
-<p><strong>Predicted Percent Body Fat:</strong></p>
+<section id="problem-10-interpreting-the-coefficient-of-access-2-points" class="level3">
+<h3 class="anchored" data-anchor-id="problem-10-interpreting-the-coefficient-of-access-2-points">Problem 10: Interpreting the Coefficient of <code>access</code> (2 points)</h3>
+<p>Interpret the coefficient of <code>access</code> in your final model, explaining its impact on predicted seasonal bass catch.</p>
+<ul>
+<li><strong>Guiding Questions</strong>: How does public access (1 vs.&nbsp;0) affect predicted bass catch? What does the sign of the <code>access</code> coefficient indicate about lakes with public access compared to those without?</li>
+</ul>
+<hr>
+<p>This completes the updated <strong>Part II</strong> of the lab guide with the <code>"fish.txt"</code> dataset. Let me know if further adjustments are needed!</p>
 </section>
-<section id="e." class="level3">
-<h3 class="anchored" data-anchor-id="e.">e.</h3>
-<p>Report and interpret a 95% prediction interval for the person in question 10d.</p>
-<div id="qwebr-insertion-location-9"></div>
-<script type="module">
-// Retrieve the insertion point
-const currentDocumentLocation = document.getElementById("qwebr-insertion-location-9");
-
-// Initalize an interactive element
-const initializedElement =   qwebrCreateInteractiveElement(
-    9
-  );
-
-// Add the interactive element into the document scope
-currentDocumentLocation.appendChild(initializedElement);
-
-// Initialize a Monaco Editor Instance
-qwebrCreateMonacoEditorInstance(
-  `# Calculate the 95% prediction interval
-predictionInterval <- predict(backwardModel, newdata = newData, interval = "prediction", level = 0.95)
-predictionInterval`, 
-  9);
-</script>
-<noscript>Please enable JavaScript to experience the dynamic code cell content on this page.</noscript>
 </section>
 </section>
 

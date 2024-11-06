@@ -1,0 +1,235 @@
+---
+title: "ST 352 | Lab Assignment 5 - Guide"
+author: "Brian Cervantes Alvarez"
+date: "11-01-2024"
+format: 
+  html:
+    theme: yeti
+    linestretch: 2.5em
+execute: 
+  message: false
+  warning: false
+filters:
+  - webr
+webr:
+  show-startup-message: false
+editor:
+    render-on-save: true
+---
+
+**Honor Code Reminder:**  
+*Complete lab assignments individually!*
+
+# Objective
+
+In this lab, you'll explore interaction terms in regression models and apply model selection using the `brainhead` dataset. You'll examine gender-based differences, test the significance of interaction terms, and assess multiple regression conditions through transformations.
+
+---
+
+## Part I: Interaction Term and Gender Differences (12 points)
+
+### Problem 1: Scatterplot with Regression Lines by Gender (2 points)
+
+Create a scatterplot that includes:
+
+- Different symbols for males and females
+- Separate regression lines for each gender
+- A legend explaining each symbol and line
+
+#### Steps
+1. Use `plot()` and `points()` to create scatterplots for males and females.
+2. Use `abline()` to add regression lines for each gender.
+
+#### Code Example
+
+```{webr-r}
+# Read brainhead data
+brainheadData <- read.table("brainhead.txt", header = TRUE)
+
+# Separate data by gender
+maleData <- subset(brainheadData, gender == "male")
+femaleData <- subset(brainheadData, gender == "female")
+
+# Plot
+plot(maleData$headsize, maleData$brainwt,
+     pch = 19, col = "blue",
+     xlab = "Head Size (cm³)", 
+     ylab = "Brain Weight (g)", 
+     main = "Brain Weight vs. Head Size by Gender")
+points(femaleData$headsize, femaleData$brainwt, pch = 17, col = "red")
+
+# Fit separate regression lines
+maleModel <- lm(brainwt ~ headsize, data = maleData)
+femaleModel <- lm(brainwt ~ headsize, data = femaleData)
+
+abline(maleModel, col = "blue", lty = 1)
+abline(femaleModel, col = "red", lty = 2)
+legend("topright", 
+       legend = c("Male", "Female"), 
+       pch = c(19, 17),
+       col = c("blue", "red"))
+```
+
+### Problem 2: Need for an Interaction Term? (2 points)
+
+Using the scatterplot, discuss if an interaction term is necessary. 
+
+- **Guiding Questions**: Are the regression lines parallel, or do they have different slopes? If they’re similar, an interaction term may not add much value.
+
+### Problem 3: Hypothesis Test for Interaction Term (4 points)
+
+Perform a hypothesis test to evaluate the significance of the interaction term between `headsize` and `gender`.
+
+- **a.** State null and alternative hypotheses.
+
+  - **Guiding Questions**: What does it mean for the interaction term to be significant? Does `headsize` affect `brainwt` differently for each gender?
+  
+- **b.** Report t-statistic, degrees of freedom, and p-value.
+  
+#### Code Example
+
+```{webr-r}
+# Fit model with interaction
+interactionModel <- lm(brainwt ~ headsize * gender, data = brainheadData)
+summary(interactionModel)
+```
+
+- **c.** Draw a conclusion based on the p-value.  
+
+  - **Prompt**: Is the p-value for the interaction term low enough (e.g., below 0.05) to suggest that head size’s effect on brain weight differs by gender?
+
+### Problem 4: Least-Squares Regression Equation (2 points)
+
+Write the regression equation, including the interaction term.  
+
+- **Guiding Questions**: How do we interpret each term? What do `headsize` and `gender` contribute to the equation?
+
+### Problem 5: Coefficient Interpretation (2 points)
+
+Interpret the coefficient of the interaction term in the context of gender differences in brain weight.  
+
+- **Guiding Questions**: Does the interaction term suggest that head size’s impact on brain weight changes depending on gender? How much?
+
+---
+
+## Part II: Multiple Linear Regression Conditions Using the `fish.txt` Dataset (12 points)
+
+### Problem 6: Correlation and Scatterplot Matrix (3 points)
+
+Construct a scatterplot matrix and correlation matrix for the variables in `fish.txt`:
+- `catch`: Seasonal bass catch (thousands)
+- `residences`: Number of lakeshore residences per square mile
+- `size`: Lake size (square miles)
+- `structure`: Structure index (measure of lakebed structure)
+
+#### Code Example
+
+```{webr-r}
+# Load fish data
+fishData <- read.table("fish.txt", header = TRUE)
+
+# Scatterplot matrix
+pairs(fishData[, c("catch", "residences", "size", "structure")])
+
+# Correlation matrix
+cor(fishData[, c("catch", "residences", "size", "structure")])
+```
+
+- **Guiding Questions**: Are there any variables with high correlations? If so, which pairs? Could these correlations suggest multicollinearity in a regression model?
+
+### Problem 7: Model Comparison (3 points)
+
+Compare different models using transformations of `catch`, `residences`, `size`, and `structure` to determine which model best satisfies linearity, constant variance, and normality conditions. Create four models to compare:
+
+1. Original scale
+2. Log-transformed response variable (`catch`)
+3. Log-transformed predictor variables (`residences`, `size`, `structure`)
+4. Log-transformation of all variables (except `access`)
+
+#### Code Example
+
+```{webr-r}
+# Log transformations
+fishData$logCatch <- log(fishData$catch)
+fishData$logResidences <- log(fishData$residences)
+fishData$logSize <- log(fishData$size)
+fishData$logStructure <- log(fishData$structure)
+
+# Models
+originalModel <- lm(catch ~ residences + size + structure + access, data = fishData)
+logCatchModel <- lm(logCatch ~ residences + size + structure + access, data = fishData)
+logPredictorsModel <- lm(catch ~ logResidences + logSize + logStructure + access, data = fishData)
+logAllModel <- lm(logCatch ~ logResidences + logSize + logStructure + access, data = fishData)
+
+# Summaries for comparison
+summary(originalModel)
+summary(logCatchModel)
+summary(logPredictorsModel)
+summary(logAllModel)
+```
+
+- **Guiding Questions**: Compare the residual plots, constant variance, and normality of each model’s residuals. Which model best meets these assumptions? Explain why this model is preferable.
+
+### Problem 8: Least-Squares Regression Equation for Chosen Model (2 points)
+
+Write the least-squares regression equation for the model that best satisfies the assumptions, defining each term.
+
+- **Guiding Questions**: For your chosen model, what are the predictors (`residences`, `size`, `structure`, `access`)? What does each term in the equation represent?
+
+$$
+\log(\text{Catch}) = -6.356 + 0.672 \cdot \log(\text{Residences}) + 0.220 \cdot \log(\text{Size}) + 1.111 \cdot \log(\text{Structure}) + 0.275 \cdot \text{Access}
+$$
+
+Here’s a breakdown of the equation components:
+
+- **Intercept**: $-6.356$
+- **Effect of log(Residences)**: $0.672$
+- **Effect of log(Size)**: $0.220$
+- **Effect of log(Structure)**: $1.111$
+- **Effect of Access**: $0.275$
+
+This model indicates that each predictor has a multiplicative effect on the catch when transformed logarithmically, with `Structure` and `Access` showing the most substantial contributions to `Catch` in this log-transformed model.
+
+### Problem 9: Predicting Seasonal Bass Catch (2 points)
+
+Use your final model to predict the seasonal bass catch for a lake with:
+- 1.25 square miles in size
+- 70 lakeshore residences per square mile
+- Structure index of 45
+- Public access (represented by `1`)
+
+#### Code Example
+
+```{webr-r}
+# Model from model selection
+finalModel <- lm(formula = logCatch ~ logResidences + logSize + logStructure + access, data = fishData)
+summary(finalModel)
+
+# Define new data point with transformed predictors
+newLake <- data.frame(
+  logResidences = log(70),
+  logSize = log(1.25),
+  logStructure = log(45),
+  access = 1
+)
+
+# Predict using the chosen model
+predictedLogCatch <- predict(finalModel, newdata = newLake)
+
+# Convert the log prediction back to the original scale if needed
+predictedCatch <- exp(predictedLogCatch)
+predictedCatch
+
+```
+
+- **Guiding Questions**: Interpret the prediction in the context of the model. If a log transformation was used, remember to back-transform the predicted value.
+
+### Problem 10: Interpreting the Coefficient of `access` (2 points)
+
+Interpret the coefficient of `access` in your final model, explaining its impact on predicted seasonal bass catch.
+
+- **Guiding Questions**: How does public access (1 vs. 0) affect predicted bass catch? What does the sign of the `access` coefficient indicate about lakes with public access compared to those without?
+
+---
+
+This completes the updated **Part II** of the lab guide with the `"fish.txt"` dataset. Let me know if further adjustments are needed!

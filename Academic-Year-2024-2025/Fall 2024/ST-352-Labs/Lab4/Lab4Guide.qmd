@@ -3,16 +3,13 @@ title: "ST 352 | Lab Assignment 4 - Guide"
 subtitle: "Multiple Regression Analysis and Model Selection"
 author: "Brian Cervantes Alvarez"
 date: "11-01-2024"
-format: 
-    html:
-      theme: materia
+format: pdf
 execute: 
   message: false
   warning: false
 filters:
   - webr
 webr:
-  packages: ['ggplot2', 'readr', 'dplyr', 'tidyr', 'GGally', 'MASS']
   show-startup-message: false
 editor:
     render-on-save: true
@@ -39,77 +36,65 @@ The `bodyfat` dataset contains the following variables:
 
 Based on both the scatterplot matrix of the explanatory variables and the correlation matrix, which two explanatory variables are “highly correlated”? Explain. You must use and refer to both the scatterplot matrix and the correlation matrix in your explanation of why these two variables are considered highly correlated. (Include the scatterplot matrix here. You do not have to include the correlation matrix.)
 
-```{webr-r}
-# Load necessary libraries
-library(ggplot2)
-library(readr)
-library(dplyr)
-library(tidyr)
-library(GGally)
 
+**Note:** We exclude explanatory variables from the correlation matrix to focus on relationships among predictors and avoid redundancy. Including them can lead to multicollinearity, which complicates interpreting each predictor’s unique effect on the outcome.
+
+```{r}
 # Read the bodyfat data
 bodyfatData <- read.table("https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab4/bodyfat.txt", header = TRUE)
 
 # Select explanatory variables (age, weight, height, chest)
-explanatoryVars <- bodyfatData %>% select(age, weight, height, chest)
+explanatoryVars <- bodyfatData[c("age", "weight", "height", "chest")]
 
 # Create scatterplot matrix
-ggpairs(explanatoryVars,
-        title = "Scatterplot Matrix of Explanatory Variables",
-        upper = list(continuous = wrap("cor", size = 3)),
-        lower = list(continuous = "points"),
-        diag = list(continuous = "densityDiag"))
+pairs(explanatoryVars,
+      main = "Scatterplot Matrix of Explanatory Variables",
+      pch = 19,
+      col = "blue")
 ```
-
 
 # Problem 2: Variable Selection Based on Correlation
 
 In the Lab 4 Notes, a strategy was shown to help with deciding which highly correlated explanatory variable to remove. From that strategy, which of the two highly correlated explanatory variables mentioned in the lab notes would be removed? Explain why that variable would be removed.
 
-Based on the strategy outlined in the Lab 4 Notes, the variable `height` would be removed. This decision is made because `weight` has a stronger theoretical or practical relevance to the response variable (`fat`) compared to `height`. Additionally, removing `height` helps to reduce multicollinearity in the model while retaining the explanatory variable that provides more meaningful information for prediction.
+Here's the strategy!
+
+```{r}
+# Fit a model with weight & chest since they are highly correlated
+model <- lm(fat ~ weight + chest, data = bodyfatData)
+summary(model)
+```
+Which predictor is significant? Ideally, we should remove any insignificant predictors—though this doesn’t always apply in every dataset. Here, it’s safe to remove the weight parameter since our goal is to explain body fat percentage, and weight is already a contributing factor.
 
 # Problem 3: Assessing Regression Assumptions
 
 Include the graphical displays to assess the linearity, constant variation, and normality conditions (scatterplot matrix that includes the response variable, residual plot, and normal probability plot of the residuals).
 
-```{webr-r}
-# Select response and remaining explanatory variables after removing height
+```{r}
+# Select response and remaining explanatory variables after removing weight
 responseVar <- bodyfatData$fat
-selectedExplanatory <- bodyfatData %>% select(age, weight, chest)
+selectedExplanatory <- bodyfatData[c("age", "height", "chest")]
 
 # Fit the initial multiple regression model
-initialModel <- lm(fat ~ age + weight + chest, data = bodyfatData)
+initialModel <- lm(fat ~ age + height + chest, data = bodyfatData)
 summary(initialModel)
 
-# Scatterplot matrix including the response variable
-ggpairs(data = bodyfatData %>% select(fat, age, weight, chest),
-        title = "Scatterplot Matrix Including Response Variable",
-        upper = list(continuous = wrap("cor", size = 3)),
-        lower = list(continuous = "points"),
-        diag = list(continuous = "densityDiag"))
+# Scatterplot matrix excluding the response variable
+pairs(bodyfatData[c("age", "weight", "chest")],
+      main = "Scatterplot Matrix Excluding Response Variable",
+      pch = 19,
+      col = "blue")
 
 # Residual plot
-par(mfrow = c(1, 2))  # Arrange plots side by side
-plot(initialModel$fitted.values, initialModel$residuals,
-     main = "Residuals vs Fitted Values",
-     xlab = "Fitted Values (Percent Body Fat)",
-     ylab = "Residuals",
-     pch = 19, col = "blue")
-abline(h = 0, col = "red", lwd = 2)
+
 
 # Normal probability plot of residuals
-qqnorm(initialModel$residuals,
-       main = "Normal Q-Q Plot of Residuals",
-       pch = 19, col = "blue")
-qqline(initialModel$residuals, col = "red", lwd = 2)
-par(mfrow = c(1,1))  # Reset plotting layout
+
 ```
 
 # Problem 4: Assessing Linearity
 
 Using the appropriate graph, discuss whether or not the linearity condition is satisfied. Make sure to reference which plot you are using to assess this condition.
-
-
 
 
 
@@ -119,13 +104,9 @@ Using the appropriate graph, discuss whether or not the constant variation condi
 
 
 
-
-
 # Problem 6: Assessing Normality
 
 Using the appropriate graph, discuss whether or not the normality condition is satisfied. Make sure to reference which plot you are using to assess this condition.
-
-
 
 
 
@@ -137,26 +118,29 @@ Perform an F-test to determine if at least one explanatory variable is helpful i
 
 State the null and alternative hypotheses in words.
 
-- **Null Hypothesis** $H_0$: None of the explanatory variables (`age`, `weight`, `chest`) are associated with the response variable (`fat`). In other words, all regression coefficients are equal to zero. 
+- **Null Hypothesis** $H_0$: None of the explanatory variables (`age`, `height`, `chest`) are associated with the response variable (`fat`). In other words, all regression coefficients are equal to zero. 
 
-All $\beta_1 = \beta_2 = \beta_3 = 0$
+  All the $\beta_1 = \beta_2 = \beta_3 = 0$
+  
+- **Alternative Hypothesis** $H_a$: At least one of the explanatory variables (`age`, `height`, `chest`) is associated with the response variable (`fat`). In other words, at least one regression coefficient is not equal to zero.
 
-- **Alternative Hypothesis** $H_a$: At least one of the explanatory variables (`age`, `weight`, `chest`) is associated with the response variable (`fat`). In other words, at least one regression coefficient is not equal to zero.
-
-At least one $\beta_1,\beta_2,\beta_3 \ne 0$
+  At least one $\beta_1,\beta_2,\beta_3 \ne 0$
 
 ### b. 
 
 Using the regression output, report the F-statistic with degrees of freedom and the p-value. (No calculations are necessary! Include the regression output from R – please put the output below your answer to this question.)
 
-```{webr-r}
+```{r}
 # Perform the F-test by summarizing the initial model
+# Initial model
+initialModel <- lm(fat ~ age + height + chest, data = bodyfatData)
 summary(initialModel)
 ```
 
 ### c. 
 
 State a conclusion from the F-test in the context of the problem. 
+
 
 
 # Problem 8: T-tests for Individual Explanatory Variables
@@ -167,35 +151,13 @@ For each explanatory variable,
 
 Report the t-statistic with degrees of freedom and the p-value for the t-test (testing if that explanatory variable explains the response variable after accounting for the effects of the other variables).
 
-```{webr-r}
-# Extract summary of the initial model
-modelSummary <- summary(initialModel)
-
-# Extract coefficients
-coefficients <- modelSummary$coefficients
-
-# Create a table of t-statistic, degrees of freedom, and p-values
-t_table <- data.frame(
-  Variable = rownames(coefficients),
-  `t-Statistic` = coefficients[, "t value"],
-  `Degrees of Freedom` = modelSummary$df[2],
-  `p-Value` = coefficients[, "Pr(>|t|)"]
-)
-
-# Display the table
-print(t_table)
-```
 
 ### b. 
 
 State a conclusion in the context of the problem based on the p-value from the t-test. (You should have three separate sentences, one for the conclusion for each explanatory variable. Much of each sentence may contain the same wording, but you still need to write three separate sentences with three separate conclusions.)
 
 
-
-
-
 # Problem 9: Backwards Selection Process
-
 
 Suppose a backwards selection process was performed. Would any of the explanatory variables drop out? Why or why not? If so, which one would drop out first? Why?
 
@@ -205,26 +167,29 @@ Suppose a backwards selection process was performed. Would any of the explanator
 If needed, perform a backwards selection process to obtain a model with only significant explanatory variables. Use the model with only significant explanatory variables to answer these questions:
 
 
-```{webr-r}
-# Perform backwards selection using stepAIC from MASS package
-library(MASS)
+This is not needed in our case. Why? Well, I ran it to demonstrate that it's going to keep the same model as before!
 
+```{r}
+# Perform backwards selection using step from base R
 # Initial model
-initialModel <- lm(fat ~ age + weight + chest, data = bodyfatData)
-
+initialModel <- lm(fat ~ age + height + chest, data = bodyfatData)
 # Perform backwards selection
-backwardModel <- stepAIC(initialModel, direction = "backward", trace = FALSE)
+backwardModel <- step(initialModel, direction = "backward", trace = FALSE)
+# Summary of the final model after backward selection
+summary(backwardModel)
 ```
+
 
 ### a. 
 
 Include the regression output of your final model.
 
-```{webr-r}
+```{r}
 # Summary of the final model after backward selection
 summary(backwardModel)
 ```
 
+**Final Model Regression Output:**
 
 ### b.
 
@@ -233,14 +198,14 @@ Write the least-squares regression equation. Define the terms in the equation (i
 The least-squares regression equation outline:
 
 $$
-\hat{y} = \beta_0 + \beta_1 \times \text{age} + \beta_3 \times \text{weight} + \beta_4 \times \text{chest}
+fat_i = \beta_0 + \beta_1 \times \text{age}_i + \beta_2 \times \text{height}_i + \beta_3 \times \text{chest}_i + \epsilon_i
 $$
 
 Where:
 
-- $\hat{y}$ is the predicted percent body fat.
+- $fat$ is the predicted percent body fat.
 - **age** is the age of the individual in years.
-- **weight** is the weight of the individual in pounds.
+- **height** is the height of the individual in inches.
 - **chest** is the chest circumference in centimeters.
 
 ### c. 
@@ -248,26 +213,24 @@ Where:
 Interpret the coefficient of Age in the context of the problem.
 
 
-
-
-
 ### d. 
 
 Predict percent body fat for a 23-year-old who is 73 inches tall, and has a chest circumference of 120 cm. Use R to find this predicted value.
 
-```{webr-r}
+```{r}
 # Define the new data point
-# Note: Since 'height' was removed from the model, it is not included in the prediction
 newData <- data.frame(
   age = 23,
-  weight = 180,    # Assuming weight in pounds
+  height = 73,    # Height in inches
   chest = 120      # Chest circumference in centimeters
 )
-
 # Predict percent body fat
 predictedBodyFat <- predict(backwardModel, newdata = newData)
 predictedBodyFat
 ```
+
+**Predicted Percent Body Fat:**
+
 
 
 ### e.
@@ -275,17 +238,9 @@ predictedBodyFat
 Report and interpret a 95% prediction interval for the person in question 10d.
 
 
-
-```{webr-r}
+```{r}
 # Calculate the 95% prediction interval
-predictionInterval <- predict(backwardModel, newdata = newData, interval = "prediction", level = 0.95)
+predictionInterval <- predict(backwardModel, newdata = newData, 
+                              interval = "prediction", level = 0.95)
 predictionInterval
 ```
-
-**95% Prediction Interval:**
-
-
-# Conclusion
-
-In this lab assignment, you successfully conducted multiple regression analysis on the `bodyfat` dataset. You identified highly correlated explanatory variables, assessed regression assumptions through various graphical displays, performed hypothesis tests to evaluate the significance of the model and individual predictors, and applied backwards selection to refine your model. The final model provides a robust framework for predicting body fat percentage based on selected physical measurements.
-
