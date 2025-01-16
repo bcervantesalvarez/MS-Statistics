@@ -2,10 +2,7 @@
 title: "ST 352 | Lab Assignment 5 - Guide"
 author: "Brian Cervantes Alvarez"
 date: "11-01-2024"
-format: 
-  html:
-    theme: yeti
-    linestretch: 2.5em
+format: pdf
 execute: 
   message: false
   warning: false
@@ -42,9 +39,9 @@ Create a scatterplot that includes:
 
 #### Code Example
 
-```{webr-r}
+```{r}
 # Read brainhead data
-brainheadData <- read.table("brainhead.txt", header = TRUE)
+brainheadData <- read.table("https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/refs/heads/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab5/brainhead.txt", header = TRUE)
 
 # Separate data by gender
 maleData <- subset(brainheadData, gender == "male")
@@ -64,7 +61,7 @@ femaleModel <- lm(brainwt ~ headsize, data = femaleData)
 
 abline(maleModel, col = "blue", lty = 1)
 abline(femaleModel, col = "red", lty = 2)
-legend("topright", 
+legend("topleft", 
        legend = c("Male", "Female"), 
        pch = c(19, 17),
        col = c("blue", "red"))
@@ -88,7 +85,7 @@ Perform a hypothesis test to evaluate the significance of the interaction term b
   
 #### Code Example
 
-```{webr-r}
+```{r}
 # Fit model with interaction
 interactionModel <- lm(brainwt ~ headsize * gender, data = brainheadData)
 summary(interactionModel)
@@ -117,6 +114,7 @@ Interpret the coefficient of the interaction term in the context of gender diffe
 ### Problem 6: Correlation and Scatterplot Matrix (3 points)
 
 Construct a scatterplot matrix and correlation matrix for the variables in `fish.txt`:
+
 - `catch`: Seasonal bass catch (thousands)
 - `residences`: Number of lakeshore residences per square mile
 - `size`: Lake size (square miles)
@@ -124,9 +122,9 @@ Construct a scatterplot matrix and correlation matrix for the variables in `fish
 
 #### Code Example
 
-```{webr-r}
+```{r}
 # Load fish data
-fishData <- read.table("fish.txt", header = TRUE)
+fishData <- read.table("https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/refs/heads/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab5/fish.txt", header = TRUE)
 
 # Scatterplot matrix
 pairs(fishData[, c("catch", "residences", "size", "structure")])
@@ -148,7 +146,7 @@ Compare different models using transformations of `catch`, `residences`, `size`,
 
 #### Code Example
 
-```{webr-r}
+```{r}
 # Log transformations
 fishData$logCatch <- log(fishData$catch)
 fishData$logResidences <- log(fishData$residences)
@@ -177,39 +175,40 @@ Write the least-squares regression equation for the model that best satisfies th
 - **Guiding Questions**: For your chosen model, what are the predictors (`residences`, `size`, `structure`, `access`)? What does each term in the equation represent?
 
 $$
-\log(\text{Catch}) = -6.356 + 0.672 \cdot \log(\text{Residences}) + 0.220 \cdot \log(\text{Size}) + 1.111 \cdot \log(\text{Structure}) + 0.275 \cdot \text{Access}
+\log(\text{Catch}) = -6.356 + 0.672 \cdot \log(X_1) + 0.220 \cdot \log(X_2) + 1.111 \cdot \log(X_3) + 0.275 \cdot X_4
 $$
 
 Here’s a breakdown of the equation components:
 
 - **Intercept**: $-6.356$
-- **Effect of log(Residences)**: $0.672$
-- **Effect of log(Size)**: $0.220$
-- **Effect of log(Structure)**: $1.111$
-- **Effect of Access**: $0.275$
+- $log(X_1) =$ **Effect of log(Residences)**: $0.672$
+- $log(X_2) =$ **Effect of log(Size)**: $0.220$
+- $log(X_3) =$ **Effect of log(Structure)**: $1.111$
+- $X_4 =$ **Effect of Access**: $0.275$
 
 This model indicates that each predictor has a multiplicative effect on the catch when transformed logarithmically, with `Structure` and `Access` showing the most substantial contributions to `Catch` in this log-transformed model.
 
 ### Problem 9: Predicting Seasonal Bass Catch (2 points)
 
 Use your final model to predict the seasonal bass catch for a lake with:
-- 1.25 square miles in size
-- 70 lakeshore residences per square mile
-- Structure index of 45
+
+- 1.5 square miles in size
+- 75 lakeshore residences per square mile
+- Structure index of 50
 - Public access (represented by `1`)
 
 #### Code Example
 
-```{webr-r}
+```{r}
 # Model from model selection
 finalModel <- lm(formula = logCatch ~ logResidences + logSize + logStructure + access, data = fishData)
 summary(finalModel)
 
 # Define new data point with transformed predictors
 newLake <- data.frame(
-  logResidences = log(70),
-  logSize = log(1.25),
-  logStructure = log(45),
+  logResidences = log(75),
+  logSize = log(1.5),
+  logStructure = log(50),
   access = 1
 )
 
@@ -231,5 +230,3 @@ Interpret the coefficient of `access` in your final model, explaining its impact
 - **Guiding Questions**: How does public access (1 vs. 0) affect predicted bass catch? What does the sign of the `access` coefficient indicate about lakes with public access compared to those without?
 
 ---
-
-This completes the updated **Part II** of the lab guide with the `"fish.txt"` dataset. Let me know if further adjustments are needed!

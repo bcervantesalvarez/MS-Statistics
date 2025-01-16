@@ -1,0 +1,10 @@
+#!/bin/sh
+'''exec' "/Users/briancervantesalvarez/Documents/Oregon State University/Master of Science, Statistics/MS-Statistics/Academic-Year-2024-2025/Winter 2024/Data Science Tools/Week 1/.venv/bin/python" "$0" "$@"
+' '''
+# -*- coding: utf-8 -*-
+import re
+import sys
+from fontTools.subset import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())

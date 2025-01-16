@@ -1,0 +1,916 @@
+---
+title: "Probability, Computation and Simulation Homework 5"
+author: "Brian Cervantes Alvarez"
+date: "`r Sys.Date()`"
+format: OSULatexTheme-pdf
+editor:
+  render-on-save: true
+  markdown: 
+    wrap: 72
+message: false
+warning: false
+---
+
+
+## Problem 2.1
+
+### Part A
+
+```{r}
+#| echo: false
+library(ggplot2)
+library(dplyr)
+# Data sample
+dataSample <- c(1.77, -0.23, 2.76, 3.80, 3.47, 56.75, -1.34, 4.24, -2.44, 3.29,
+               3.71, -2.40, 4.53, -0.07, -1.05, -13.87, -2.53, -1.75, 0.27, 43.21)
+```
+
+The log-likelihood function for the Cauchy distribution with scale parameter 1 is: 
+
+$$
+\ell(\theta) = -n \log(\pi) - \sum_{i=1}^{n} \log\left[1 + (x_i - \theta)^2\right]
+$$
+
+```{r}
+#| echo: false
+logLikFunc <- function(theta,sample) {
+  n <- length(dataSample)
+  -n * log(pi) - sum(log(1 + (dataSample - theta)^2))
+}
+thetaSeq <- seq(-20, 60, length.out = 1000)
+logLikVals <- sapply(thetaSeq, logLikFunc,sample =sample)
+logLikDF <- data.frame(theta = thetaSeq, logLik = logLikVals)
+ggplot(logLikDF, aes(x = theta, y = logLik)) +
+  geom_line(color = "blue") +
+  labs(
+    title = "Log-Likelihood Function of the Cauchy Distribution",
+    x = expression(theta),
+    y = "Log-Likelihood"
+  ) +
+  theme_minimal()
+```
+
+
+The log-likelihood function is multimodal, reflecting the heavy-tailed nature of the Cauchy distribution. The presence of outliers causes the function to have multiple local maxima.
+
+The Newton–Raphson update formula is: 
+$$
+\theta_{n+1} = \theta_n - \frac{\ell'(\theta_n)}{\ell''(\theta_n)}
+$$
+
+First derivative: 
+$$
+\ell'(\theta) = \sum_{i=1}^{n} \frac{2(x_i - \theta)}{1 + (x_i - \theta)^2}
+$$
+Second derivative: 
+$$
+\ell''(\theta) = \sum_{i=1}^{n} \left[ \frac{2}{1 + (x_i - \theta)^2} - \frac{4(x_i - \theta)^2}{(1 + (x_i - \theta)^2)^2} \right]
+$$
+
+```{r}
+#| echo: false
+scoreFunc <- function(theta,sample) {
+  sum(2 * (dataSample - theta) / (1 + (dataSample - theta)^2))
+}
+
+secondDeriv <- function(theta,sample) {
+  sum(2 / (1 + (dataSample - theta)^2) - 
+        4 * (dataSample - theta)^2 / (1 + (dataSample - theta)^2)^2)
+}
+
+newRaph <- function(thetaInit,sample, tol = 1e-6, maxIter = 10000) {
+  theta <- thetaInit
+  for (i in 1:maxIter) {
+    fPrime <- scoreFunc(theta,sample)
+    fDoublePrime <- secondDeriv(theta,sample)
+    if (abs(fDoublePrime) < .Machine$double.eps) {
+      warning("Second derivative is too small.")
+      break
+    }
+    thetaNew <- theta - fPrime / fDoublePrime
+    if (abs(thetaNew - theta) < tol) {
+      return(list(theta = thetaNew, iterations = i))
+    }
+    theta <- thetaNew
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = theta, iterations = maxIter))
+}
+startPoints <- c(-11, -1, 0, 1.5, 4, 4.7, 7, 8, 38)
+nrResults <- lapply(startPoints, function(start) {
+  res <- newRaph(thetaInit = start,sample =sample)
+  c(start = start, thetaHat = res$theta, iter = res$iterations)
+})
+nrDF <- do.call(rbind, nrResults)
+nrDF <- as.data.frame(nrDF)
+colnames(nrDF) <- c("Start Point", "MLE of θ", "Iterations")
+nrDF
+meanVal <- mean(dataSample)
+nrMean <- newRaph(thetaInit = meanVal,sample =sample)
+nrMean
+```
+
+The mean is not ideal as a starting point for the Cauchy distribution because it is heavily influenced by outliers, causing suboptimal convergence.
+
+{{< pagebreak >}}
+
+### Part B
+
+```{r}
+#| echo: false
+bisectionMethod <- function(f, lower, upper,sample, tol = 1e-6, maxIter = 1000) {
+  if (f(lower,sample) * f(upper,sample) >= 0) {
+    stop("The function must change sign over the interval.")
+  }
+  for (i in 1:maxIter) {
+    mid <- (lower + upper) / 2
+    fMid <- f(mid,sample)
+    if (abs(fMid) < tol || (upper - lower) / 2 < tol) {
+      return(list(theta = mid, iterations = i))
+    }
+    if (f(lower,sample) * fMid < 0) {
+      upper <- mid
+    } else {
+      lower <- mid
+    }
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = mid, iterations = maxIter))
+}
+bisectResult <- bisectionMethod(scoreFunc, lower = -1, upper = 1,sample =sample)
+bisectResult
+try(bisectionMethod(scoreFunc, lower = 10, upper = 20,sample =sample))
+```
+
+The bisection method works only when the score function changes sign over the interval. Choosing the wrong interval can lead to failure, as shown above
+
+{{< pagebreak >}}
+
+### Part C
+
+```{r}
+#| echo: false
+fixedPointIter <- function(thetaInit,sample, alpha, tol = 1e-6, maxIter = 1000) {
+  n <- length(dataSample)
+  theta <- thetaInit
+  for (i in 1:maxIter) {
+    thetaNew <- theta + alpha * scoreFunc(theta,sample) / n
+    if (abs(thetaNew - theta) < tol) {
+      return(list(theta = thetaNew, iterations = i))
+    }
+    theta <- thetaNew
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = theta, iterations = maxIter))
+}
+alphas <- c(1, 0.64, 0.25)
+fpResults <- lapply(alphas, function(a) {
+  res <- fixedPointIter(thetaInit = -1,sample =sample, alpha = a)
+  c(alpha = a, thetaHat = res$theta, iter = res$iterations)
+})
+fpDF <- do.call(rbind, fpResults)
+fpDF <- as.data.frame(fpDF)
+colnames(fpDF) <- c("Alpha", "MLE of θ", "Iterations")
+fpDF
+```
+
+Smaller values of $\alpha$ lead to more iterations but can improve numerical stability. Larger $(\alpha)$ may fail to converge if too large!
+
+{{< pagebreak >}}
+
+### Part D
+
+```{r}
+#| echo: false
+secantMethod <- function(theta0, theta1,sample, tol = 1e-6, maxIter = 1000) {
+  f <- function(theta) scoreFunc(theta,sample)
+  for (i in 1:maxIter) {
+    f0 <- f(theta0)
+    f1 <- f(theta1)
+    if (abs(f1 - f0) < .Machine$double.eps) {
+      warning("Division by zero in the secant method.")
+      break
+    }
+    thetaNew <- theta1 - f1 * ((theta1 - theta0) / (f1 - f0))
+    if (abs(thetaNew - theta1) < tol) {
+      return(list(theta = thetaNew, iterations = i))
+    }
+    theta0 <- theta1
+    theta1 <- thetaNew
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = theta1, iterations = maxIter))
+}
+secantRes1 <- secantMethod(-2, -1,sample)
+print(secantRes1)
+secantRes2 <- try(secantMethod(-3, -3,sample))  # Example failure
+print(secantRes2)
+```
+
+The secant method converges faster than bisection but requires two valid starting points. If the points are too close or identical, the method may fail.
+
+{{< pagebreak >}}
+
+### Part E
+
+
+**Cauchy Distribution:** When applying different estimation methods to the Cauchy distribution, we observed that some techniques were unreliable and took varying amounts of time to find the correct value. This inconsistency was mainly because the Cauchy data included extreme values, which made it challenging for the methods to consistently arrive at the right answer. Only certain methods, when started with good initial guesses, were able to work effectively. Other approaches were more dependable but tended to be slower. Overall, the unusual nature of the Cauchy data made it harder for these methods to perform consistently without careful setup.
+
+**Normal Distribution:** In contrast, when we used the same estimation methods on data from a Normal distribution, all techniques performed smoothly and quickly. The methods reliably found the correct value with minimal effort because the Normal distribution is more balanced and doesn't have extreme outliers. This made the estimation process straightforward and efficient, demonstrating that these numerical methods work best with well-behaved data like that from the Normal distribution.
+
+
+Comparison of Numerical Methods on Cauchy$(\theta, 1)$
+
+| **Method**                      | **Converged** | **Theta Estimate** | **Iterations** | **Time Taken (secs)** |
+|---------------------------------|---------------|---------------------|-----------------|-----------------------|
+| Newton-Raphson (start = -11)    | FALSE         | 0.5449998           | 1000            | 0.010                 |
+| Newton-Raphson (start = -1)     | FALSE         | -0.5655976          | 1000            | 10.002                |
+| Newton-Raphson (start = 0)      | FALSE         | -3.2913955          | 1000            | 20.002                |
+| Newton-Raphson (start = 1.5)    | FALSE         | 2.8366942           | 1000            | 30.003                |
+| Newton-Raphson (start = 4)      | FALSE         | 0.4951102           | 1000            | 40.002                |
+| Newton-Raphson (start = 4.7)    | FALSE         | 1.9993329           | 1000            | 50.002                |
+| Newton-Raphson (start = 7)      | FALSE         | 3.6492607           | 1000            | 60.002                |
+| Newton-Raphson (start = 8)      | FALSE         | 2.6277720           | 1000            | 0.002                 |
+| Newton-Raphson (start = 38)     | FALSE         | -3.6444995          | 1000            | 0.000                 |
+| Bisection (-20, 60)             | TRUE          | -0.1922864          | 25              | 0.001                 |
+| Fixed-Point (alpha = 1)         | TRUE          | -0.1922917          | 74              | 0.002                 |
+| Fixed-Point (alpha = 0.64)      | TRUE          | -0.1922951          | 114             | 0.000                 |
+| Fixed-Point (alpha = 0.25)      | TRUE          | -0.1923108          | 274             | 0.001                 |
+| Secant (start = -2, -1)          | TRUE          | -0.1922867          | 2               | 0.004                 |
+| Secant (start = -3, -3)          | FALSE         | NA                  | NA              | 0.000                 |
+
+---
+
+Comparison of Numerical Methods on Normal$(\theta, 1)$
+
+| **Method**                           | **Converged** | **Theta Estimate** | **Iterations** | **Time Taken (secs)** |
+|--------------------------------------|---------------|---------------------|-----------------|-----------------------|
+| Newton-Raphson (Normal)              | TRUE          | 0.6416238           | 1               | 0.004                 |
+| Bisection (Normal)                   | TRUE          | 0.6416236           | 25              | 0.001                 |
+| Fixed-Point (alpha = 1) (Normal)     | TRUE          | 0.6416238           | 1               | 0.003                 |
+| Fixed-Point (alpha = 0.64) (Normal)  | TRUE          | 0.6416238           | 1               | 0.000                 |
+| Fixed-Point (alpha = 0.25) (Normal)  | TRUE          | 0.6416238           | 1               | 0.000                 |
+| Secant (start = mean-1, mean+1)      | TRUE          | 0.6416238           | 2               | 0.000                 |
+| Secant (start = 0, 0)                 | FALSE         | NA                  | NA              | 0.001                 |
+
+
+
+```{r}
+#| echo: false
+#| eval: false
+# Load required libraries
+library(ggplot2)
+library(dplyr)
+
+# ============================
+# Problem 2.1 Part E
+# ============================
+
+# Define methods for Cauchy distribution
+logLikFuncCauchy <- function(theta, data) {
+  n <- length(data)
+  -n * log(pi) - sum(log(1 + (data - theta)^2))
+}
+
+scoreFuncCauchy <- function(theta, data) {
+  sum(2 * (data - theta) / (1 + (data - theta)^2))
+}
+
+secondDerivCauchy <- function(theta, data) {
+  sum(2 / (1 + (data - theta)^2) - 4 * (data - theta)^2 / (1 + (data - theta)^2)^2)
+}
+
+newtonRaphCauchy <- function(thetaInit, data, tol = 1e-6, maxIter = 1000) {
+  theta <- thetaInit
+  for (i in 1:maxIter) {
+    fPrime <- scoreFuncCauchy(theta, data)
+    fDoublePrime <- secondDerivCauchy(theta, data)
+    if (abs(fDoublePrime) < .Machine$double.eps) {
+      warning("Second derivative is too small.")
+      break
+    }
+    thetaNew <- theta - fPrime / fDoublePrime
+    if (abs(thetaNew - theta) < tol) {
+      return(list(theta = thetaNew, iterations = i))
+    }
+    theta <- thetaNew
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = theta, iterations = maxIter))
+}
+
+# Define methods for Normal distribution
+logLikFuncNormal <- function(theta, data) {
+  n <- length(data)
+  -n/2 * log(2 * pi) - sum((data - theta)^2) / 2
+}
+
+scoreFuncNormal <- function(theta, data) {
+  sum(data - theta)
+}
+
+secondDerivNormal <- function(theta, data) {
+  -length(data)
+}
+
+newtonRaphNormal <- function(thetaInit, data, tol = 1e-6, maxIter = 1000) {
+  theta <- thetaInit
+  for (i in 1:maxIter) {
+    fPrime <- scoreFuncNormal(theta, data)
+    fDoublePrime <- secondDerivNormal(theta, data)
+    if (abs(fDoublePrime) < .Machine$double.eps) {
+      warning("Second derivative is too small.")
+      break
+    }
+    thetaNew <- theta - fPrime / fDoublePrime
+    if (abs(thetaNew - theta) < tol) {
+      return(list(theta = thetaNew, iterations = i))
+    }
+    theta <- thetaNew
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = theta, iterations = maxIter))
+}
+
+# Define general methods
+# Bisection Method
+bisectionMethod <- function(f, lower, upper, data, tol = 1e-6, maxIter = 1000) {
+  if (f(lower, data) * f(upper, data) >= 0) {
+    stop("The function must change sign over the interval.")
+  }
+  for (i in 1:maxIter) {
+    mid <- (lower + upper) / 2
+    fMid <- f(mid, data)
+    if (abs(fMid) < tol || (upper - lower) / 2 < tol) {
+      return(list(theta = mid, iterations = i))
+    }
+    if (f(lower, data) * fMid < 0) {
+      upper <- mid
+    } else {
+      lower <- mid
+    }
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = mid, iterations = maxIter))
+}
+
+# Fixed-Point Iteration for Cauchy
+fixedPointIterCauchy <- function(thetaInit, data, alpha, tol = 1e-6, maxIter = 1000) {
+  n <- length(data)
+  theta <- thetaInit
+  for (i in 1:maxIter) {
+    thetaNew <- theta + alpha * scoreFuncCauchy(theta, data) / n
+    if (abs(thetaNew - theta) < tol) {
+      return(list(theta = thetaNew, iterations = i))
+    }
+    theta <- thetaNew
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = theta, iterations = maxIter))
+}
+
+# Fixed-Point Iteration for Normal
+fixedPointIterNormal <- function(thetaInit, data, alpha, tol = 1e-6, maxIter = 1000) {
+  n <- length(data)
+  theta <- thetaInit
+  for (i in 1:maxIter) {
+    thetaNew <- theta + alpha * scoreFuncNormal(theta, data) / n
+    if (abs(thetaNew - theta) < tol) {
+      return(list(theta = thetaNew, iterations = i))
+    }
+    theta <- thetaNew
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = theta, iterations = maxIter))
+}
+
+# Secant Method
+secantMethod <- function(theta0, theta1, f, data, tol = 1e-6, maxIter = 1000) {
+  for (i in 1:maxIter) {
+    f0 <- f(theta0, data)
+    f1 <- f(theta1, data)
+    if (abs(f1 - f0) < .Machine$double.eps) {
+      warning("Division by zero in the secant method.")
+      break
+    }
+    thetaNew <- theta1 - f1 * ((theta1 - theta0) / (f1 - f0))
+    if (abs(thetaNew - theta1) < tol) {
+      return(list(theta = thetaNew, iterations = i))
+    }
+    theta0 <- theta1
+    theta1 <- thetaNew
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = theta1, iterations = maxIter))
+}
+
+# Original Cauchy data
+dataSampleCauchy <- c(1.77, -0.23, 2.76, 3.80, 3.47, 56.75, -1.34, 4.24, -2.44, 3.29,
+                      3.71, -2.40, 4.53, -0.07, -1.05, -13.87, -2.53, -1.75, 0.27, 43.21)
+
+# Generate Normal sample: N(theta, 1), sample size 20
+set.seed(123)  # For reproducibility
+trueThetaNormal <- 0.5
+dataSampleNormal <- rnorm(20, mean = trueThetaNormal, sd = 1)
+
+# Define a comparison function
+compareMethods <- function(data, distribution = "Cauchy", trueTheta = NULL) {
+  results <- data.frame(Method = character(),
+                        Converged = logical(),
+                        ThetaEstimate = numeric(),
+                        Iterations = numeric(),
+                        stringsAsFactors = FALSE)
+  
+  if (distribution == "Cauchy") {
+    # Newton-Raphson for Cauchy
+    startingPoints <- c(-11, -1, 0, 1.5, 4, 4.7, 7, 8, 38)
+    for (start in startingPoints) {
+      res <- newtonRaphCauchy(thetaInit = start, data = data)
+      converged <- res$iterations < 1000
+      results <- rbind(results, data.frame(Method = "Newton-Raphson",
+                                           Converged = converged,
+                                           ThetaEstimate = res$theta,
+                                           Iterations = res$iterations))
+    }
+    
+    # Bisection for Cauchy (using a general interval where sign change is likely)
+    # Note: Bisection requires a single root; here, we assume one global maximum
+    # Alternatively, choose multiple intervals if multiple roots exist
+    # For simplicity, perform bisection on a wide interval
+    tryCatch({
+      resBisect <- bisectionMethod(f = scoreFuncCauchy, lower = -20, upper = 60, data = data)
+      convergedBisect <- resBisect$iterations < 1000
+      results <- rbind(results, data.frame(Method = "Bisection",
+                                           Converged = convergedBisect,
+                                           ThetaEstimate = resBisect$theta,
+                                           Iterations = resBisect$iterations))
+    }, error = function(e) {
+      results <- rbind(results, data.frame(Method = "Bisection",
+                                           Converged = FALSE,
+                                           ThetaEstimate = NA,
+                                           Iterations = NA))
+    })
+    
+    # Fixed-Point Iteration for Cauchy
+    alphasCauchy <- c(1, 0.64, 0.25)
+    for (alpha in alphasCauchy) {
+      resFP <- fixedPointIterCauchy(thetaInit = -1, data = data, alpha = alpha)
+      convergedFP <- resFP$iterations < 1000
+      results <- rbind(results, data.frame(Method = paste("Fixed-Point (alpha =", alpha, ")"),
+                                           Converged = convergedFP,
+                                           ThetaEstimate = resFP$theta,
+                                           Iterations = resFP$iterations))
+    }
+    
+    # Secant Method for Cauchy
+    # Example 1: Starting points (-2, -1)
+    resSecant1 <- tryCatch({
+      secantMethod(theta0 = -2, theta1 = -1, f = scoreFuncCauchy, data = data)
+    }, warning = function(w) {
+      list(theta = NA, iterations = NA)
+    }, error = function(e) {
+      list(theta = NA, iterations = NA)
+    })
+    convergedSecant1 <- resSecant1$iterations < 1000
+    results <- rbind(results, data.frame(Method = "Secant (start -2, -1)",
+                                         Converged = convergedSecant1,
+                                         ThetaEstimate = resSecant1$theta,
+                                         Iterations = resSecant1$iterations))
+    
+    # Example 2: Starting points (-3, -3) which are identical
+    resSecant2 <- tryCatch({
+      secantMethod(theta0 = -3, theta1 = -3, f = scoreFuncCauchy, data = data)
+    }, warning = function(w) {
+      list(theta = NA, iterations = NA)
+    }, error = function(e) {
+      list(theta = NA, iterations = NA)
+    })
+    convergedSecant2 <- resSecant2$iterations < 1000
+    results <- rbind(results, data.frame(Method = "Secant (start -3, -3)",
+                                         Converged = convergedSecant2,
+                                         ThetaEstimate = resSecant2$theta,
+                                         Iterations = resSecant2$iterations))
+    
+  } else if (distribution == "Normal") {
+    # Newton-Raphson for Normal
+    initialGuessNormal <- mean(data)
+    resNRNormal <- newtonRaphNormal(thetaInit = initialGuessNormal, data = data)
+    convergedNRNormal <- resNRNormal$iterations < 1000
+    results <- rbind(results, data.frame(Method = "Newton-Raphson",
+                                         Converged = convergedNRNormal,
+                                         ThetaEstimate = resNRNormal$theta,
+                                         Iterations = resNRNormal$iterations))
+    
+    # Bisection for Normal
+    # Define interval around the true theta
+    lowerBisectionNormal <- trueTheta - 10
+    upperBisectionNormal <- trueTheta + 10
+    tryCatch({
+      resBisectNormal <- bisectionMethod(f = scoreFuncNormal, lower = lowerBisectionNormal, upper = upperBisectionNormal, data = data)
+      convergedBisectNormal <- resBisectNormal$iterations < 1000
+      results <- rbind(results, data.frame(Method = "Bisection",
+                                           Converged = convergedBisectNormal,
+                                           ThetaEstimate = resBisectNormal$theta,
+                                           Iterations = resBisectNormal$iterations))
+    }, error = function(e) {
+      results <- rbind(results, data.frame(Method = "Bisection",
+                                           Converged = FALSE,
+                                           ThetaEstimate = NA,
+                                           Iterations = NA))
+    })
+    
+    # Fixed-Point Iteration for Normal
+    alphasNormal <- c(1, 0.64, 0.25)
+    for (alpha in alphasNormal) {
+      resFPNormal <- fixedPointIterNormal(thetaInit = initialGuessNormal, data = data, alpha = alpha)
+      convergedFPNormal <- resFPNormal$iterations < 1000
+      results <- rbind(results, data.frame(Method = paste("Fixed-Point (alpha =", alpha, ")"),
+                                           Converged = convergedFPNormal,
+                                           ThetaEstimate = resFPNormal$theta,
+                                           Iterations = resFPNormal$iterations))
+    }
+    
+    # Secant Method for Normal
+    # Example 1: Starting points (mean -1, mean +1)
+    meanNormal <- mean(data)
+    resSecantNormal1 <- tryCatch({
+      secantMethod(theta0 = meanNormal - 1, theta1 = meanNormal + 1, f = scoreFuncNormal, data = data)
+    }, warning = function(w) {
+      list(theta = NA, iterations = NA)
+    }, error = function(e) {
+      list(theta = NA, iterations = NA)
+    })
+    convergedSecantNormal1 <- resSecantNormal1$iterations < 1000
+    results <- rbind(results, data.frame(Method = "Secant (start mean-1, mean+1)",
+                                         Converged = convergedSecantNormal1,
+                                         ThetaEstimate = resSecantNormal1$theta,
+                                         Iterations = resSecantNormal1$iterations))
+    
+    # Example 2: Starting points (0, 0) which are identical
+    resSecantNormal2 <- tryCatch({
+      secantMethod(theta0 = 0, theta1 = 0, f = scoreFuncNormal, data = data)
+    }, warning = function(w) {
+      list(theta = NA, iterations = NA)
+    }, error = function(e) {
+      list(theta = NA, iterations = NA)
+    })
+    convergedSecantNormal2 <- resSecantNormal2$iterations < 1000
+    results <- rbind(results, data.frame(Method = "Secant (start 0, 0)",
+                                         Converged = convergedSecantNormal2,
+                                         ThetaEstimate = resSecantNormal2$theta,
+                                         Iterations = resSecantNormal2$iterations))
+  }
+  
+  return(results)
+}
+
+# Define a comparison function with timing
+compareMethodsWithTiming <- function(data, distribution = "Cauchy", trueTheta = NULL) {
+  results <- data.frame(Method = character(),
+                        Converged = logical(),
+                        ThetaEstimate = numeric(),
+                        Iterations = numeric(),
+                        TimeTaken = numeric(),
+                        stringsAsFactors = FALSE)
+  
+  if (distribution == "Cauchy") {
+    # Newton-Raphson for Cauchy
+    startingPoints <- c(-11, -1, 0, 1.5, 4, 4.7, 7, 8, 38)
+    for (start in startingPoints) {
+      timeNR <- system.time({
+        res <- newtonRaphCauchy(thetaInit = start, data = data)
+      })
+      converged <- res$iterations < 1000
+      results <- rbind(results, data.frame(Method = "Newton-Raphson",
+                                           Converged = converged,
+                                           ThetaEstimate = res$theta,
+                                           Iterations = res$iterations,
+                                           TimeTaken = timeNR["elapsed"]))
+    }
+    
+    # Bisection for Cauchy
+    tryCatch({
+      timeBisect <- system.time({
+        resBisect <- bisectionMethod(f = scoreFuncCauchy, lower = -20, upper = 60, data = data)
+      })
+      convergedBisect <- resBisect$iterations < 1000
+      results <- rbind(results, data.frame(Method = "Bisection",
+                                           Converged = convergedBisect,
+                                           ThetaEstimate = resBisect$theta,
+                                           Iterations = resBisect$iterations,
+                                           TimeTaken = timeBisect["elapsed"]))
+    }, error = function(e) {
+      results <- rbind(results, data.frame(Method = "Bisection",
+                                           Converged = FALSE,
+                                           ThetaEstimate = NA,
+                                           Iterations = NA,
+                                           TimeTaken = NA))
+    })
+    
+    # Fixed-Point Iteration for Cauchy
+    alphasCauchy <- c(1, 0.64, 0.25)
+    for (alpha in alphasCauchy) {
+      timeFP <- system.time({
+        resFP <- fixedPointIterCauchy(thetaInit = -1, data = data, alpha = alpha)
+      })
+      convergedFP <- resFP$iterations < 1000
+      results <- rbind(results, data.frame(Method = paste("Fixed-Point (alpha =", alpha, ")"),
+                                           Converged = convergedFP,
+                                           ThetaEstimate = resFP$theta,
+                                           Iterations = resFP$iterations,
+                                           TimeTaken = timeFP["elapsed"]))
+    }
+    
+    # Secant Method for Cauchy
+    # Example 1: Starting points (-2, -1)
+    timeSecant1 <- system.time({
+      resSecant1 <- tryCatch({
+        secantMethod(theta0 = -2, theta1 = -1, f = scoreFuncCauchy, data = data)
+      }, warning = function(w) {
+        list(theta = NA, iterations = NA)
+      }, error = function(e) {
+        list(theta = NA, iterations = NA)
+      })
+    })
+    convergedSecant1 <- resSecant1$iterations < 1000
+    results <- rbind(results, data.frame(Method = "Secant (start -2, -1)",
+                                         Converged = convergedSecant1,
+                                         ThetaEstimate = resSecant1$theta,
+                                         Iterations = resSecant1$iterations,
+                                         TimeTaken = timeSecant1["elapsed"]))
+    
+    # Example 2: Starting points (-3, -3) which are identical
+    timeSecant2 <- system.time({
+      resSecant2 <- tryCatch({
+        secantMethod(theta0 = -3, theta1 = -3, f = scoreFuncCauchy, data = data)
+      }, warning = function(w) {
+        list(theta = NA, iterations = NA)
+      }, error = function(e) {
+        list(theta = NA, iterations = NA)
+      })
+    })
+    convergedSecant2 <- resSecant2$iterations < 1000
+    results <- rbind(results, data.frame(Method = "Secant (start -3, -3)",
+                                         Converged = convergedSecant2,
+                                         ThetaEstimate = resSecant2$theta,
+                                         Iterations = resSecant2$iterations,
+                                         TimeTaken = timeSecant2["elapsed"]))
+    
+  } else if (distribution == "Normal") {
+    # Newton-Raphson for Normal
+    initialGuessNormal <- mean(data)
+    timeNR <- system.time({
+      resNRNormal <- newtonRaphNormal(thetaInit = initialGuessNormal, data = data)
+    })
+    convergedNRNormal <- resNRNormal$iterations < 1000
+    results <- rbind(results, data.frame(Method = "Newton-Raphson",
+                                         Converged = convergedNRNormal,
+                                         ThetaEstimate = resNRNormal$theta,
+                                         Iterations = resNRNormal$iterations,
+                                         TimeTaken = timeNR["elapsed"]))
+    
+    # Bisection for Normal
+    lowerBisectionNormal <- trueThetaNormal - 10
+    upperBisectionNormal <- trueThetaNormal + 10
+    tryCatch({
+      timeBisect <- system.time({
+        resBisectNormal <- bisectionMethod(f = scoreFuncNormal, lower = lowerBisectionNormal, upper = upperBisectionNormal, data = data)
+      })
+      convergedBisectNormal <- resBisectNormal$iterations < 1000
+      results <- rbind(results, data.frame(Method = "Bisection",
+                                           Converged = convergedBisectNormal,
+                                           ThetaEstimate = resBisectNormal$theta,
+                                           Iterations = resBisectNormal$iterations,
+                                           TimeTaken = timeBisect["elapsed"]))
+    }, error = function(e) {
+      results <- rbind(results, data.frame(Method = "Bisection",
+                                           Converged = FALSE,
+                                           ThetaEstimate = NA,
+                                           Iterations = NA,
+                                           TimeTaken = NA))
+    })
+    
+    # Fixed-Point Iteration for Normal
+    alphasNormal <- c(1, 0.64, 0.25)
+    for (alpha in alphasNormal) {
+      timeFP <- system.time({
+        resFPNormal <- fixedPointIterNormal(thetaInit = initialGuessNormal, data = data, alpha = alpha)
+      })
+      convergedFPNormal <- resFPNormal$iterations < 1000
+      results <- rbind(results, data.frame(Method = paste("Fixed-Point (alpha =", alpha, ")"),
+                                           Converged = convergedFPNormal,
+                                           ThetaEstimate = resFPNormal$theta,
+                                           Iterations = resFPNormal$iterations,
+                                           TimeTaken = timeFP["elapsed"]))
+    }
+    
+    # Secant Method for Normal
+    # Example 1: Starting points (mean -1, mean +1)
+    meanNormal <- mean(data)
+    timeSecantNormal1 <- system.time({
+      resSecantNormal1 <- tryCatch({
+        secantMethod(theta0 = meanNormal - 1, theta1 = meanNormal + 1, f = scoreFuncNormal, data = data)
+      }, warning = function(w) {
+        list(theta = NA, iterations = NA)
+      }, error = function(e) {
+        list(theta = NA, iterations = NA)
+      })
+    })
+    convergedSecantNormal1 <- resSecantNormal1$iterations < 1000
+    results <- rbind(results, data.frame(Method = "Secant (start mean-1, mean+1)",
+                                         Converged = convergedSecantNormal1,
+                                         ThetaEstimate = resSecantNormal1$theta,
+                                         Iterations = resSecantNormal1$iterations,
+                                         TimeTaken = timeSecantNormal1["elapsed"]))
+    
+    # Example 2: Starting points (0, 0) which are identical
+    timeSecantNormal2 <- system.time({
+      resSecantNormal2 <- tryCatch({
+        secantMethod(theta0 = 0, theta1 = 0, f = scoreFuncNormal, data = data)
+      }, warning = function(w) {
+        list(theta = NA, iterations = NA)
+      }, error = function(e) {
+        list(theta = NA, iterations = NA)
+      })
+    })
+    convergedSecantNormal2 <- resSecantNormal2$iterations < 1000
+    results <- rbind(results, data.frame(Method = "Secant (start 0, 0)",
+                                         Converged = convergedSecantNormal2,
+                                         ThetaEstimate = resSecantNormal2$theta,
+                                         Iterations = resSecantNormal2$iterations,
+                                         TimeTaken = timeSecantNormal2["elapsed"]))
+  }
+  
+  return(results)
+}
+
+# Apply comparison with timing on Cauchy data
+cauchyResultsTimed <- compareMethodsWithTiming(data = dataSampleCauchy, distribution = "Cauchy")
+
+# Apply comparison with timing on Normal data
+normalResultsTimed <- compareMethodsWithTiming(data = dataSampleNormal, distribution = "Normal", trueTheta = trueThetaNormal)
+
+# Summarize results
+print("Comparison of Methods on Cauchy Data:")
+print(cauchyResultsTimed)
+
+print("Comparison of Methods on Normal Data:")
+print(normalResultsTimed)
+```
+
+
+{{< pagebreak >}}
+
+## Problem 2.2
+
+### Part A
+
+The log-likelihood function is:
+
+$$
+\ell(\theta) = -n \log(2\pi) + \sum_{i=1}^{n} \log\left[1 - \cos(x_i - \theta)\right]
+$$
+
+```{r}
+#| echo: false
+logLikTheta <- function(theta, data) {
+  n <- length(data)
+  -n * log(2 * pi) + sum(log(1 - cos(data - theta)))
+}
+thetaSeq <- seq(-pi, pi, length.out = 1000)
+# Data sample
+dataTheta <- c(3.91, 4.85, 2.28, 4.06, 3.70, 4.04, 5.46, 3.53, 2.28, 1.96,
+               2.53, 3.88, 2.22, 3.47, 4.82, 2.46, 2.99, 2.54, 0.52, 2.50)
+logLikValsTheta <- sapply(thetaSeq, logLikTheta, data = dataTheta)
+# Create data frame
+logLikDFTheta <- data.frame(theta = thetaSeq, logLik = logLikValsTheta)
+
+# Plot
+ggplot(logLikDFTheta, aes(x = theta, y = logLik)) +
+  geom_line(color = "darkgreen") +
+  labs(
+    title = "Log-Likelihood Function for Circular Distribution",
+    x = expression(theta),
+    y = "Log-Likelihood"
+  ) +
+  theme_minimal()
+
+```
+{{< pagebreak >}}
+
+### Part B
+
+The method-of-moments estimator for $\theta$ is:
+
+$$
+\hat{\theta}_{\text{MM}} = \arctan2\left(\frac{1}{n} \sum_{i=1}^{n} \sin x_i, \frac{1}{n} \sum_{i=1}^{n} \cos x_i\right)
+$$
+
+```{r}
+#| echo: false
+meanSine <- mean(sin(dataTheta))
+meanCosine <- mean(cos(dataTheta))
+thetaMM <- atan2(meanSine, meanCosine)
+thetaMM
+```
+
+{{< pagebreak >}}
+
+### Part C
+
+We need to compute the derivative of the log-likelihood,
+
+$$
+\ell'(\theta) = \sum_{i=1}^{n} \frac{\sin(x_i - \theta)}{1 - \cos(x_i - \theta)}
+$$
+
+Then solve for the second derivative as follows,
+
+$$
+\ell''(\theta) = \sum_{i=1}^{n} \frac{\cos(x_i - \theta)}{1 - \cos(x_i - \theta)} - \left(\frac{\sin(x_i - \theta)}{1 - \cos(x_i - \theta)}\right)^2
+$$
+
+```{r}
+#| echo: false
+scoreTheta <- function(theta, data) {
+  sum(sin(data - theta) / (1 - cos(data - theta)))
+}
+
+secondDerivTheta <- function(theta, data) {
+  sum((cos(data - theta) / (1 - cos(data - theta))) - 
+        (sin(data - theta) / (1 - cos(data - theta)))^2)
+}
+newtonRaphTheta <- function(thetaInit, data, tol = 1e-6, maxIter = 1000) {
+  currentTheta <- thetaInit
+  for (iter in 1:maxIter) {
+    firstDeriv <- scoreTheta(currentTheta, data)
+    secondDeriv <- secondDerivTheta(currentTheta, data)
+    if (is.na(secondDeriv) || abs(secondDeriv) < .Machine$double.eps) {
+      warning("Second derivative is too small or undefined. Stopping.")
+      return(list(theta = NA, iterations = iter))
+    }
+    updatedTheta <- currentTheta - firstDeriv / secondDeriv
+    updatedTheta <- (updatedTheta + pi) %% (2 * pi) - pi
+    if (abs(updatedTheta - currentTheta) < tol) {
+      return(list(theta = updatedTheta, iterations = iter))
+    }
+    
+    currentTheta <- updatedTheta
+  }
+  warning("Maximum iterations reached without convergence.")
+  return(list(theta = currentTheta, iterations = maxIter))
+}
+newtonRaphResultMM <- newtonRaphTheta(thetaInit = thetaMM, data = dataTheta)
+newtonRaphResultMM
+# Starting at $-2.7$ and $2.7$:
+newtonRaphResultNeg <- newtonRaphTheta(thetaInit = -2.7, data = dataTheta)
+newtonRaphResultPos <- newtonRaphTheta(thetaInit = 2.7, data = dataTheta)
+newtonRaphResultNeg
+newtonRaphResultPos
+```
+
+{{< pagebreak >}}
+
+### Part D
+
+We run the Newton–Raphson method with 200 equally spaced starting values between $-\pi$ and $\pi$.
+
+```{r}
+#| echo: false
+thetaStarts <- seq(-pi, pi, length.out = 200)
+convergedRoots <- sapply(thetaStarts, function(startTheta) {
+  result <- newtonRaphTheta(thetaInit = startTheta, data = dataTheta)
+  result$theta
+})
+# Modulo 2pi to keep within [0, 2pi]
+convergedRoots <- convergedRoots %% (2 * pi)
+# Plotting the roots
+rootsDF <- data.frame(start = thetaStarts, root = convergedRoots)
+ggplot(rootsDF, aes(x = start, y = root)) +
+  geom_point(alpha = 0.5) +
+  labs(
+    title = "Sets of Attraction for Newton–Raphson Method",
+    x = "Starting Value",
+    y = "Converged Root"
+  ) +
+  theme_minimal()
+```
+
+The plot shows how different starting values lead to convergence to different roots. The interval is partitioned into regions where starting values converge to the same local maxima.
+
+{{< pagebreak >}}
+
+### Part E
+
+We search for two starting values close to each other that converge to different solutions:
+
+```{r}
+#| echo: false
+deltaVal <- 1e-4
+startTheta1 <- 1.5
+startTheta2 <- startTheta1 + deltaVal
+result1 <- newtonRaphTheta(thetaInit = startTheta1, data = dataTheta)
+result2 <- newtonRaphTheta(thetaInit = startTheta2, data = dataTheta)
+c(startTheta1 = startTheta1, root1 = result1$theta)
+c(startTheta2 = startTheta2, root2 = result2$theta)
+```

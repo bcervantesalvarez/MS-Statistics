@@ -1,0 +1,340 @@
+---
+title: "Generalized Linear Regression Homework 4"
+author: "Brian Cervantes Alvarez"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+format: OSULatexTheme-pdf
+editor:
+  render-on-save: true
+---
+
+# Problem 1
+
+In the T-intersection example from the lecture, consider the model with `presence` as the only predictor and $\log(\text{left} \times \text{ADT})$ as the offset. Find the predicted value for the average number of accidents for a T-intersection with a refuge lane and $\log(\text{left} \times \text{ADT}) = 15$. Also, find a 95% confidence interval for this average.
+
+### Solution
+
+**Model Design:**
+
+We use the Poisson regression model with an offset:
+
+$$
+\log(\mu) = \beta_0 + \beta_1 \times \text{presence} + \log(\text{left} \times \text{ADT})
+$$
+
+Since $\log(\text{left} \times \text{ADT})$ is an offset, it adjusts the expected count $\mu$ but is not included in the coefficient estimates. Thus,
+
+$$
+\log\left( \frac{\mu}{\text{left} \times \text{ADT}} \right) = \beta_0 + \beta_1 \times \text{presence}
+$$
+We are given that,
+
+- `presence` = 1 (refuge lane present)
+- $\log(\text{left} \times \text{ADT}) = 15$
+
+From the model output, we know that:
+
+\begin{align*}
+\hat{\beta}_0 &= 1.1206 \\
+\hat{\beta}_1 &= -0.8329
+\end{align*}
+
+
+Let's calculate the predicted value.
+
+\begin{align*}
+\log\left( \frac{\mu}{e^{15}} \right) &= \hat{\beta}_0 + \hat{\beta}_1 \times \text{presence} \\
+\log(\mu) &= 15 + \hat{\beta}_0 + \hat{\beta}_1 \times 1 \\
+\log(\mu) &= 15 + 1.1206 - 0.8329 \\
+\log(\mu) &= 15 + 0.2877 \\
+\log(\mu) &= 15.2877 \\
+\mu &= e^{15.2877} \approx 4,355,795
+\end{align*}
+
+
+Then let's calculate the 95% Confidence Interval.
+
+First, compute the variance of $\log(\mu)$:
+
+$$
+\text{Var}[\log(\mu)] = (\text{SE}(\hat{\beta}_0))^2 + (\text{presence})^2 \times (\text{SE}(\hat{\beta}_1))^2
+$$
+
+Given,
+
+- $\text{SE}(\hat{\beta}_0) = 0.1474$
+- $\text{SE}(\hat{\beta}_1) = 0.2518$
+
+Compute,
+
+$$
+\text{Var}[\log(\mu)] = (0.1474)^2 + (1)^2 \times (0.2518)^2 = 0.0217 + 0.0634 = 0.0851
+$$
+
+Standard error,
+
+$$
+\text{SE}_{\log(\mu)} = \sqrt{0.0851} \approx 0.2918
+$$
+
+Compute the 95% confidence interval for $\log(\mu)$,
+
+$$
+\log(\mu) \pm z_{0.975} \times \text{SE}_{\log(\mu)} = 15.2877 \pm 1.96 \times 0.2918 = [14.7158,\ 15.8596]
+$$
+
+Exponentiate to obtain the confidence interval for $\mu$,
+
+
+\begin{align*}
+\mu_{\text{lower}} &= e^{14.7158} \approx 2,440,000 \\
+\mu_{\text{upper}} &= e^{15.8596} \approx 7,011,000
+\end{align*}
+
+{{< pagebreak >}}
+
+### Results
+
+- **Predicted average number of accidents:** Approximately **4,355,795** accidents.
+
+- *95% Confidence Interval:** Approximately **[2,440,000, 7,011,000]** accidents.
+
+The predicted number of accidents is unrealistically high, suggesting a possible issue with the value of $\log(\text{left} \times \text{ADT}) = 15$ or the model's design.
+
+
+{{< pagebreak >}}
+
+# Problem 2
+
+
+```{r}
+#| echo: false
+# Load the data
+cancer_data <- read.table("CancerDeaths.txt", header = TRUE)
+
+# View the first few rows
+head(cancer_data)
+```
+
+## Part A
+
+Using $\log(\text{risk})$ as an offset, fit the Poisson log-linear regression model with `time after blast` treated as a factor (with seven levels) and with `Exposure` treated as a numerical covariate. Interpret the parameter associated with `Exposure` (you do not need to interpret its estimate).
+
+### Solution
+
+**Model Design**
+
+We fit the following Poisson regression model:
+
+$$
+\log(\mu) = \beta_0 + \beta_1 \times \text{Exposure} + \text{TimeFactors} + \log(\text{AtRisk})
+$$
+
+**Fitting the Model in R:**
+
+```{r}
+# Convert YearsAfter to a factor
+cancer_data$TimeFactor <- factor(cancer_data$YearsAfter, 
+                                 levels = unique(cancer_data$YearsAfter))
+# Fit the Poisson regression model
+model_a <- glm(Deaths ~ Exposure + TimeFactor, offset = log(AtRisk), 
+               family = poisson, data = cancer_data)
+# Summary of the model
+summary(model_a)
+```
+
+The coefficient $\beta_1$ represents the change in the log rate of cancer deaths for each additional rad of radiation exposure, adjusting for time after exposure. A positive $\beta_1$ means that higher radiation exposure is associated with a higher rate of cancer deaths.
+
+{{< pagebreak >}}
+
+## Part B
+
+Try the same model as in part (a), but instead of treating `YearsAfter` as a factor with seven levels, compute the midpoint of each interval and include $\log(\text{TimeMidpoint})$ as a numerical explanatory variable. Using `anova(..., test="LRT")`, does it appear that `Time` can adequately be represented through this single term?
+
+### Solution
+
+
+Compute the midpoint of each `YearsAfter` interval and take the log.
+
+```{r}
+# Define a function to compute the midpoint
+get_midpoint <- function(interval) {
+  parts <- unlist(strsplit(as.character(interval), "to"))
+  midpoint <- mean(as.numeric(parts))
+  return(midpoint)
+}
+# Compute the midpoints
+cancer_data$TimeMidpoint <- sapply(cancer_data$YearsAfter, get_midpoint)
+# Take the logarithm of the midpoints
+cancer_data$LogTime <- log(cancer_data$TimeMidpoint)
+# Fit the model with log(TimeMidpoint)
+model_b <- glm(Deaths ~ Exposure + LogTime, offset = log(AtRisk), 
+               family = poisson, data = cancer_data)
+# Compare with the model from part (a)
+anova(model_b, model_a, test = "LRT")
+```
+
+By comparing the two models using the Likelihood Ratio Test, we found that incorporating `TimeFactor` as a categorical variable significantly improves the model fit. Therefore, time after exposure should be treated categorically rather than through a single logarithmic transformation to accurately describe its effect on cancer death rates.
+
+{{< pagebreak >}}
+
+## Part C
+
+Try fitting a model that includes the interaction of $\log(\text{TimeMidpoint})$ and `Exposure`. Is the interaction significant?
+
+### Solution
+
+**Fitting the Model with Interaction:**
+
+```{r}
+# Fit the model with interaction between Exposure and LogTime
+model_c <- glm(Deaths ~ Exposure * LogTime, offset = log(AtRisk),
+               family = poisson, data = cancer_data)
+
+# Compare with the model without interaction (model_b)
+anova(model_b, model_c, test = "LRT")
+```
+The interaction between `Exposure` and `LogTime` is **not** statistically significant (p = 0.29). This suggests that the effect of radiation exposure on the rate of cancer deaths does not significantly depend on the time after exposure. Therefore, the simpler model without the interaction term is sufficient and preferred for describing the relationship between radiation exposure, time after exposure, and cancer death rates.
+
+
+{{< pagebreak >}}
+
+### Part D
+
+Based on a good-fitting model, make a statement about the effect of radiation exposure on the number of cancer deaths per person per year. Provide an estimate of a relevant parameter, a confidence interval, and interpret the results in context.
+
+### Solution
+
+**Calculating the 95% Confidence Interval:**
+
+```{r}
+# Extract the estimate and standard error for Exposure
+coef_exposure <- coef(summary(model_a))["Exposure", "Estimate"]
+se_exposure <- coef(summary(model_a))["Exposure", "Std. Error"]
+
+# Calculate the 95% confidence interval
+z_value <- qnorm(0.975)
+ci_lower <- coef_exposure - z_value * se_exposure
+ci_upper <- coef_exposure + z_value * se_exposure
+
+# Exponentiate to get rate ratios
+rate_ratio <- exp(coef_exposure)
+ci_lower_exp <- exp(ci_lower)
+ci_upper_exp <- exp(ci_upper)
+```
+
+
+```{r}
+#| echo: false
+# Display the results
+cat("Estimate of beta_1 (Exposure):", round(coef_exposure, 5), "\n")
+cat("95% Confidence Interval for beta_1: [", round(ci_lower, 5), ", ", round(ci_upper, 5), "]\n")
+cat("Rate Ratio per rad:", round(rate_ratio, 3), "\n")
+cat("95% Confidence Interval for Rate Ratio: [", round(ci_lower_exp, 3), ", ", round(ci_upper_exp, 3), "]\n")
+```
+
+The Poisson regression analysis demonstrates that radiation exposure significantly increases the rate of cancer deaths among survivors. To dive deeper, each additional rad of exposure is associated with a **0.2% increase** in the cancer death rate (Rate Ratio: **1.002**). Hence, the 95% confidence interval for this rate ratio is **[1.001, 1.003]**, which does not include 1. This means that higher levels of radiation exposure lead to a measurable and significant rise in cancer mortality rates, even after accounting for the time elapsed since exposure.
+
+{{< pagebreak >}}
+
+# Problem 3
+
+The data taken from Snedecor and Cochran (1967) were obtained as part of an experiment to determine the effects of temperature and storage time on the loss of ascorbic acid in snap-beans. The beans were harvested under uniform conditions, prepared, quick-frozen, and assigned at random to various temperature and storage-time combinations. The ascorbic acid concentrations after storage are recorded in the dataset.
+
+## Part A
+
+We model the decay of ascorbic acid concentration using an exponential decay model where the rate of decay depends on both temperature and storage time. Specifically, the expected concentration after time $t$ at temperature $T$ is given by:
+$$
+\mu = E(Y) = e^{-\alpha - \beta T t}
+$$
+ 
+The regression model is thus,
+$$
+\log(\mu_i) = \beta_0 + \beta_1 \times \text{Temperature}_i + \beta_2 \times \text{Time}_i + \log(1)
+$$
+```{r}
+#| message: false
+#| echo: false
+# Load necessary libraries
+library(dplyr)
+
+# Create the data frame
+beans_data <- data.frame(
+  Temperature = rep(c(0, 10, 20), each = 4),
+  Time = rep(c(2, 4, 6, 8), times = 3),
+  Concentration = c(45, 47, 46, 46, 45, 43, 41, 37, 34, 28, 21, 16)
+)
+
+# Convert Temperature to a factor
+beans_data$Temperature <- factor(beans_data$Temperature)
+
+# Fit the Gaussian GLM with log link
+model_a <- glm(Concentration ~ Temperature + Time, 
+               family = gaussian(link = "log"), 
+               data = beans_data)
+
+# Display the summary of the fitted model
+summary(model_a)
+
+```
+
+### Solution
+
+From the summary, the storage temperature significantly affects ascorbic acid concentration in snap-beans, particularly at 20°F where ascorbic acid levels decrease substantially (p < 0.000303) compared to the reference temperature of 0°F. The temperature at 10°F does not have a statistically significant effect (p = 0.204). Additionally, storage time is marginally associated with ascorbic acid reduction (p = 0.093), suggesting that longer storage periods may lead to a slight decrease in ascorbic acid levels. These results suggest that higher storage temperatures and longer storage times contribute to greater loss of ascorbic acid in snap-beans.
+
+
+{{< pagebreak >}}
+ 
+## Part B
+
+To estimate the time required for the ascorbic acid concentration to reduce to half its original value (half-life) at each temperature, we solve for $t$ in the equation:
+
+$$
+\mu = \frac{1}{2} \mu_0 = e^{-\alpha - \beta T t}
+$$
+
+Taking the natural logarithm of both sides:
+
+$$
+\log\left(\frac{1}{2}\right) = -\alpha - \beta T t
+$$
+
+Solving for $t$:
+
+$$
+t_{1/2} = \frac{\log(2)}{-\beta T}
+$$
+
+**Calculating Half-Life and Confidence Intervals in R:**
+
+```{r}
+#| echo: false
+# Extract coefficients and their standard errors
+coef_estimates <- coef(summary(model_a))
+beta3 <- coef_estimates["Time", "Estimate"]
+se_beta3 <- coef_estimates["Time", "Std. Error"]
+
+# Calculate half-life for each temperature
+temperatures <- c(0, 10, 20)
+half_lives <- log(2) / (abs(beta3) * temperatures)
+
+# Calculate confidence intervals using the Delta Method
+z_value <- qnorm(0.975)
+se_half_life <- log(2) / (beta3^2 * temperatures) * se_beta3
+ci_lower <- half_lives - z_value * se_half_life
+ci_upper <- half_lives + z_value * se_half_life
+
+# Create a summary table
+half_life_table <- data.frame(
+  Temperature = temperatures,
+  Half_Life = half_lives,
+  CI_Lower = ci_lower,
+  CI_Upper = ci_upper
+)
+
+# Display the table
+print(half_life_table)
+```
+
+### Solution
+
+At 10°F, the estimated half-life of ascorbic acid concentration is approximately **2.468 weeks**, with a 95% confidence interval of **[2.466, 2.470] weeks**. At 20°F, the half-life is approximately **1.234 weeks**, with a 95% confidence interval of **[1.2335, 1.2345] weeks**. This suggests that higher storage temperatures significantly accelerate the degradation of ascorbic acid in snap-beans, reducing the time required for ascorbic acid concentration to halve.

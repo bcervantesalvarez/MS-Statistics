@@ -952,7 +952,7 @@ currentDocumentLocation.appendChild(initializedElement);
 // Initialize a Monaco Editor Instance
 qwebrCreateMonacoEditorInstance(
   `# Read brainhead data
-brainheadData <- read.table("brainhead.txt", header = TRUE)
+brainheadData <- read.table("https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/refs/heads/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab5/brainhead.txt", header = TRUE)
 
 # Separate data by gender
 maleData <- subset(brainheadData, gender == "male")
@@ -972,7 +972,7 @@ femaleModel <- lm(brainwt ~ headsize, data = femaleData)
 
 abline(maleModel, col = "blue", lty = 1)
 abline(femaleModel, col = "red", lty = 2)
-legend("topright", 
+legend("topleft", 
        legend = c("Male", "Female"), 
        pch = c(19, 17),
        col = c("blue", "red"))`, 
@@ -1049,7 +1049,13 @@ summary(interactionModel)`,
 <h2 class="anchored" data-anchor-id="part-ii-multiple-linear-regression-conditions-using-the-fish.txt-dataset-12-points">Part II: Multiple Linear Regression Conditions Using the <code>fish.txt</code> Dataset (12 points)</h2>
 <section id="problem-6-correlation-and-scatterplot-matrix-3-points" class="level3">
 <h3 class="anchored" data-anchor-id="problem-6-correlation-and-scatterplot-matrix-3-points">Problem 6: Correlation and Scatterplot Matrix (3 points)</h3>
-<p>Construct a scatterplot matrix and correlation matrix for the variables in <code>fish.txt</code>: - <code>catch</code>: Seasonal bass catch (thousands) - <code>residences</code>: Number of lakeshore residences per square mile - <code>size</code>: Lake size (square miles) - <code>structure</code>: Structure index (measure of lakebed structure)</p>
+<p>Construct a scatterplot matrix and correlation matrix for the variables in <code>fish.txt</code>:</p>
+<ul>
+<li><code>catch</code>: Seasonal bass catch (thousands)</li>
+<li><code>residences</code>: Number of lakeshore residences per square mile</li>
+<li><code>size</code>: Lake size (square miles)</li>
+<li><code>structure</code>: Structure index (measure of lakebed structure)</li>
+</ul>
 <section id="code-example-2" class="level4">
 <h4 class="anchored" data-anchor-id="code-example-2">Code Example</h4>
 <div id="qwebr-insertion-location-3"></div>
@@ -1068,7 +1074,7 @@ currentDocumentLocation.appendChild(initializedElement);
 // Initialize a Monaco Editor Instance
 qwebrCreateMonacoEditorInstance(
   `# Load fish data
-fishData <- read.table("fish.txt", header = TRUE)
+fishData <- read.table("https://raw.githubusercontent.com/bcervantesalvarez/MS-Statistics/refs/heads/main/Academic-Year-2024-2025/Fall%202024/ST-352-Labs/Lab5/fish.txt", header = TRUE)
 
 # Scatterplot matrix
 pairs(fishData[, c("catch", "residences", "size", "structure")])
@@ -1141,21 +1147,27 @@ summary(logAllModel)`,
 <li><strong>Guiding Questions</strong>: For your chosen model, what are the predictors (<code>residences</code>, <code>size</code>, <code>structure</code>, <code>access</code>)? What does each term in the equation represent?</li>
 </ul>
 <p><span class="math display">\[
-\log(\text{Catch}) = -6.356 + 0.672 \cdot \log(\text{Residences}) + 0.220 \cdot \log(\text{Size}) + 1.111 \cdot \log(\text{Structure}) + 0.275 \cdot \text{Access}
+\log(\text{Catch}) = -6.356 + 0.672 \cdot \log(X_1) + 0.220 \cdot \log(X_2) + 1.111 \cdot \log(X_3) + 0.275 \cdot X_4
 \]</span></p>
 <p>Here’s a breakdown of the equation components:</p>
 <ul>
 <li><strong>Intercept</strong>: <span class="math inline">\(-6.356\)</span></li>
-<li><strong>Effect of log(Residences)</strong>: <span class="math inline">\(0.672\)</span></li>
-<li><strong>Effect of log(Size)</strong>: <span class="math inline">\(0.220\)</span></li>
-<li><strong>Effect of log(Structure)</strong>: <span class="math inline">\(1.111\)</span></li>
-<li><strong>Effect of Access</strong>: <span class="math inline">\(0.275\)</span></li>
+<li><span class="math inline">\(log(X_1) =\)</span> <strong>Effect of log(Residences)</strong>: <span class="math inline">\(0.672\)</span></li>
+<li><span class="math inline">\(log(X_2) =\)</span> <strong>Effect of log(Size)</strong>: <span class="math inline">\(0.220\)</span></li>
+<li><span class="math inline">\(log(X_3) =\)</span> <strong>Effect of log(Structure)</strong>: <span class="math inline">\(1.111\)</span></li>
+<li><span class="math inline">\(X_4 =\)</span> <strong>Effect of Access</strong>: <span class="math inline">\(0.275\)</span></li>
 </ul>
 <p>This model indicates that each predictor has a multiplicative effect on the catch when transformed logarithmically, with <code>Structure</code> and <code>Access</code> showing the most substantial contributions to <code>Catch</code> in this log-transformed model.</p>
 </section>
 <section id="problem-9-predicting-seasonal-bass-catch-2-points" class="level3">
 <h3 class="anchored" data-anchor-id="problem-9-predicting-seasonal-bass-catch-2-points">Problem 9: Predicting Seasonal Bass Catch (2 points)</h3>
-<p>Use your final model to predict the seasonal bass catch for a lake with: - 1.25 square miles in size - 70 lakeshore residences per square mile - Structure index of 45 - Public access (represented by <code>1</code>)</p>
+<p>Use your final model to predict the seasonal bass catch for a lake with:</p>
+<ul>
+<li>1.5 square miles in size</li>
+<li>75 lakeshore residences per square mile</li>
+<li>Structure index of 50</li>
+<li>Public access (represented by <code>1</code>)</li>
+</ul>
 <section id="code-example-4" class="level4">
 <h4 class="anchored" data-anchor-id="code-example-4">Code Example</h4>
 <div id="qwebr-insertion-location-5"></div>
@@ -1206,7 +1218,6 @@ predictedCatch`,
 <li><strong>Guiding Questions</strong>: How does public access (1 vs.&nbsp;0) affect predicted bass catch? What does the sign of the <code>access</code> coefficient indicate about lakes with public access compared to those without?</li>
 </ul>
 <hr>
-<p>This completes the updated <strong>Part II</strong> of the lab guide with the <code>"fish.txt"</code> dataset. Let me know if further adjustments are needed!</p>
 </section>
 </section>
 </section>

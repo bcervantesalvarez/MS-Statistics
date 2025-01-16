@@ -1,0 +1,14 @@
+Description
+The data are the number of cancer deaths among survivors of the atomic bombs dropped on Japan during World War II, categorized by time (years) after the bomb that death occurred and the amount of radiation exposure that the survivors received from the blast. Also listed in each cell is the person- years at risk, in 100's. This is the sum total of all years spent by all persons in the category. The data can be analyzed by supposing the number of cancer deaths in each cell is Poisson with mean = risk x rate, where risk is the person-years at risk and rate is the rate of cancer deaths per person per year. How does the rate depend on the radiation exposure, after accounting for years after exposure?
+
+Exposure
+radiation exposure, in rads
+
+YearsAfter
+years after the exposure
+
+AtRisk
+number of survivors in the group
+
+Deaths
+number of survivors in the group who died of Cancer

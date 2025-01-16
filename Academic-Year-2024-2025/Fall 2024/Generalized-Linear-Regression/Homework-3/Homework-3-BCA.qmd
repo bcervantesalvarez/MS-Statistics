@@ -1,0 +1,509 @@
+---
+title: "Generalized Linear Regression Homework 3"
+author: "Brian Cervantes Alvarez"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+format: OSULatexTheme-pdf
+editor:
+  render-on-save: true
+---
+
+**Toxicity of Insecticides**
+
+Flour beetles *Tribolium castaneum* were sprayed with one of three insecticides in solution at different doses. The number of insects killed after a six-day period is recorded below:
+
+| Insecticide            | 2.00    | 2.64    | 3.48    | 4.59    | 6.06    | 8.00    |
+|------------------------|---------|---------|---------|---------|---------|---------|
+| **DDT**                | $3/50$  | $5/49$  | $19/47$ | $19/38$ | $24/49$ | $35/50$ |
+| $\gamma$-BHC           | $2/50$  | $14/49$ | $20/50$ | $27/50$ | $41/50$ | $40/50$ |
+| **DDT +** $\gamma$-BHC | $28/50$ | $37/50$ | $46/50$ | $48/50$ | $48/50$ | $50/50$ |
+
+{{< pagebreak >}}
+
+## Part A
+
+Investigate graphically the relationship between dose, either in original units or in log units, and the kill rate.
+
+### Solution
+
+For each observation, the kill rate can be calculated for each insecticide.
+
+
+```{r}
+#| echo: false
+# Create the data frame
+data <- data.frame(
+  Insecticide = rep(c("DDT", "gamma-BHC", "DDT + gamma-BHC"), each = 6),
+  Dose = rep(c(2.00, 2.64, 3.48, 4.59, 6.06, 8.00), times = 3),
+  Killed = c(3, 5, 19, 19, 24, 35, 2, 14, 20, 27, 41, 40, 28, 37, 46, 48, 48, 50),
+  Total = c(50, 49, 47, 38, 49, 50, 50, 49, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50)
+)
+
+# Calculate kill rates and log dose
+data$KillRate <- data$Killed / data$Total
+data$LogDose <- log(data$Dose)
+```
+
+**Plotting Kill Rate vs. Dose and Log Dose:**
+
+```{r}
+#| echo: false
+# Load necessary library
+library(ggplot2)
+
+# Plot Kill Rate vs Dose
+ggplot(data, aes(x = Dose, y = KillRate, color = Insecticide, shape = Insecticide)) +
+  geom_point(size = 3) +
+  labs(title = "Kill Rate vs. Dose", x = "Dose (mg/10 cm²)", y = "Kill Rate") +
+  theme_minimal()
+
+# Plot Kill Rate vs Log Dose
+ggplot(data, aes(x = LogDose, y = KillRate, color = Insecticide, shape = Insecticide)) +
+  geom_point(size = 3) +
+  labs(title = "Kill Rate vs. Log Dose", x = "Log Dose", y = "Kill Rate") +
+  theme_minimal()
+```
+
+### From the plots
+
+The relationship between dose and kill rate is non-linear and shows a sigmoidal shape. Next, when plotting kill rate against log dose, the relationship appears more linear, especially in the middle range of doses. Lastly, The combination of DDT and gamma-BHC achieves higher kill rates at lower doses compared to the individual insecticides.
+
+{{< pagebreak >}}
+
+## Part B
+
+### Solution
+
+**Fitting Logistic Regression Models:**
+
+We fit logistic regression models for each insecticide separately, using the log dose as the predictor.
+
+```{r}
+#| echo: false
+# Fit logistic regression models
+models <- lapply(split(data, data$Insecticide), function(df) {
+  glm(cbind(Killed, Total - Killed) ~ LogDose, data = df, family = binomial)
+})
+
+# Generate predictions for plotting
+dose_seq <- seq(min(data$LogDose), max(data$LogDose), length.out = 100)
+predictions <- data.frame(LogDose = dose_seq)
+
+for (insecticide in names(models)) {
+  model <- models[[insecticide]]
+  predictions[[insecticide]] <- predict(model, 
+                                        newdata = data.frame(LogDose = dose_seq), type = "response")
+}
+
+# Reshape the data for plotting
+library(reshape2)
+pred_melt <- melt(predictions, id.vars = "LogDose", variable.name = "Insecticide", value.name = "PredictedKillRate")
+```
+
+```{r}
+#| echo: false
+# Plot Kill Rate vs Log Dose with fitted curves
+ggplot() +
+  geom_point(data = data, aes(x = LogDose, y = KillRate, color = Insecticide, shape = Insecticide), size = 2) +
+  geom_line(data = pred_melt, aes(x = LogDose, y = PredictedKillRate, color = Insecticide), linewidth = 1) +
+  labs(title = "Kill Rate vs. Log Dose with Logistic Fit", x = "Log Dose", y = "Kill Rate") +
+  theme_minimal()
+```
+
+### What we see from the plots
+
+The logistic regression curves fit the data points well for each insecticide. Additionally, the combination insecticide shows a steeper curve, indicating higher potency. To end, the individual insecticides (DDT and gamma-BHC) have similar but less steep curves compared to the combination.
+
+{{< pagebreak >}}
+
+## Part C
+
+**Consider two models:**
+
+1.  One in which the relationship is described by three parallel straight lines in the log dose.
+2.  One in which the three lines are straight but not parallel.
+
+**Assess the evidence against the hypothesis of parallelism.**
+
+### Solution
+
+**Model Definitions:**
+
+-   **Parallel Lines Model (Common Slope):**
+
+    $$
+    \text{logit}(p) = \beta_0 + \beta_{\text{chem}} + \beta_1 \times \text{LogDose}
+    $$
+
+-   **Non-Parallel Lines Model (Separate Slopes):**
+
+    $$
+    \text{logit}(p) = \beta_0 + \beta_{\text{chem}} + \beta_{\text{chem}}^{'} \times \text{LogDose}
+    $$
+
+**Fitting the Models:**
+
+```{r}
+# Parallel lines model
+parallel_model <- glm(cbind(Killed, Total - Killed) ~ 
+                         Insecticide + LogDose,
+                      data = data, family = binomial)
+
+# Non-parallel lines model (interaction between Insecticide and LogDose)
+nonparallel_model <- glm(cbind(Killed, Total - Killed) ~ 
+                            Insecticide * LogDose,
+                         data = data, family = binomial)
+```
+
+{{< pagebreak >}}
+
+**Likelihood Ratio Test:**
+
+We compare the two models using a likelihood ratio test.
+
+```{r}
+# Perform likelihood ratio test
+anova(parallel_model, nonparallel_model, test = "Chisq")
+```
+
+**Results:** The p-value from the likelihood ratio test is greater than 0.05. This suggests that there is no significant difference between the models. Hence, we fail to reject the null hypothesis that the slopes are equal across insecticides. The assumption of parallelism is appropriate for this data.
+
+{{< pagebreak >}}
+
+## Part D
+
+Let `chem` be a 3-level factor, and let `ldose` be the log dose. Explain the relationship between the regression coefficients in the model formulae:
+
+1.  `chem + ldose`
+2.  `chem + ldose - 1`
+
+Explain the relationship between the two covariance matrices.
+
+### Solution
+
+**Model 1: `chem + ldose`**: Includes an intercept term; The reference level of `chem` is absorbed into the intercept, and the coefficients for `chem` represent differences from the reference level.
+
+**Model 2: `chem + ldose - 1`**: Does not include the intercept term, and each level of `chem` has its own intercept. Lastly, the coefficients for `chem` are the actual intercepts for each insecticide.
+
+**Relationship Between Coefficients:**
+
+-   In Model 1, the intercept represents the baseline for the reference insecticide at $\text{ldose} = 0$.
+-   In Model 2, the intercepts are directly estimated for each insecticide.
+
+**Covariance Matrices:**
+
+The covariance matrices differ due to the different parameterizations; by omitting the intercept, it changes the dependencies among the estimated coefficients. In Model 2, the covariance between the intercepts and slopes may be different compared to Model 1.
+
+{{< pagebreak >}}
+
+## Part E
+
+Assuming that three parallel straight lines suffice, estimate the potency of the combination relative to each of the components. Use the Delta method to obtain a 90% confidence interval for each of these relative potencies.
+
+### Solution
+
+```{r}
+#| echo: false
+# Fit the parallel lines model
+parallel_model <- glm(cbind(Killed, Total - Killed) ~ Insecticide + LogDose, data = data, family = binomial)
+summary(parallel_model)
+```
+
+```{r}
+#| echo: false
+# Coefficients
+coeffs <- coef(parallel_model)
+beta_comb <- coeffs["InsecticideDDT + gamma-BHC"]
+beta_ddt <- coeffs["InsecticideDDT"]
+beta_gamma <- coeffs["Insecticidegamma-BHC"]
+beta_logdose <- coeffs["LogDose"]
+
+# Covariance matrix
+cov_matrix <- vcov(parallel_model)
+```
+
+**Calculating Relative Potency:**
+
+The relative potency $R$ of the combination compared to an insecticide is:
+
+$$
+R = \exp\left( -\frac{\beta_{\text{comb}} - \beta_{\text{comp}}}{\beta_1} \right)
+$$
+
+Where $\beta_{\text{comb}}$ is the coefficient for the combination, $\beta_{\text{comp}}$ is the coefficient for the component insecticide, and $\beta_1$ is the common slope.
+
+**Using the Delta Method to Find Variance:**
+
+The variance of $\log(R)$ is:
+
+$$
+\text{Var}[\log(R)] = \frac{\text{Var}[\beta_{\text{comb}} - \beta_{\text{comp}}] + (\log(R))^2 \times \text{Var}[\beta_1]}{\beta_1^2}
+$$
+
+**Calculations (with R)**
+
+```{r}
+#| echo: false
+# Part (e): Estimate the potency of the combination relative to each of the components using the Delta method
+
+# Fit the parallel lines model
+parallel_model <- glm(cbind(Killed, Total - Killed) ~ Insecticide + LogDose, data = data, family = binomial)
+
+# Extract coefficients
+coeffs <- coef(parallel_model)
+beta_LogDose <- coeffs["LogDose"]
+
+# Extract covariance matrix
+cov_matrix <- vcov(parallel_model)
+
+# Relative Potency calculations and confidence intervals for all comparisons
+# Initialize a list to store results
+results <- list()
+
+# Critical value for 90% CI
+z_value <- qnorm(0.95)  # For 90% CI
+
+# Comparisons to make
+comparisons <- list(
+  list(name = "Combination vs DDT",
+       beta_diff = coeffs["InsecticideDDT + gamma-BHC"],
+       var_diff = cov_matrix["InsecticideDDT + gamma-BHC", "InsecticideDDT + gamma-BHC"]),
+  list(name = "Combination vs gamma-BHC",
+       beta_diff = coeffs["InsecticideDDT + gamma-BHC"] - coeffs["Insecticidegamma-BHC"],
+       var_diff = cov_matrix["InsecticideDDT + gamma-BHC", "InsecticideDDT + gamma-BHC"] +
+                  cov_matrix["Insecticidegamma-BHC", "Insecticidegamma-BHC"] -
+                  2 * cov_matrix["InsecticideDDT + gamma-BHC", "Insecticidegamma-BHC"]),
+  list(name = "gamma-BHC vs DDT",
+       beta_diff = coeffs["Insecticidegamma-BHC"],
+       var_diff = cov_matrix["Insecticidegamma-BHC", "Insecticidegamma-BHC"])
+)
+
+# Loop over comparisons and calculate relative potency and confidence intervals
+for (comp in comparisons) {
+  diff_beta <- comp$beta_diff
+  var_diff <- comp$var_diff
+  
+  rel_potency <- exp(-diff_beta / beta_LogDose)
+  se_logR <- sqrt(var_diff / beta_LogDose^2)
+  
+  lower <- exp(-(diff_beta + z_value * se_logR) / beta_LogDose)
+  upper <- exp(-(diff_beta - z_value * se_logR) / beta_LogDose)
+  
+  # Store results
+  results[[comp$name]] <- list(
+    rel_potency = rel_potency,
+    lower = lower,
+    upper = upper
+  )
+}
+
+# Display results
+for (name in names(results)) {
+  cat("Relative Potency (", name, "): ", round(results[[name]]$rel_potency, 3), "\n", sep = "")
+  cat("90% Confidence Interval: [", round(results[[name]]$lower, 3), ", ", round(results[[name]]$upper, 3), "]\n\n", sep = "")
+}
+```
+
+{{< pagebreak >}}
+
+## Part F
+
+Use Fieller's method to obtain a 90% confidence interval for each of the above relative potencies.
+
+### Solution
+
+Using R:
+
+```{r}
+#| echo: false
+# Part (f): Use Fieller's method to obtain 90% confidence intervals for relative potencies
+
+# Fit the parallel lines model (if not already done)
+# parallel_model <- glm(cbind(Killed, Total - Killed) ~ Insecticide + LogDose, data = data, family = binomial)
+
+# Extract coefficients and covariance matrix
+coeffs <- coef(parallel_model)
+cov_matrix <- vcov(parallel_model)
+
+beta_LogDose <- coeffs["LogDose"]
+var_beta_LogDose <- cov_matrix["LogDose", "LogDose"]
+
+# Critical value for 90% CI
+t_value <- qnorm(0.95)  # For 90% CI
+
+# Initialize a list to store results
+fieller_results <- list()
+
+# Comparisons to make
+comparisons <- list(
+  list(name = "Combination vs DDT",
+       beta_diff = coeffs["InsecticideDDT + gamma-BHC"],
+       var_beta_diff = cov_matrix["InsecticideDDT + gamma-BHC", "InsecticideDDT + gamma-BHC"],
+       cov_diff_slope = cov_matrix["InsecticideDDT + gamma-BHC", "LogDose"]),
+  list(name = "Combination vs gamma-BHC",
+       beta_diff = coeffs["InsecticideDDT + gamma-BHC"] - coeffs["Insecticidegamma-BHC"],
+       var_beta_diff = cov_matrix["InsecticideDDT + gamma-BHC", "InsecticideDDT + gamma-BHC"] +
+                       cov_matrix["Insecticidegamma-BHC", "Insecticidegamma-BHC"] -
+                       2 * cov_matrix["InsecticideDDT + gamma-BHC", "Insecticidegamma-BHC"],
+       cov_diff_slope = cov_matrix["InsecticideDDT + gamma-BHC", "LogDose"] -
+                        cov_matrix["Insecticidegamma-BHC", "LogDose"]),
+  list(name = "gamma-BHC vs DDT",
+       beta_diff = coeffs["Insecticidegamma-BHC"],
+       var_beta_diff = cov_matrix["Insecticidegamma-BHC", "Insecticidegamma-BHC"],
+       cov_diff_slope = cov_matrix["Insecticidegamma-BHC", "LogDose"])
+)
+
+# Function to compute Fieller's confidence intervals
+fieller_ci <- function(a, b, var_a, var_b, cov_ab, t) {
+  # Coefficients of the quadratic equation
+  A <- var_b - (b^2) / t^2
+  B <- -2 * (cov_ab - (a * b) / t^2)
+  C <- var_a - (a^2) / t^2
+  
+  discriminant <- B^2 - 4 * A * C
+  
+  if (A == 0) {
+    # Linear case
+    root <- -C / B
+    return(c(root, root))
+  } else if (discriminant < 0) {
+    # No real roots
+    return(c(NA, NA))
+  } else {
+    sqrt_discriminant <- sqrt(discriminant)
+    root1 <- (-B + sqrt_discriminant) / (2 * A)
+    root2 <- (-B - sqrt_discriminant) / (2 * A)
+    return(sort(c(root1, root2)))
+  }
+}
+
+# Loop over comparisons and calculate Fieller's confidence intervals
+for (comp in comparisons) {
+  a <- comp$beta_diff
+  b <- comp$beta_LogDose <- beta_LogDose
+  var_a <- comp$var_beta_diff
+  var_b <- var_beta_LogDose
+  cov_ab <- comp$cov_diff_slope
+  
+  t <- t_value
+  
+  # Compute Fieller's confidence interval for the ratio theta = -a / b
+  ci_theta <- fieller_ci(a, b, var_a, var_b, cov_ab, t)
+  
+  # Compute the confidence interval for R
+  ci_R <- exp(ci_theta)
+  
+  # Compute the point estimate
+  R_hat <- exp(-a / b)
+  
+  # Store results
+  fieller_results[[comp$name]] <- list(
+    R_hat = R_hat,
+    lower = min(ci_R, na.rm = TRUE),
+    upper = max(ci_R, na.rm = TRUE)
+  )
+}
+
+# Display results
+for (name in names(fieller_results)) {
+  result <- fieller_results[[name]]
+  cat("Fieller's 90% CI for Relative Potency (", name, "):\n", sep = "")
+  cat("Point Estimate: ", round(result$R_hat, 3), "\n", sep = "")
+  if (is.na(result$lower) || is.na(result$upper)) {
+    cat("Confidence Interval: Unable to compute (no real roots)\n\n")
+  } else {
+    cat("90% Confidence Interval: [", round(result$lower, 3), ", ", round(result$upper, 3), "]\n\n", sep = "")
+  }
+}
+```
+
+{{< pagebreak >}}
+
+## Part G
+
+Provide your answer to the previous two parts under the `c-log-log` link.
+
+### Solution
+
+**Using the Complementary Log-Log Link Function:**
+
+We refit the parallel lines model using the complementary log-log link.
+
+```{r}
+# Fit the model with cloglog link
+cloglog_model <- glm(cbind(Killed, Total - Killed) ~ Insecticide + LogDose,
+                     data = data, family = binomial(link = "cloglog"))
+summary(cloglog_model)
+```
+
+{{< pagebreak >}}
+
+## Part H
+
+Under the logistic model, estimate the combination dose required to give a 99% kill rate, and obtain a 90% confidence interval for this dose.
+
+### Solution
+
+**Calculating the Dose for 99% Kill Rate:**
+
+The dose $D$ required for a kill rate $p$ satisfies:
+
+$$
+\text{logit}(p) = \beta_{\text{comb}} + \beta_1 \times \log(D)
+$$
+
+Solving for $\log(D)$:
+
+$$
+\log(D) = \frac{\text{logit}(p) - \beta_{\text{comb}}}{\beta_1}
+$$
+
+**Calculations:**
+
+```{r}
+# Target kill rate
+p <- 0.99
+logit_p <- qlogis(p)
+# Estimate log(D)
+logD <- (logit_p - beta_comb) / beta_logdose
+Dose_99 <- exp(logD)
+# Variance of log(D)
+var_logD <- (cov_matrix["InsecticideDDT + gamma-BHC", 
+                        "InsecticideDDT + gamma-BHC"] +
+             (logD)^2 * cov_matrix["LogDose", "LogDose"] -
+             2 * logD * cov_matrix["InsecticideDDT + gamma-BHC", 
+                                   "LogDose"]) / beta_logdose^2
+# Standard error
+se_logD <- sqrt(var_logD)
+# 90% Confidence Interval
+z_value <- qnorm(0.95)
+lower_logD <- logD - z_value * se_logD
+upper_logD <- logD + z_value * se_logD
+lower_Dose <- exp(lower_logD)
+upper_Dose <- exp(upper_logD)
+
+```
+
+
+```{r}
+#| echo: false
+cat("Dose Estimate: ", round(Dose_99, 3), sep = "")
+cat("\n90% Confidence Interval: [", lower_Dose, ", ", 
+    round(upper_Dose, 3), "]\n\n", sep = "")
+
+```
+
+**Results:**
+
+-   **Estimated Dose for 99% Kill Rate:**  1.787 mg/10 cm²
+-   **90% Confidence Interval:** (1.553), 2.056) mg/10 cm²
+
+{{< pagebreak >}}
+
+## Part I
+
+Provide a brief summary of your conclusions regarding the effectiveness of these three insecticides.
+
+### Solution
+
+
+The combination of DDT and gamma-BHC is significantly more effective than using either insecticide alone. This analysis shows that this mixture is much more potent, requiring lower doses to achieve high kill rates. The increased potency is confirmed by the confidence intervals from both the Delta method and Fieller's method. Additionally, the assumption of parallel lines in our model is appropriate, which simplifies the analysis without sacrificing accuracy. Practically speaking, using the combined insecticide could lead to more efficient pest control and potentially reduce environmental impact due to the lower doses needed.

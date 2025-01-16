@@ -1,0 +1,372 @@
+---
+title: "Probability, Computation and Simulation Homework 6"
+author: "Brian Cervantes Alvarez"
+date: 2024-11-25
+format: OSULatexTheme-pdf
+message: false
+warning: false
+---
+
+# Problem 2.5 
+
+I loaded the provided oil spill data into R.
+
+```{r}
+#| echo: false
+# Load data
+oilD <- data.frame(
+  year = 1974:1999,
+  spills = c(2, 5, 3, 3, 1, 5, 2, 2, 1, 1, 1, 2, 3, 4, 2, 2, 3, 2, 1, 0, 0, 1, 0, 0, 0, 0),
+  importExport = c(0.720, 0.850, 1.120, 1.345, 1.290, 1.260, 1.015, 0.870, 0.750, 0.605, 0.570, 0.540,
+                   0.720, 0.790, 0.840, 0.995, 1.030, 0.975, 1.070, 1.190, 1.290, 1.235, 1.340, 1.440, 1.450, 1.510),
+  domestic = c(0.22, 0.17, 0.15, 0.20, 0.59, 0.64, 0.84, 0.87, 0.94, 0.99, 0.92, 1.00,
+               0.99, 1.06, 1.00, 0.88, 0.82, 0.82, 0.76, 0.66, 0.65, 0.59, 0.56, 0.51, 0.42, 0.44)
+)
+
+# Assign variables
+ni <- oilD$spills
+b1 <- oilD$importExport
+b2 <- oilD$domestic
+```
+
+## Part A
+
+Given $N_i \sim \text{Poisson}(\lambda_i)$, where $\lambda_i = \alpha_1 b_{i1} + \alpha_2 b_{i2}$.
+
+We can calculate the log-likelihood function as follows,
+
+$$
+\ell(\alpha_1, \alpha_2) = \sum_{i} \left[ N_i \log(\lambda_i) - \lambda_i - \log(N_i!) \right]
+$$
+
+Next, we can determine the gradient a.k.a. the score function. It is given below,
+
+$$
+\frac{\partial \ell}{\partial \alpha_j} = \sum_{i} \left( \frac{N_i}{\lambda_i} - 1 \right) b_{ij}, \quad j = 1, 2
+$$
+
+Then, we can express the Hessian Matrix by,
+
+$$
+\frac{\partial^2 \ell}{\partial \alpha_j \partial \alpha_k} = -\sum_{i} \left( \frac{N_i}{\lambda_i^2} \right) b_{ij} b_{ik}, \quad j, k = 1, 2
+$$
+
+Hence, we arrive to the Newton–Raphson update rule,
+
+$$
+\alpha^{(t+1)} = \alpha^{(t)} - \left[ \nabla^2 \ell(\alpha^{(t)}) \right]^{-1} \nabla \ell(\alpha^{(t)})
+$$
+
+{{< pagebreak >}}
+
+## Part B
+
+We can determine the Fisher Scoring update ruling by finding the expected information matrix,
+
+$$
+I_{jk}(\alpha) = -\text{E}\left[ \frac{\partial^2 \ell}{\partial \alpha_j \partial \alpha_k} \right] = \sum_{i} \left( \frac{b_{ij} b_{ik}}{\lambda_i} \right), \quad j, k = 1, 2
+$$
+
+Therefore, our Fisher Scoring update rule is,
+
+$$
+\alpha^{(t+1)} = \alpha^{(t)} + \left[ I(\alpha^{(t)}) \right]^{-1} \nabla \ell(\alpha^{(t)})
+$$
+
+{{< pagebreak >}}
+
+## Part C
+
+### Newton Raphson Algorithm
+
+```{r}
+newtonRaphson <- function(ni, b1, b2, 
+                          alphaInit, tol = 1e-8, maxIter = 100) {
+  alpha <- alphaInit
+  path <- list(alpha)
+  for (iter in 1:maxIter) {
+    lambdaI <- alpha[1] * b1 + alpha[2] * b2
+    grad <- c(
+      sum((ni / lambdaI - 1) * b1),
+      sum((ni / lambdaI - 1) * b2)
+    )
+    hessian <- matrix(c(
+      -sum(ni * b1^2 / lambdaI^2),
+      -sum(ni * b1 * b2 / lambdaI^2),
+      -sum(ni * b1 * b2 / lambdaI^2),
+      -sum(ni * b2^2 / lambdaI^2)
+    ), nrow = 2)
+    delta <- solve(hessian, grad)
+    alphaNew <- alpha - delta
+    path <- append(path, list(alphaNew))
+    if (max(abs(alphaNew - alpha)) < tol) break
+    alpha <- alphaNew
+  }
+  list(alpha = alpha, iterations = iter, path = path)
+}
+```
+
+{{< pagebreak >}}
+
+### Fisher Scoring Algorithm
+
+```{r}
+fisherScoring <- function(ni, b1, b2, 
+                          alphaInit, tol = 1e-8, maxIter = 100) {
+  alpha <- alphaInit
+  path <- list(alpha)
+  for (iter in 1:maxIter) {
+    lambdaI <- alpha[1] * b1 + alpha[2] * b2
+    grad <- c(
+      sum((ni / lambdaI - 1) * b1),
+      sum((ni / lambdaI - 1) * b2)
+    )
+    fisherInfo <- matrix(c(
+      sum(b1^2 / lambdaI),
+      sum(b1 * b2 / lambdaI),
+      sum(b1 * b2 / lambdaI),
+      sum(b2^2 / lambdaI)
+    ), nrow = 2)
+    delta <- solve(fisherInfo, grad)
+    alphaNew <- alpha + delta
+    path <- append(path, list(alphaNew))
+    if (max(abs(alphaNew - alpha)) < tol) break
+    alpha <- alphaNew
+  }
+  list(alpha = alpha, iterations = iter, path = path)
+}
+```
+
+{{< pagebreak >}}
+
+# Results
+
+```{r}
+#| echo: false
+# Initial parameter estimates
+alphaInit <- c(1, 1)
+
+# Newton–Raphson
+nrResult <- newtonRaphson(ni, b1, b2, alphaInit)
+cat("Newton–Raphson MLEs:", nrResult$alpha, "\n")
+cat("Iterations:", nrResult$iterations, "\n")
+
+# Fisher Scoring
+fsResult <- fisherScoring(ni, b1, b2, alphaInit)
+cat("Fisher Scoring MLEs:", fsResult$alpha, "\n")
+cat("Iterations:", fsResult$iterations, "\n")
+
+print(nrResult$alpha)
+print(fsResult$alpha)
+```
+
+**Comparison:**
+
+- **Ease of Implementation:** Both methods are similar in code structure.
+- **Performance:** The number of iterations to converge may vary. Fisher scoring might require more iterations due to using the *expected information matrix*.
+
+{{< pagebreak >}}
+
+## Part D
+
+```{r}
+# Use the Fisher Information Matrix at the MLEs
+lambdaI_mle <- nrResult$alpha[1] * b1 + nrResult$alpha[2] * b2
+fisherInfoMLE <- matrix(c(
+  sum(b1^2 / lambdaI_mle),
+  sum(b1 * b2 / lambdaI_mle),
+  sum(b1 * b2 / lambdaI_mle),
+  sum(b2^2 / lambdaI_mle)
+), nrow = 2)
+
+# Covariance Matrix
+covMatrix <- solve(fisherInfoMLE)
+```
+
+```{r}
+#| echo: false
+# Standard Errors
+stdErrors <- sqrt(diag(covMatrix))
+cat("Standard Errors:", stdErrors, "\n")
+```
+
+{{< pagebreak >}}
+
+## Part E
+
+```{r}
+steepestAscent <- function(ni, b1, b2, 
+                          alphaInit, tol = 1e-8, maxIter = 100) {
+  alpha <- alphaInit
+  path <- list(alpha)
+  for (iter in 1:maxIter) {
+    lambdaI <- alpha[1] * b1 + alpha[2] * b2
+    grad <- c(
+      sum((ni / lambdaI - 1) * b1),
+      sum((ni / lambdaI - 1) * b2)
+    )
+    direction <- grad
+    stepSize <- 1
+    repeat {
+      alphaNew <- alpha + stepSize * direction
+      lambdaNew <- alphaNew[1] * b1 + alphaNew[2] * b2
+      if (all(lambdaNew > 0)) {
+        llOld <- sum(ni * log(lambdaI) - lambdaI)
+        llNew <- sum(ni * log(lambdaNew) - lambdaNew)
+        if (llNew > llOld) break
+      }
+      stepSize <- stepSize / 2
+      if (stepSize < tol) break
+    }
+    path <- append(path, list(alphaNew))
+    if (max(abs(alphaNew - alpha)) < tol) break
+    alpha <- alphaNew
+  }
+  list(alpha = alpha, iterations = iter, path = path)
+}
+```
+
+```{r}
+#| echo: false
+# Execute the method
+saResult <- steepestAscent(ni, b1, b2, alphaInit)
+cat("Steepest Ascent MLEs:", saResult$alpha, "\n")
+cat("Iterations:", saResult$iterations, "\n")
+```
+
+{{< pagebreak >}}
+
+## Part F
+
+```{r}
+quasiNewton <- function(ni, b1, b2, alphaInit, 
+                        tol = 1e-8, maxIter = 100, stepHalving = TRUE) {
+  alpha <- alphaInit
+  BInv <- diag(2)  # Initial inverse Hessian approximation
+  path <- list(alpha)
+  for (iter in 1:maxIter) {
+    lambdaI <- alpha[1] * b1 + alpha[2] * b2
+    grad <- c(
+      sum((ni / lambdaI - 1) * b1),
+      sum((ni / lambdaI - 1) * b2)
+    )
+    deltaAlpha <- -BInv %*% grad
+    stepSize <- 1
+    if (stepHalving) {
+      repeat {
+        alphaNew <- alpha + stepSize * deltaAlpha
+        lambdaNew <- alphaNew[1] * b1 + alphaNew[2] * b2
+        if (all(lambdaNew > 0)) {
+          llOld <- sum(ni * log(lambdaI) - lambdaI)
+          llNew <- sum(ni * log(lambdaNew) - lambdaNew)
+          if (llNew > llOld) break
+        }
+        stepSize <- stepSize / 2
+        if (stepSize < tol) break
+      }
+    } else {
+      alphaNew <- alpha + deltaAlpha
+    }
+    s <- alphaNew - alpha
+    lambdaI_new <- alphaNew[1] * b1 + alphaNew[2] * b2
+    gradNew <- c(
+      sum((ni / lambdaI_new - 1) * b1),
+      sum((ni / lambdaI_new - 1) * b2)
+    )
+    y <- gradNew - grad
+    rho <- 1 / sum(y * s)
+    if (is.finite(rho)) {
+      BInv <- (diag(2) - rho * s %*% t(y)) %*% BInv %*% 
+        (diag(2) - rho * y %*% t(s)) + rho * s %*% t(s)
+    }
+    path <- append(path, list(alphaNew))
+    if (max(abs(alphaNew - alpha)) < tol) break
+    alpha <- alphaNew
+  }
+  list(alpha = alpha, iterations = iter, path = path)
+}
+```
+
+```{r}
+#| echo: false
+# With step halving
+qnResultSh <- quasiNewton(ni, b1, b2, alphaInit, stepHalving = TRUE)
+cat("Quasi-Newton MLEs with step halving:", qnResultSh$alpha, "\n")
+cat("Iterations:", qnResultSh$iterations, "\n")
+
+# Without step halving
+qnResultNoSh <- quasiNewton(ni, b1, b2, alphaInit, stepHalving = FALSE)
+cat("Quasi-Newton MLEs without step halving:", qnResultNoSh$alpha, "\n")
+cat("Iterations:", qnResultNoSh$iterations, "\n")
+```
+
+**Comparison:**
+
+- **With Step Halving:** Converges reliably.
+- **Without Step Halving:** Faster convergence but may risk instability.
+
+{{< pagebreak >}}
+
+## Part G
+
+```{r}
+#| echo: false
+library(ggplot2)
+library(dplyr)
+
+# Define the function
+func <- function(x, y) {
+  -((x - 1)^2 + (y - 2)^2 + 0.5 * sin(3 * x) * cos(3 * y))
+}
+
+pathToDf <- function(path, methodName) {
+  pathClean <- lapply(path, function(x) {
+    if (is.matrix(x)) as.numeric(x) else x
+  })
+  
+  pathMatrix <- do.call(rbind, lapply(pathClean, function(x) {
+    if (length(x) == 2) x else c(NA, NA)
+  }))
+  data.frame(
+    x = pathMatrix[, 1],
+    y = pathMatrix[, 2],
+    iteration = seq_len(nrow(pathMatrix)),
+    method = methodName
+  )
+}
+
+# Create data frames for all methods
+nrDf <- pathToDf(nrResult$path, "Newton-Raphson")
+fsDf <- pathToDf(fsResult$path, "Fisher Scoring")
+saDf <- pathToDf(saResult$path, "Steepest Ascent")
+qnShDf <- pathToDf(qnResultSh$path, "Quasi-Newton (SH)")
+qnNoShDf <- pathToDf(qnResultNoSh$path, "Quasi-Newton (No SH)")
+
+# Combine all paths
+allPaths <- bind_rows(nrDf, fsDf, saDf, qnShDf, qnNoShDf)
+
+# Define sequences for the contour grid
+xSeq <- seq(-2, 4, length.out = 100)
+ySeq <- seq(-2, 4, length.out = 100)
+
+# Create contour grid
+contourDf <- expand.grid(x = xSeq, y = ySeq) %>%
+  mutate(z = apply(., 1, function(row) func(row[1], row[2])))
+
+ggplot() +
+  # Contour background
+  geom_contour(data = contourDf, aes(x = x, y = y, z = z), 
+               color = "grey", bins = 20) +
+  # Optimization paths
+  geom_path(data = allPaths, aes(x = x, y = y, color = method), linewidth = 1) +
+  # Facet by method
+  facet_wrap(~method, ncol = 2) +
+  labs(
+    title = "Optimization Paths for Different Methods",
+    x = expression(alpha[1]),
+    y = expression(alpha[2]),
+    color = "Method"
+  ) +
+  theme_minimal() +
+  theme(strip.text = element_text(face = "bold"))
+```
