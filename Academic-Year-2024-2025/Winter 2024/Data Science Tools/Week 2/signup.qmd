@@ -1,0 +1,17 @@
+---
+title: "Group Self-Signup"
+date: "2025-01-08"
+date-format: full
+format: OSULatexTheme-pdf
+include-in-header: 
+  text: |
+    \usepackage{fvextra}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+---
+
+
+**Name:** Brian Cervantes Alvarez  
+**Team Name:** The Lone Wrangler  
+
+**Statement of Intent:**  
+I have chosen to work alone to manage my schedule independently and will utilize available resources for assistance as needed.

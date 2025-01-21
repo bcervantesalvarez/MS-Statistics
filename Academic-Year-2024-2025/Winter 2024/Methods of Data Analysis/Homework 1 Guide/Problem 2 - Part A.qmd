@@ -1,0 +1,78 @@
+---
+title: "Methods of Data Analysis"
+subtitle: "Problem 2 - Part A"
+date: 01-16-2025
+format: pdf
+execute: 
+  echo: true
+  warning: false
+  show-startup-message: false
+---
+
+## Goal
+
+Find the **change in the difference of mean depression scores** between education categories (iii) and (i) for a one-unit increase in age.
+
+
+### Write the Regression Equation
+
+$$
+\text{Depression Score} = \beta_0 + \beta_1 \text{Age} + \beta_2 \text{Edu}_{ii} + \beta_3 \text{Edu}_{iii} + \beta_4 (\text{Age} \cdot \text{Edu}_{ii}) + \beta_5 (\text{Age} \cdot \text{Edu}_{iii}) + \epsilon
+$$
+
+1. **$\beta_0:$** The mean depression score for individuals with a college degree (category (i)) at age 0.  
+2. **$\beta_1:$** The change in depression score per year of age for individuals with a college degree (category (i)).  
+3. **$\beta_2:$** The difference in mean depression scores between individuals with some college (category (ii)) and those with a college degree (category (i)) at age 0.  
+4. **$\beta_3:$** The difference in mean depression scores between individuals with only a high school degree (category (iii)) and those with a college degree (category (i)) at age 0.  
+5. **$\beta_4:$** The difference in the effect of age (slope) between individuals with some college (category (ii)) and those with a college degree (category (i)).  
+6. **$\beta_5:$** The difference in the effect of age (slope) between individuals with only a high school degree (category (iii)) and those with a college degree (category (i)).  
+7. **$\epsilon:$** The residual error, representing the variability in depression scores not explained by the model.
+
+
+
+
+### Plug in the Values for Categories (i) and (iii)
+
+1. **Category (i):** This is the baseline, so $\text{Edu}_{ii} = 0$ and $\text{Edu}_{iii} = 0$.  
+   The equation for the mean depression score becomes:  
+   $$
+   \text{Depression Score for (i)} = \beta_0 + \beta_1 \text{Age}
+   $$
+
+2. **Category (iii):** Here, $\text{Edu}_{iii} = 1$ and $\text{Edu}_{ii} = 0$.  
+   The equation for the mean depression score becomes:  
+   $$
+   \text{Depression Score for (iii)} = \beta_0 + \beta_1 \text{Age} + \beta_3 + \beta_5 \text{Age}
+   $$
+
+
+
+### Find the Difference Between Categories (iii) and (i)
+Subtract the depression score equation for category (i) from that for category (iii):  
+$$
+\text{Difference} = (\beta_0 + \beta_1 \text{Age} + \beta_3 + \beta_5 \text{Age}) - (\beta_0 + \beta_1 \text{Age})
+$$
+
+Simplify:  
+$$
+\text{Difference} = \beta_3 + \beta_5 \text{Age}
+$$
+
+Thus, the difference in mean depression scores between categories (iii) and (i) is:  
+$$
+\text{Difference} = \beta_3 + \beta_5 \text{Age}
+$$
+
+
+
+### Find the Change in Difference with Respect to Age
+The "Change in Difference" is how this difference changes with one unit increase in age. To calculate this, take the derivative of the difference with respect to age:  
+$$
+\frac{d}{d\text{Age}} (\beta_3 + \beta_5 \text{Age}) = ...
+$$
+
+
+This detailed explanation is meant to guide you through the problem, as many students found it challenging. Your final solution can be much shorter and more focused. I hope this clarifies the process and helps you reach the correct answer!
+
+
+

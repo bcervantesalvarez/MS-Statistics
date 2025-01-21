@@ -1,0 +1,171 @@
+---
+title: "ST 567 Winter 2025 Computer Activity 1"
+format: html
+editor: visual
+---
+
+## Preliminaries
+
+Make sure you have the following R packages installed, and load them into the library.
+
+```{r}
+library(tidyverse)
+library(readr)
+library(sp) # (not maintained) contains the meuse river data
+library(sf) # for spatial data manipulation, analysis, and visualization
+library(mapview) # to make interactive maps
+library(spData) # contains the Boston housing data
+```
+
+You'll also need the Japanese earthquake data and the airport data, which are in the files h202303.txt and airport.dat, available from Canvas.
+
+## Meuse River Data
+
+Get the Meuse river data from the `sp` package. Have a look at the help page as well as the structure of the data.
+
+```{r}
+data(meuse) # from the sp package
+?meuse
+str(meuse)
+```
+
+The `sp` package is no longer maintained and has been supplanted by `sf`. The `meuse` data is a data frame, but to plot it on a map, we need to convert it to an `sf` object. The `sf` object contains the original data frame as well as information about the *coordinate reference system* (crs), which includes location and map projection details. More on this later.
+
+```{r}
+class(meuse)
+meuse_sf <- st_as_sf(meuse, coords = c("x", "y"), crs = 28992)
+class(meuse_sf)
+head(meuse_sf)
+```
+
+Converting to an `sf` object with mapping details allows `mapview()` to overlay the data on a beautiful (and interactive!) map.
+
+```{r}
+mapview(meuse_sf, zcol = "zinc")
+```
+
+Try plotting some of the other numeric variables, e.g. cadmium or copper. Then plot a factor variable, e.g. landuse.
+
+If you don't need an interactive map, a quick-and-dirty way to visualize an `sf` object is with `plot.sf()`:
+
+```{r}
+plot(meuse_sf)
+plot(meuse_sf["elev"])
+```
+
+## Boston Housing Data
+
+The Boston Housing Data is from the `spData` package. You can read it directly into an `sf` object using the `st_read()` function from the `sf` package.
+
+```{r}
+?boston
+boston_sf <- st_read(system.file("shapes/boston_tracts.shp",
+               package = "spData"), quiet = TRUE)
+class(boston_sf)
+head(boston_sf)
+```
+
+The structure of this data set is different because these data are *areal*. The spatial information describes polygons, not points.
+
+```{r}
+str(boston_sf)
+mapview(boston_sf, zcol="MEDV")
+```
+
+## Japanese Earthquake Data
+
+The data set comes from from the [Japan Meteorological Agency](https://www.data.jma.go.jp/svd/eqev/data/bulletin/index_e.html). I downloaded the hypocenter data for March 2023. The format for the .txt file is given here: <https://www.data.jma.go.jp/svd/eqev/data/bulletin/data/format/hypfmt_e.html>.
+
+This next chunk of code creates a data frame called `JE` containing location and magnitude information for earthquakes of magnitude larger than 3.0 whose hypocenter was determined by the Japan Meteorological Agency to have latitude larger than 30° and longitude larger than 0°.
+
+```{r}
+# read_fwf() is from the readr package and reads fixed-width format text files.
+read_fwf("h202303.txt", fwf_cols(ID=c(1,1),
+                                 lat_d=c(22,24),
+                                 lat_m=c(25,28),
+                                 lon_d=c(33,36),
+                                 lon_m=c(37,40),
+                                 depth=c(45,49),
+                                 mag=c(53,54))) %>%
+  filter(ID=="J" & as.numeric(mag)>30 & lat_d>30 & lon_d>0) %>%
+  mutate(lat=lat_d+as.numeric(lat_m)/(60*100), 
+         lon=lon_d+as.numeric(lon_m)/(60*100),
+         mag=as.numeric(mag)/10,
+         mag_size=as.numeric(mag)/10,
+         depth=as.numeric(depth)) -> JE
+```
+
+Don't worry about the warnings. The problem rows are filtered out.
+
+Next, make `JE` an `sf` object and create a map showing the magnitudes. Because the coordinates of the data are longitude and latitude, the coordinate reference system is designated `crs=4326`. Use this anytime you have long-lat locations.
+
+```{r}
+st_as_sf(JE, coords = c("lon", "lat"), crs = 4326) %>% 
+  mapview(zcol="mag", cex="mag", layer.name="Magnitude")
+```
+
+## Transforming Spatial Data
+
+The file airports.dat is from <https://openflights.org/data.php>. It contains the following information on 7698 airports located throughout the world:
+
+|  |  |
+|:--------------------|:--------------------------------------------------|
+| Airport ID | Unique OpenFlights identifier for this airport. |
+| Name | Name of airport. May or may not contain the City name. |
+| City | Main city served by airport. May be spelled differently from Name. |
+| Country | Country or territory where airport is located. |
+| IATA | 3-letter IATA code. Null if not assigned/unknown. |
+| ICAO | 4-letter ICAO code. Null if not assigned. |
+| Latitude | Decimal degrees, usually to six significant digits. Negative is South, positive is North. |
+| Longitude | Decimal degrees, usually to six significant digits. Negative is West, positive is East. |
+| Altitude | In feet. |
+| Timezone | Hours offset from UTC. Fractional hours are expressed as decimals, eg. India is 5.5. |
+| DST | Daylight savings time. One of E (Europe), A (US/Canada), S (South America), O (Australia), Z (New Zealand), N (None) or U (Unknown). |
+| Tz database timezone | Timezone in "tz" (Olson) format, eg. "America/Los_Angeles". |
+| Type | Type of the airport. Value "airport" for air terminals, "station" for train stations, "port" for ferry terminals and "unknown" if not known. In airports.dat, only type=airport is included. |
+| Source | Source of this data. "OurAirports" for data sourced from OurAirports, "Legacy" for old data not matched to OurAirports (mostly DAFIF), "User" for unverified user contributions. In airports.csv, only source=OurAirports is included. |
+
+Read in the data.
+
+```{r}
+airports <- read.csv("airports.dat", header=FALSE)
+names(airports) <- c("Airport_ID", "Name",	"City",	"Country",
+                     "IATA", "ICAO", "Latitude", "Longitude",
+                     "Altitude", "Timezone", "DST", "Tz", "Type", "Source")
+```
+
+Filter the data, keeping only the US airports.
+
+```{r}
+airports %>% filter(Country=="United States" &
+                      Longitude < -50 &
+                      Latitude > 15) -> US
+```
+
+`US` is a data frame. Convert it to an `sf` object. Since the location information is long-lat, use `crs=4326`.
+
+```{r}
+class(US)
+US %>% st_as_sf(coords=c("Longitude","Latitude"), crs=4326) -> US_sf
+class(US_sf)
+```
+
+Get a quick plot of some of the variables.
+
+```{r}
+plot(US_sf[c("Altitude","Timezone","DST")])
+```
+
+We used the EPSG code 4326 as the coordinate reference system. Transform to Universal Transverse Mercator (UTM) zone 14N coordinates. Zone 14N is located in about the center of the continental US. If you search [https://epsg.io/](epsg.io) for `north america utm 14N`, you should get an EPSG code of 26914.
+
+```{r}
+st_crs(US_sf) # Should tell you the EPSG code is 4326. 
+US_sf %>% st_transform(crs=26914) -> US_sf_utm # Transform to UTM.
+plot(US_sf_utm[c("Altitude","Timezone","DST")]) # New plot
+```
+
+Can we get a fancy `mapview` plot?
+
+```{r}
+mapview(US_sf_utm, cex=0.2)
+```

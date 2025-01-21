@@ -1,0 +1,161 @@
+---
+title: "Method of Data Analysis"
+subtitle: "ST 412/512"
+date: 01-08-2025
+theme: simplex
+format: 
+  html:
+    html-math-method: katex
+    page-layout: full
+    fontsize: 1.1em
+    linestretch: 1.7
+execute: 
+  echo: true
+  warning: false
+webr:
+  packages: ['mosaic', 'ggplot2', 'readr', 'dplyr', 'tidyr', 'Sleuth2', 'Rmisc', 'graphics']
+  show-startup-message: false
+filters:
+  - webr
+---
+
+# Lab 1: Regression Diagnostic Plots
+
+
+## Goals for Today’s Lab
+
+1. Review regression diagnostic plots.
+2. Understand when the assumptions of simple linear regression are violated.
+3. Explore residual plots for transformed and untransformed data.
+
+---
+
+## Introduction to Regression Diagnostic Plots
+
+The results of a simple linear regression are meaningful only when the model's assumptions are satisfied. Residual plots help detect evidence of violations. Today, we will:
+
+- Review three types of residual plots:
+  - Residuals vs. Fitted Values
+  - Residuals vs. Explanatory Values
+  - Normal Probability Plot (QQ plot)
+- Compare these plots for models with and without a log-transformed response variable.
+
+---
+
+## Dataset: `ex0824`
+
+The dataset `ex0824` from the `Sleuth2` package contains the age and respiratory rate for 618 children.
+
+### Load and Explore the Data
+
+```{webr-r}
+library(Sleuth2)
+head(ex0824)
+```
+
+### Fit a Linear Regression Model
+
+1. Fit a linear regression model for `Rate` on `Age`.
+2. Examine the diagnostic plots.
+
+**Questions:**
+
+- Do the residual plots show evidence of assumption violations?
+
+```{webr-r}
+lm1 <- lm(Rate ~ Age, data = ex0824)
+par(mfrow = c(2, 2))
+plot(lm1)
+```
+
+### Log-Transform the Response Variable
+
+1. Fit a linear regression model for `log(Rate)` on `Age`.
+2. Compare residual plots to the original model.
+
+**Questions:**
+
+- Do the residual plots improve after log transformation?
+- How do you interpret the slope parameter when the response is log-transformed?
+
+```{webr-r}
+lm2 <- lm(log(Rate) ~ Age, data = ex0824)
+par(mfrow = c(2, 2))
+plot(lm2)
+```
+
+---
+
+## Calibrating Your Eyes
+
+### Generate Simulated Data
+
+Run the following code to generate datasets that satisfy or violate regression assumptions. Use the diagnostic plots to differentiate the cases.
+
+### Linear Case
+
+```{webr-r}
+library(ggplot2)
+library(Rmisc)
+library(graphics)
+
+set.seed(23)
+plot_diagnostics <- function(n = 200) {
+  x <- rnorm(n, 0, 1)
+  e <- rnorm(n, 0, 1)
+  alpha <- 4
+  beta <- 7
+  y <- alpha + beta * x + e
+  data <- data.frame(x, y)
+  lmod <- lm(y ~ x, data = data)
+  par(mfrow = c(1, 3))
+  plot(lmod$fitted.values, residuals(lmod), xlab = "Fitted Values", ylab = "Residuals")
+  abline(h = 0, col = "red")
+  plot(data$x, residuals(lmod), xlab = "Explanatory Variable", ylab = "Residuals")
+  abline(h = 0, col = "red")
+  qqnorm(residuals(lmod))
+  qqline(residuals(lmod))
+}
+
+plot_diagnostics()
+```
+
+### Non-Linear Case
+
+```{webr-r}
+plot_diagnostics_nonlinear <- function(n = 200) {
+  x <- rnorm(n, 0, 1)
+  e <- rnorm(n, 0, 1)
+  alpha <- 4
+  beta <- 7
+  y <- alpha + beta * (x^4) + e
+  data <- data.frame(x, y)
+  lmod <- lm(y ~ x, data = data)
+  par(mfrow = c(1, 3))
+  plot(lmod$fitted.values, residuals(lmod), xlab = "Fitted Values", ylab = "Residuals")
+  abline(h = 0, col = "red")
+  plot(data$x, residuals(lmod), xlab = "Explanatory Variable", ylab = "Residuals")
+  abline(h = 0, col = "red")
+  qqnorm(residuals(lmod))
+  qqline(residuals(lmod))
+}
+
+plot_diagnostics_nonlinear()
+```
+
+---
+
+## Experiment with Sample Size
+
+1. Adjust the sample size `n` in the above functions.
+2. Observe how the residual plots change with different sample sizes.
+
+---
+
+## Summary
+
+- Residual plots are a key tool for diagnosing violations of regression assumptions.
+- Transformations like `log()` can sometimes improve model fit.
+- Simulated data is useful for understanding when assumptions hold or fail.
+
+---

@@ -1,0 +1,276 @@
+---
+title: "Methods of Data Analysis"
+subtitle: "ST 412/512"
+date: 01-15-2025
+date-format: full
+format: 
+  revealjs:
+    theme: serif
+    html-math-method: katex
+    page-layout: full
+    fontsize: 1.8em
+    linestretch: 1.5
+    scrollable: true
+execute: 
+  echo: true
+  warning: false
+webr:
+  packages: ['Sleuth3', 'ggplot2', 'dplyr']
+  show-startup-message: false
+filters:
+  - webr
+---
+
+
+# Lab 2: Multiple Linear Regression in R
+
+## Goals for Today’s Lab
+
+1. Understand how factors work in R and how to specify indicator variables.
+2. Learn to define and interpret multiple regression models.
+3. Practice adjusting factor levels and adding interaction terms.
+
+---
+
+## Introduction to Factors and Indicator Variables
+
+In many analyses, we need to work with categorical data. R uses **factors** to handle categorical variables, and creating **indicator variables** (also known as dummy variables) is often necessary to incorporate these into regression models. Today's lab will:
+
+- Demonstrate converting numeric or character variables to factors.
+- Show how to create and use indicator variables.
+- Guide you through fitting multiple linear regression models using these factors and interactions.
+
+<details>
+<summary><strong>Guidance</strong></summary>
+Understanding factors is crucial because regression models treat factors differently than numeric variables. Incorrect handling of factors can lead to misinterpretation of model coefficients. We will learn to specify baseline levels and interpret coefficients accordingly.
+</details>
+
+---
+
+## Working with the `case0901` Dataset
+
+We'll work with the `case0901` dataset from the `Sleuth3` package. This dataset involves flower counts under different light intensities and start times (morning/evening).
+
+---
+
+## Inspecting the Data
+
+```{r}
+library(Sleuth3)
+str(case0901)
+```
+
+<details>
+<summary><strong>Guidance</strong></summary>
+The `str()` function provides a concise summary of the dataset, including variable types and the first few observations. Notice the types of variables. For example, `Time` might be encoded as integers but represents categorical information (morning vs. evening), which we will handle as a factor.
+</details>
+
+---
+
+## Creating Indicator Variables
+
+The `Time` variable encodes two different scenarios:
+
+- `1` for one condition (e.g., "Late start")
+- `2` for another condition (e.g., "Early start")
+
+We'll create an indicator variable `Day24` that flags the "Early start" scenario.
+
+```{r}
+case0901$Day24 <- ifelse(case0901$Time == 2, 1, 0)
+head(case0901$Day24)
+```
+
+<details>
+<summary><strong>Guidance</strong></summary>
+The `ifelse()` function is useful for recoding variables. Here, it checks if `Time` equals 2, assigns `1` if true, otherwise `0`. This creates a binary variable that can be directly used in regression models.
+</details>
+
+---
+
+## Fitting a Model with an Indicator Variable
+
+```{r}
+summary(lm(Flowers ~ Intensity + Day24, data = case0901))
+```
+
+**Guiding Questions:**
+
+- How do the coefficients for `Intensity` and `Day24` relate to the average number of flowers?
+- What does the coefficient for `Day24` tell us about the difference between early and late start times?
+
+<details>
+<summary><strong>Guidance</strong></summary>
+The coefficient for `Day24` represents the average change in flower count when moving from a late start (`Day24 = 0`) to an early start (`Day24 = 1`), holding intensity constant. This value quantifies the effect of an early start on flower count. If the coefficient is significant, it suggests that start time has a meaningful impact on the number of flowers, beyond the effect of intensity.
+</details>
+
+---
+
+## Using Factors Directly
+
+```{r}
+summary(lm(Flowers ~ Intensity + factor(Time), data = case0901))
+```
+
+<details>
+<summary><strong>Guidance</strong></summary>
+By using `factor(Time)`, R automatically creates dummy variables for each level of `Time`. The output will include coefficients comparing each level to a baseline (reference) level, which by default is the first level.
+</details>
+
+---
+
+## Creating and Reordering Factors
+
+```{r}
+# Convert Intensity to factor
+case0901$intensity_f <- factor(case0901$Intensity)
+str(case0901$intensity_f)
+levels(case0901$intensity_f)
+
+# Reordering factor levels
+case0901$intensity_f2 <- factor(case0901$Intensity, 
+  levels = c("750", "300", "450", "150", "600", "900"))
+levels(case0901$intensity_f2)
+```
+
+<details>
+<summary><strong>Guidance</strong></summary>
+Reordering levels changes the baseline when factors are used in models. This can be important when comparing groups or when a particular level should serve as the reference.
+</details>
+
+```{r}
+case0901$intensity_f3 <- relevel(case0901$intensity_f, ref = "300")
+levels(case0901$intensity_f3)
+```
+
+**Guiding Questions:**
+
+- Why might you want to change the reference level of a factor?
+- How do the model coefficients change when the reference level changes?
+
+<details>
+<summary><strong>Guidance</strong></summary>
+Changing the reference level changes the interpretation of coefficients. With a different baseline, each coefficient shows the difference between that level and the new baseline. This may simplify interpretation or focus on specific comparisons of interest in your analysis.
+</details>
+
+---
+
+## Fitting Multiple Linear Regression Models
+
+```{r}
+# Basic model using numeric variables
+summary(lm(Flowers ~ Intensity + Time, data = case0901))
+
+# Model with factor conversion on the fly
+fit_1 <- lm(Flowers ~ factor(Intensity) + Time, data = case0901)
+summary(fit_1)
+```
+
+<details>
+<summary><strong>Guidance</strong></summary>
+By converting `Intensity` to a factor inside the `lm()` function, R treats each level of `Intensity` separately rather than assuming a linear relationship. This model will have more parameters and can capture non-linear effects of intensity on flowers.
+</details>
+
+---
+
+## Changing the Baseline for a Factor
+
+```{r}
+case0901$Intensity_new <- relevel(factor(case0901$Intensity), ref = "600")
+fit_3 <- lm(Flowers ~ Intensity_new + Time, data = case0901)
+summary(fit_3)
+```
+
+<details>
+<summary><strong>Guidance</strong></summary>
+Using `relevel()` as shown above, we change the reference category to "600". This shifts the baseline and alters the interpretation of the coefficients corresponding to `Intensity_new`. Now, coefficients represent differences from the "600" intensity level.
+</details>
+
+---
+
+## Adding Interaction Terms
+
+```{r}
+fit_int <- lm(Flowers ~ Intensity + Time + Time:Intensity, data = case0901)
+summary(fit_int)
+```
+
+**Guiding Questions:**
+
+- What does the interaction term `Time:Intensity` represent in this context?
+- How would you interpret a significant interaction coefficient?
+
+<details>
+<summary><strong>Guidance</strong></summary>
+The interaction term `Time:Intensity` allows the effect of intensity on flower count to change depending on the start time. A significant interaction coefficient indicates that the slope relating intensity to flower count is different for early vs. late start times. This suggests that the relationship between intensity and flowers is not consistent across times.
+</details>
+
+---
+
+## Working with Quadratic Terms
+
+Sometimes a relationship between variables is non-linear. We can add squared terms to the model to capture curvature.
+
+---
+
+## Example with Corn Yield Data
+
+```{r}
+head(ex0915)
+```
+
+```{r}
+ex0915$rainfall_sq <- ex0915$Rainfall^2
+summary(lm(Yield ~ Rainfall + rainfall_sq, data = ex0915))
+```
+
+**Guiding Questions:**
+
+- Why include a squared term in the model?
+- How do you interpret the coefficients on both `Rainfall` and `rainfall_sq`?
+
+<details>
+<summary><strong>Guidance</strong></summary>
+Including a squared term allows the model to capture a curved relationship between rainfall and yield, rather than assuming a straight-line relationship. The coefficient on `Rainfall` indicates the linear effect, while the coefficient on `rainfall_sq` reveals how that effect changes as rainfall increases, indicating curvature such as diminishing returns or acceleration.
+</details>
+
+---
+
+## Exercise: Applying These Concepts
+
+Using the `ex0923` dataset, practice fitting multiple regression models with factors and interactions.
+
+```{r}
+head(ex0923)
+```
+
+```{r}
+lm(log(Income2005) ~ Educ + Gender, data = ex0923)
+lm(log(Income2005) ~ Educ + relevel(Gender, ref = "male"), data = ex0923)
+lm(log(Income2005) ~ factor(Educ) + Gender, data = ex0923)
+lm(log(Income2005) ~ Educ + Gender + Educ:Gender, data = ex0923)
+lm(log(Income2005) ~ factor(Educ) + Gender + factor(Educ):Gender, data = ex0923)
+```
+
+**Guidance & Questions:**
+
+- Compare the outputs of these models. How does treating `Educ` as a factor change the coefficients compared to using it as a numeric variable?
+- What does the interaction between `Educ` and `Gender` tell you about income differences across education levels and genders?
+- Why might you transform `Income2005` with a logarithm before modeling?
+
+<details>
+<summary><strong>Guidance</strong></summary>
+
+- Treating `Educ` as a factor allows the model to estimate separate effects for each education level rather than assuming a constant change per unit increase in education. This often provides a more accurate picture if the relationship is not strictly linear.
+- An interaction between `Educ` and `Gender` suggests that the effect of education on income may vary by gender. It highlights that income gaps between genders could change at different education levels.
+- Log-transforming `Income2005` can stabilize variance and make the relationship between predictors and income more linear, which often leads to a better-fitting model and easier interpretation of percentage changes.
+</details>
+
+---
+
+## Summary
+
+- **Factors & Indicators:** Converting variables to factors and creating indicator variables are key for including categorical predictors in regression models.
+- **Multiple Regression:** Models can include multiple predictors and interaction terms to capture complex relationships.
+- **Interpretation:** Changing factor baselines and adding interaction terms affects how you interpret coefficients.
+
