@@ -1,0 +1,169 @@
+---
+title: "Lab 3: ST 512"
+subtitle: "Inference on Multiple Linear Regression in R"
+format: html
+editor: visual
+---
+
+# Goals for Today’s Lab
+
+- Perform hypothesis tests.
+- Construct confidence intervals for single parameters.
+- Answer questions related to practice quiz examples.
+
+---
+
+## Introduction
+
+This lab uses the `case1002` dataset to explore inference in multiple linear regression. Key areas include:
+
+- Testing the coefficient on the echo-locating bat indicator variable.
+- Re-leveling categorical variables for meaningful interpretation.
+
+---
+
+## Step 1: Fitting the Model
+
+```{r}
+# Load necessary libraries
+library(Sleuth3)
+library(ggplot2)
+
+# Fit the regression model
+fit_bats <- lm(log(Energy) ~ log(Mass) + Type, data = case1002)
+summary(fit_bats)
+```
+
+### Key Output:
+
+- Coefficients provide estimates, standard errors, t-values, and p-values.
+- Residual standard error and adjusted R-squared assess model fit.
+
+### Extracting Coefficients:
+
+```{r}
+coefficients(fit_bats)
+summary(fit_bats)$coefficients
+summary(fit_bats)$sigma
+```
+
+---
+
+## Step 2: Changing Reference Levels
+
+### Rationale:
+The default reference level (`echolocating bats`) does not align with the class model. Modify the reference level to `non-echolocating bats` for direct comparison.
+
+```{r}
+# Re-level Type to use non-echolocating bats as reference
+case1002$Type2 <- relevel(case1002$Type, ref = "non-echolocating bats")
+
+# Fit the new model
+fit_2 <- lm(log(Energy) ~ log(Mass) + Type2, data = case1002)
+summary(fit_2)
+```
+
+---
+
+## Exercises
+
+### 1. Comparing Non-Echolocating Bats and Birds
+
+#### Steps:
+
+1. Write the model, null, and alternate hypotheses:
+   - Model: $\mu(\log(Energy) | \log(Mass), Type) = \beta_0 + \beta_1 \log(Mass) + \beta_2\text{ebat} + \beta_3\text{bird}$
+   - $H_0: \beta_3 = 0$, $H_1: \beta_3 \neq 0$.
+
+2. Fit the model:
+
+```{r}
+case1002$ebat <- ifelse(case1002$Type == "echolocating bats", 1, 0)
+case1002$bird <- ifelse(case1002$Type == "non-echolocating birds", 1, 0)
+fit_3 <- lm(log(Energy) ~ log(Mass) + ebat + bird, data = case1002)
+summary(fit_3)
+```
+
+3. State the t-statistic and p-value.
+4. Decision: Compare the p-value to $\alpha = 0.05$.
+
+### 2. Comparing Echolocating Bats and Non-Echolocating Birds
+
+Follow the same steps as above but adjust the reference category for interpretation.
+
+### 3. Testing Differences in Slopes
+
+Fit a model to test if the slope between `log(Mass)` and `log(Energy)` differs across groups:
+
+- Null hypothesis: Slopes are the same.
+- Alternate hypothesis: Slopes differ.
+
+---
+
+## Confidence Intervals
+
+### Confidence Interval for Single Parameter
+
+```{r}
+confint(fit_2)
+```
+
+### Manual Calculation:
+
+Use the formula from class to validate results:
+
+```{r}
+-1.57636 + c(-1, 1) * qt(0.975, 16) * 0.28724
+```
+
+---
+
+## Practice Quiz Questions
+
+**Question:** Test if the mean of `log(Energy)` differs across groups (e.g., bats vs. birds).
+
+1. State the null and alternate hypotheses.
+2. Fit the model.
+3. Calculate t-statistic and p-value.
+4. Interpret results.
+
+---
+
+## Functions Summary
+
+### `lm()`
+- **Purpose:** Fits linear models.
+- **Common Parameters:**
+  - `formula`: Specifies the model (e.g., `y ~ x1 + x2`).
+  - `data`: Specifies the dataset.
+- **When to Use:** Use this function when you want to model relationships between predictors and a response variable.
+
+### `summary()`
+- **Purpose:** Summarizes the results of a model.
+- **Common Parameters:**
+  - Applied to a model object (e.g., `summary(fit)`).
+- **When to Use:** Use this function to view estimates, significance, and model diagnostics.
+
+### `relevel()`
+- **Purpose:** Changes the reference level of a factor.
+- **Common Parameters:**
+  - `x`: The factor variable.
+  - `ref`: The new reference level.
+- **When to Use:** Use this when you need a different reference level for interpreting coefficients.
+
+### `confint()`
+- **Purpose:** Calculates confidence intervals for model parameters.
+- **Common Parameters:**
+  - Applied to a model object (e.g., `confint(fit)`).
+- **When to Use:** Use this to understand the range within which parameter estimates fall with a specified level of confidence.
+
+### `ifelse()`
+- **Purpose:** Creates a binary variable based on a condition.
+- **Common Parameters:**
+  - `test`: Logical condition.
+  - `yes`: Value if the condition is `TRUE`.
+  - `no`: Value if the condition is `FALSE`.
+- **When to Use:** Use this when creating indicator variables or categorizing data.
+
+---
+

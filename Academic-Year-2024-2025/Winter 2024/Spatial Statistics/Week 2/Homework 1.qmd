@@ -1,0 +1,254 @@
+---
+title: "Spatial Statistics | Homework 1"
+author: "Brian Cervantes Alvarez"
+date: today
+format: OSULatexTheme-pdf
+editor:
+  render-on-save: true
+message: false
+warning: false
+---
+
+# Problem 1
+
+## Part A
+
+We need to show that,
+
+$$
+\det(\Sigma)^{-1/2} = \frac{1}{\sigma_1 \sigma_2 \sqrt{1 - \rho^2}}
+$$
+
+Now, recall the determinant formula for a 2x2 matrix,
+$$
+\det\left(\begin{bmatrix} a & b \\ c & d \end{bmatrix}\right) = ad - bc.
+$$
+Here, $a = \sigma_1^2$, $b = \rho \sigma_1 \sigma_2$, $c = \rho \sigma_1 \sigma_2$, and $d = \sigma_2^2$.
+
+Then, we can plug these into the determinant formula and yield,
+$$
+\det(\Sigma) = (\sigma_1^2)(\sigma_2^2) - (\rho \sigma_1 \sigma_2)^2.
+$$
+
+After this, we simplify,
+$$
+\det(\Sigma) = \sigma_1^2 \sigma_2^2 (1 - \rho^2).
+$$
+
+Next, we take the inverse square root and gives us,
+$$
+\det(\Sigma)^{-1/2} = \frac{1}{\sqrt{\sigma_1^2 \sigma_2^2 (1 - \rho^2)}}.
+$$
+
+Finally, we can split the terms under the square root,
+$$
+\det(\Sigma)^{-1/2} = \frac{1}{\sigma_1 \sigma_2 \sqrt{1 - \rho^2}}.
+$$
+
+
+## Part B (skipped)
+
+{{< pagebreak >}}
+
+## Part C
+
+We need to arrive to this,
+
+$$
+(\mathbf{y} - \mu)' \Sigma^{-1} (\mathbf{y} - \mu) = \frac{1}{1 - \rho^2} \left( \left(\frac{y_1}{\sigma_1}\right)^2 + 2\rho \frac{y_1 y_2}{\sigma_1 \sigma_2} + \left(\frac{y_2}{\sigma_2}\right)^2 \right).
+$$
+
+
+First, can write the inverse of the covariance matrix as follows,
+$$
+\Sigma^{-1} = \frac{1}{\sigma_1^2 \sigma_2^2 (1 - \rho^2)} 
+\begin{bmatrix}
+\sigma_2^2 & -\rho \sigma_1 \sigma_2 \\
+-\rho \sigma_1 \sigma_2 & \sigma_1^2
+\end{bmatrix}.
+$$
+
+Then, substitute $\mathbf{y} = \begin{bmatrix} y_1 \\ y_2 \end{bmatrix}$ and $\mu = \begin{bmatrix} 0 \\ 0 \end{bmatrix}$ into $(\mathbf{y} - \mu)$:
+$$
+(\mathbf{y} - \mu) = \begin{bmatrix} y_1 \\ y_2 \end{bmatrix}.
+$$
+
+Lastly, we expand $(\mathbf{y} - \mu)' \Sigma^{-1} (\mathbf{y} - \mu)$ and arrive to,
+$$
+(\mathbf{y} - \mu)' \Sigma^{-1} (\mathbf{y} - \mu) = \frac{1}{1 - \rho^2} \left[ \frac{y_1^2}{\sigma_1^2} + 2\rho \frac{y_1 y_2}{\sigma_1 \sigma_2} + \frac{y_2^2}{\sigma_2^2} \right].
+$$
+
+{{< pagebreak >}}
+
+# Problem 2
+
+## Part A
+
+```{r}
+# Run this first and install required libraries
+required_packages <- c("spData", "sp", "gstat", "dplyr", "ggplot2",
+  "viridis", "sf")
+installed_packages <- rownames(installed.packages())
+for (pkg in required_packages) {
+  if (!(pkg %in% installed_packages)) {
+    install.packages(pkg, dependencies = TRUE)
+  }
+}
+```
+
+```{r}
+library(spData)
+library(sp)
+library(gstat)
+library(dplyr)
+library(viridis)
+library(ggplot2)
+library(sf)
+
+data("baltimore")
+
+ggplot(baltimore, aes(x = X, y = Y, color = log(SQFT))) +
+  geom_point(size = 2) +
+  scale_color_viridis(name = "Log(SQFT)") +
+  labs(title = "Spatial Distribution of SQFT",
+       x = "X Coordinates",
+       y = "Y Coordinates") +
+  theme_classic() +
+  theme(legend.position = "right")
+```
+
+
+{{< pagebreak >}}
+
+## Part B
+
+```{r}
+# Log-transform SQFT
+baltimore$LOG_SQFT <- log(baltimore$SQFT)
+glimpse(baltimore)
+
+# Variogram cloud
+vgCloud <- variogram(LOG_SQFT ~ 1, ~X + Y, data = baltimore)
+plot(vgCloud, main = "Variogram Cloud",
+ xlab = "Distance", 
+ ylab = "Semivariance")
+
+# Empirical variogram
+vgEmp <- variogram(LOG_SQFT ~ 1, ~X + Y, data = baltimore)
+plot(vgEmp, main = "Empirical Variogram",
+ xlab = "Distance", 
+ ylab = "Semivariance")
+```
+
+{{< pagebreak >}}
+
+## Part C
+```{r}
+# Fit an initial variogram model
+vgModel <- vgm(psill = 0.5, model = "Sph", range = 100, nugget = 0.1)
+
+# Plot the model
+plot(vgEmp, model = vgModel, main = "Initial Variogram Model")
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+```{r}
+# Fit the variogram
+vgFit <- fit.variogram(vgEmp, model = vgModel)
+
+# Plot the fitted model
+plot(vgEmp, model = vgFit, main = "Fitted Variogram Model")
+```
+
+{{< pagebreak >}}
+
+## Part E
+
+```{r}
+baltimore <- st_as_sf(baltimore, coords = c("X", "Y"), crs = 32617) 
+
+# Define new locations for prediction
+locations <- data.frame(X = c(921, 980), Y = c(551, 580))
+locations <- st_as_sf(locations, coords = c("X", "Y"), crs = st_crs(baltimore))
+
+# Perform kriging
+krigResults <- krige(LOG_SQFT ~ 1, locations = baltimore, 
+ newdata = locations, model = vgFit)
+print(krigResults)
+```
+
+{{< pagebreak >}}
+
+## Part F
+
+### i. 
+
+The prediction interval at `(980, 580)` is wider because the variance (`0.1703505`) is larger than that of `(921, 551)` (`0.1209852`). This makes sense, as predictions farther from observed data points generally have higher uncertainty due to reduced spatial correlation.
+
+### ii. 
+
+Predicting square footage based solely on spatial location can make sense if there is strong spatial correlation in the dataset, as houses in close proximity often share similar characteristics. However, square footage is likely influenced by additional factors like the number of rooms, age, or property features, which are ignored in this model. 
+
+
+{{< pagebreak >}}
+
+# Problem 3
+
+## Part A
+
+```{r}
+data("meuse")
+
+tidyMeuse <- meuse[!is.na(meuse$om), ]
+tidyMeuse <- st_as_sf(tidyMeuse, coords = c("x", "y"), crs = 32631)
+
+# Compute the empirical variogram
+vgEmp <- variogram(om ~ 1, data = tidyMeuse)
+
+# Fit a variogram model
+vgModel <- vgm(psill = 0.5, model = "Sph", range = 100, nugget = 0.1)
+vgFit <- fit.variogram(vgEmp, model = vgModel)
+
+# Plot the empirical and fitted variogram
+plot(vgEmp, model = vgFit, main = "Empirical and Fitted Variogram")
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+```{r}
+# Predict missing "om" values using the fitted variogram
+missingMeuse <- meuse[is.na(meuse$om), ]
+missingMeuse <- st_as_sf(missingMeuse, coords = c("x", "y"), crs = 32631) 
+
+krigResultsA <- krige(om ~ 1, locations = tidyMeuse, 
+ newdata = missingMeuse, model = vgFit)
+krigResultsA
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+```{r}
+vgModelAlt <- vgm(psill = 0.7, model = "Exp", range = 120, nugget = 0.2)
+vgFitAlt <- fit.variogram(vgEmp, model = vgModelAlt)
+
+krigResultsB <- krige(om ~ 1, locations = tidyMeuse, 
+ newdata = missingMeuse, model = vgFitAlt)
+krigResultsB
+
+# Compare predictions from both models
+comparison <- data.frame(
+  Coordinates = st_coordinates(missingMeuse),
+  PredictionModelA = krigResultsA$var1.pred,
+  PredictionModelB = krigResultsB$var1.pred
+)
+comparison
+```
+
+The predictions differ slightly between the two variogram models, with the differences reflecting the alternative model's higher sill and range, which increase uncertainty.

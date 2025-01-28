@@ -109,7 +109,7 @@ st_as_sf(JE, coords = c("lon", "lat"), crs = 4326) %>%
 The file airports.dat is from <https://openflights.org/data.php>. It contains the following information on 7698 airports located throughout the world:
 
 |  |  |
-|:--------------------|:--------------------------------------------------|
+|:----------------------|:------------------------------------------------|
 | Airport ID | Unique OpenFlights identifier for this airport. |
 | Name | Name of airport. May or may not contain the City name. |
 | City | Main city served by airport. May be spelled differently from Name. |

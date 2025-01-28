@@ -1,0 +1,527 @@
+---
+title: "Homework 1 | Missingness Patterns"
+author: "Brian Cervantes Alvarez"
+format: OSULatexTheme-pdf
+editor:
+  render-on-save: true
+message: false
+warning: false
+---
+
+# Question 1.1
+
+```{r}
+library(tidyverse)
+library(mice)
+library(lme4)
+library(Surrogate)
+
+data("Schizo_PANSS")
+schizoData <- Schizo_PANSS %>%
+  select(Id, Treat, Week1, Week4, Week8)
+missingnessSummary <- schizoData %>%
+  select(Week1, Week4, Week8) %>%
+  mutate_all(is.na) %>%
+  unite("pattern", Week1:Week8, sep = ", ") %>%
+  count(pattern) %>%
+  mutate(proportion = n / sum(n))
+missingnessSummary
+```
+
+The majority of participants (62.44%) have no missing data, while other patterns, such as missing only Week 8, occur at lower frequencies. A total of eight distinct missingness patterns were observed, with proportions ranging from 0.46% to 62.44%.
+
+{{< pagebreak >}}
+
+# Question 1.2
+
+```{r}
+schizoData <- schizoData %>%
+  mutate(missingness = if_any(c(Week1, Week4, Week8), is.na))
+treatmentMissingnessModel <- glm(missingness ~ Treat, 
+  data = schizoData, family = "binomial")
+summary(treatmentMissingnessModel)
+```
+
+The treatment group is significantly less likely to have missing data (p \< 0.001), suggesting a protective effect against missingness, with an estimated decrease in the log odds of missingness by 0.38 compared to the control group. This result suggests that treatment specifically reduces the likelihood of patterns involving missing data in Week 8 or other combinations.
+
+{{< pagebreak >}}
+
+# Question 1.3
+
+```{r}
+schizoData <- schizoData %>%
+  mutate(
+    dropout = is.na(Week4) & is.na(Week8),
+    intermittent = !dropout & if_any(c(Week1, Week4, Week8), is.na)
+  )
+dropoutModel <- glm(dropout ~ Week1, 
+  data = schizoData, family = "binomial")
+summary(dropoutModel)
+intermittentModel <- glm(intermittent ~ Week1, 
+  data = schizoData, family = "binomial")
+summary(intermittentModel)
+```
+
+Out of 2,151 patients, 45 dropped out after Week 1, and 799 experienced intermittent missingness. Among those who dropped out, higher Week 1 PANSS scores were significantly associated with an increased likelihood of dropout (p \< 0.001), suggesting that patients with more severe symptoms at baseline were more likely to discontinue. In contrast, Week 1 PANSS scores did not significantly predict intermittent missingness (p = 0.155).
+
+{{< pagebreak >}}
+
+# Question 1.4
+
+```{r, fig.width=10, fig.height=8}
+md.pattern(schizoData %>% select(Week1, Week4, Week8))
+```
+
+The visualization highlights that most participants have complete data for all three weeks, but systematic patterns of missingness, such as missing only Week 8, suggest that missingness may not be MCAR. Instead, MAR is more plausible since missingness could depend on observed Week 1 or Week 4 data.
+
+{{< pagebreak >}}
+
+# Question 1.5
+
+### Algorithm Explanation
+
+The algorithm iteratively estimates the coefficients ($\beta$) and the covariance matrix ($\Sigma$) using the following steps:
+
+1.  **Coefficient Update**: $$
+    \beta^{(t+1)} = \left( \sum_i X_i^T (\Sigma^{(t)})^{-1} X_i \right)^{-1} \sum_i X_i^T (\Sigma^{(t)})^{-1} y_i
+    $$
+
+    Here, $X_i$ is the design matrix for participant $i$, and $y_i$x is their response vector.
+
+2.  **Covariance Matrix Update**: $$
+    \Sigma^{(t+1)} = \frac{1}{n} \sum_i (y_i - X_i \beta^{(t)})(y_i - X_i \beta^{(t)})^T
+    $$
+
+    The covariance matrix measures the variability in the residuals after accounting for the effects of predictors.
+
+3.  **Convergence**: Repeat these steps until changes in $\beta$ and $\Sigma$ are negligible.
+
+### Implementation
+
+```{r}
+completeCases <- schizoData %>%
+  filter(complete.cases(Week1, Week4, Week8))
+longFormatData <- completeCases %>%
+  pivot_longer(cols = c(Week1, Week4, Week8), 
+    names_to = "time", values_to = "panss") %>%
+  mutate(time = as.numeric(str_replace(time, "Week", "")))
+designMatrix <- model.matrix(~ Treat * time, data = longFormatData)
+responseVector <- longFormatData$panss
+n <- nrow(longFormatData)
+estimatedBeta <- solve(t(designMatrix) %*% designMatrix) %*% t(designMatrix) %*% responseVector
+estimatedSigma <- 1 / n * t(responseVector - designMatrix %*% estimatedBeta) %*% (responseVector - designMatrix %*% estimatedBeta)
+list(beta = estimatedBeta, Sigma = estimatedSigma)
+```
+
+The algorithm estimates coefficients ($\beta$) and the covariance matrix ($\Sigma$) for the linear model:
+
+$$
+\mathbf{y}_i | \text{Treat}_i \sim \text{Normal}(\mu + \beta_1 \text{Treat}_i + \beta_2 t + \beta_3 \text{Treat}_i \cdot t, \Sigma)
+$$
+
+The model indicates that PANSS scores decrease over time ($\beta_{\text{time}} = -1.69$), with treatment having a minimal effect ($\beta_{\text{Treat:time}} = -0.09$). The MLE for $\mu$ is -7.72, and the covariance matrix $\Sigma$ suggests residual variability of 297.69.
+
+{{< pagebreak >}}
+
+# Question 1.6
+
+```{r}
+expandedModel <- lmer(panss ~ Treat * time + (1 | Id), 
+  data = longFormatData)
+summary(expandedModel)
+```
+
+Adding random effects accounts for patient-specific variability, with significant fixed effects for time ($p < 0.001$), but weak interaction effects ($\beta_{\text{Treat:time}} = -0.09$, $p = 0.22$). Future expansions could include:
+
+-   Adding baseline PANSS scores as covariates to adjust for initial variability in symptoms.
+-   Including demographic variables, such as age or gender, as interaction terms with time or treatment.
+-   Examining potential clustering effects, such as grouping by study site, to refine the model further.
+
+{{< pagebreak >}}
+
+
+# Question 2.1
+
+```{r}
+# Part 1: Simulation Study
+
+# Load necessary libraries
+library(MCMCpack)      # for riwish() (inverse Wishart)
+library(posterior)     # for rhat()
+library(tidyverse)
+
+set.seed(2025)
+
+# --------------------------
+# 1. SIMULATED DATA SETUP
+# --------------------------
+# Let's simulate something similar to a repeated-measures scenario:
+# We’ll pretend we have N subjects, each with T=3 time points, 
+# and a binary treatment indicator.
+
+N <- 200  # number of subjects
+Ttime <- 3  # number of measurement occasions
+p <- 4      # dimension of beta: (Intercept, Treat, time, Treat:time)
+
+# True beta for simulation
+beta_true <- c(  5,   # intercept
+                 -2,  # effect of Treat
+                 -1,  # effect of time
+                 -0.5 # interaction: Treat:time
+               )
+
+# Construct design matrix X_i for each subject i
+# For each subject i, we'll create a (T x p) design matrix. 
+# We'll store all in a big (N*T x p) matrix. Also track y in a vector.
+
+subject_ids <- rep(1:N, each = Ttime)
+time_vals   <- rep(c(1, 4, 8), times = N)  # e.g., "week1", "week4", "week8"
+treat_vec   <- rbinom(N, size = 1, prob = 0.5)
+treat_big   <- rep(treat_vec, each = Ttime)
+
+# X = [1, Treat, time, Treat*time]
+Xbig <- cbind(
+  1,
+  treat_big,
+  time_vals,
+  treat_big * time_vals
+)
+
+# --------------------------
+# 2. TRUE COVARIANCE & SIMULATED RESPONSE
+# --------------------------
+# Let's define a "true" Sigma. For T=3 repeated measures, 
+# we have a 3x3 covariance for each subject.
+# We'll assume a small correlation for demonstration.
+
+Sigma_true <- matrix(c( 10,   2,   1,
+                         2,   10,  2,
+                         1,   2,   10), nrow=3)
+
+# Generate y for each subject from a multivariate Normal:
+# mean_i = X_i %*% beta_true  (T-dimensional for each subject)
+y_list <- vector("list", N)
+for (i in 1:N) {
+  # rows of Xbig that correspond to subject i
+  idx <- ((i-1)*Ttime + 1):(i*Ttime)
+  mean_i <- Xbig[idx, ] %*% beta_true
+  y_list[[i]] <- MASS::mvrnorm(1, mu = mean_i, Sigma = Sigma_true)
+}
+ybig <- unlist(y_list)
+
+# --------------------------
+# 3. BAYESIAN SAMPLING ALGORITHM
+# --------------------------
+# We'll do B=4 chains, each with S=500 iterations as in the prompt.
+B <- 4
+S <- 500
+
+# Prior hyperparameters
+mu_0    <- rep(0, p)
+Sigma_0 <- diag(p)  # p x p identity
+nu_0    <- 3
+V_0     <- diag(Ttime)  # 3x3 identity for the Wishart scale
+
+# We'll store results in arrays:
+beta_draws  <- array(NA, dim = c(S, p, B))               # (iteration, dimension of beta, chain)
+Sigma_draws <- array(NA, dim = c(S, Ttime, Ttime, B))    # for each chain, store Ttime x Ttime
+
+# Precompute for convenience
+XTX <- matrix(0, nrow = p, ncol = p)
+XTy <- rep(0, p)
+inv_Sigma0 <- solve(Sigma_0)
+
+# Group the data by subject i
+# y_i and X_i for i in [1..N]
+y_split <- split(ybig, subject_ids)
+X_split <- split.data.frame(as.data.frame(Xbig), subject_ids)
+
+# Function to compute the posterior mean of beta
+posterior_beta_mean <- function(Sigma_now) {
+  # Summation of X_i^T (Sigma_now^-1) X_i
+  # Because we assume each subject has the same Sigma, 
+  # we invert Sigma_now once and use it for each subject.
+  Sigma_inv <- solve(Sigma_now)
+  
+  # We can accumulate sum( X_i^T SigInv X_i ) and sum( X_i^T SigInv y_i ) across i
+  sum_xt_siginv_x <- matrix(0, p, p)
+  sum_xt_siginv_y <- rep(0, p)
+  
+  for (i in seq_len(N)) {
+    Xi <- as.matrix(X_split[[i]])
+    yi <- y_split[[i]]
+    sum_xt_siginv_x <- sum_xt_siginv_x + t(Xi) %*% Sigma_inv %*% Xi
+    sum_xt_siginv_y <- sum_xt_siginv_y + t(Xi) %*% Sigma_inv %*% yi
+  }
+  
+  # Now add prior terms
+  sum_xt_siginv_x_post <- sum_xt_siginv_x + inv_Sigma0
+  sum_xt_siginv_y_post <- sum_xt_siginv_y + inv_Sigma0 %*% mu_0
+  
+  # Posterior covariance of beta
+  V_beta <- solve(sum_xt_siginv_x_post)
+  # Posterior mean of beta
+  m_beta <- V_beta %*% sum_xt_siginv_y_post
+  
+  # Return a list with mean & cov
+  list(mean = m_beta, Sigma = V_beta)
+}
+
+# --------------------------
+# 4. GIBBS SAMPLING
+# --------------------------
+for (b in 1:B) {
+  # Initial draws from priors
+  beta_now  <- MASS::mvrnorm(1, mu_0, Sigma_0)
+  Sigma_now <- riwish(nu_0, V_0)  # from MCMCpack
+  
+  for (s in 1:S) {
+    # a) Draw beta^(t+1) from Normal posterior
+    post_info <- posterior_beta_mean(Sigma_now)
+    beta_now  <- MASS::mvrnorm(1, mu = post_info$mean, Sigma = post_info$Sigma)
+    
+    # b) Draw Sigma^(t+1) from Inv-Wishart
+    # We need the sum of (y_i - X_i beta)(...)^T across i
+    sum_res <- matrix(0, Ttime, Ttime)
+    for (i in seq_len(N)) {
+      Xi <- as.matrix(X_split[[i]])
+      yi <- y_split[[i]]
+      res_i <- yi - Xi %*% beta_now
+      sum_res <- sum_res + tcrossprod(res_i)
+    }
+    # Posterior parameters
+    nu_post   <- N + nu_0
+    V_post    <- V_0 + sum_res
+    Sigma_now <- riwish(v = nu_post, S = V_post)
+    
+    # Store draws
+    beta_draws[s, , b]   <- beta_now
+    Sigma_draws[s, , , b] <- Sigma_now
+  }
+}
+
+# ---------------------------------------------------
+# 5. DISCARD FIRST S/2 ITERATIONS & CHECK CONVERGENCE
+# ---------------------------------------------------
+burn_in <- S/2
+keep    <- (burn_in+1):S
+
+# For each dimension of beta, we gather the kept draws across chains
+rhat_vals <- numeric(p)
+param_names <- c("beta0","beta1","beta2","beta3")
+
+for (j in 1:p) {
+  # For each chain b, gather draws (rows=iteration, col=chain)
+  draws_matrix <- sapply(1:B, function(bc) beta_draws[keep, j, bc])
+  # Use posterior::rhat
+  rhat_vals[j] <- rhat(draws_matrix)
+}
+
+rhat_df <- data.frame(
+  Parameter = param_names,
+  Rhat = rhat_vals
+)
+
+rhat_df
+
+# Typically, Rhat <= 1.01 indicates decent convergence. 
+# The user can investigate further if Rhat is larger.
+
+# ---------------------------------------------------
+# 6. HOW TO BETTER TEST THE ALGORITHM?
+# ---------------------------------------------------
+# You asked: "Can you describe a better way to test whether your 
+# algorithm is correctly written using simulated data and posterior 
+# quantiles?" 
+#
+# According to Talts et al. (2018), the gold standard is 
+# SIMULATION-BASED CALIBRATION (SBC). In a nutshell:
+#  - We sample parameters from the prior, 
+#  - simulate synthetic data from those parameters, 
+#  - run the inference algorithm to get posterior draws,
+#  - check if the true parameters fall within the correct 
+#    posterior quantiles uniformly across many replicates.
+#
+# If the algorithm is correct, the distribution of rank statistics 
+# (i.e., where the true parameter falls among the posterior draws) 
+# should be uniform. This is a more thorough verification than just 
+# checking Rhat or other convergence diagnostics on a single dataset.
+```
+
+**Simulation Study (Question 2.1).**  
+
+We generated synthetic data from a known “true” parameter set $(\beta_{\text{true}}, \Sigma_{\text{true}})$, then ran our Gibbs sampler. We used the $\hat{R}$ statistic to check chain convergence. A more robust validation is *simulation-based calibration*, which checks whether the true parameters are uniformly located within the posterior distribution across many simulated datasets (Talts et al. 2018).
+
+{{< pagebreak >}}
+
+# Question 2.2
+
+```{r}
+# Part 2: Application to Complete Cases
+
+# We'll apply the same model structure and priors to the 'comp_case' data
+# from Question 1. Here, we assume 'comp_case' is the subset of the 
+# Schizo_PANSS data with no missing outcomes.
+
+library(MCMCpack)
+library(posterior)
+library(tidyverse)
+
+# Assuming 'comp_case' is already in our environment as a data frame 
+# with columns: Id, Treat, Week1, Week4, Week8
+
+comp_case <- schizoData %>%
+  filter(complete.cases(Week1, Week4, Week8))
+
+# Reshape to long format
+long_comp <- comp_case %>%
+  pivot_longer(cols = starts_with("Week"), 
+               names_to = "time", 
+               values_to = "panss") %>%
+  mutate(time = as.numeric(gsub("Week", "", time))) %>%
+  arrange(Id, time)
+
+N_comp <- length(unique(long_comp$Id))  # number of subjects
+Ttime  <- 3  # we have 3 measurement occasions
+
+# Construct design matrix for each row (Intercept, Treat, time, Treat:time)
+Xmat_comp <- model.matrix(~ Treat * time, data = long_comp)
+y_comp    <- long_comp$panss
+subject_ids_comp <- long_comp$Id
+
+p <- ncol(Xmat_comp)  # dimension of beta
+
+# Group by subject
+X_split_comp <- split.data.frame(as.data.frame(Xmat_comp), subject_ids_comp)
+y_split_comp <- split(y_comp, subject_ids_comp)
+
+# Same priors as above
+mu_0    <- rep(0, p)
+Sigma_0 <- diag(p)
+nu_0    <- 3
+V_0     <- diag(Ttime)
+
+B <- 4
+S <- 500
+beta_draws_comp  <- array(NA, dim = c(S, p, B))
+Sigma_draws_comp <- array(NA, dim = c(S, Ttime, Ttime, B))
+
+# Helper function for the posterior of beta
+posterior_beta_mean_comp <- function(Sigma_now) {
+  Sigma_inv <- solve(Sigma_now)
+  sum_xt_siginv_x <- matrix(0, p, p)
+  sum_xt_siginv_y <- rep(0, p)
+  
+  for (i in seq_len(N_comp)) {
+    Xi <- as.matrix(X_split_comp[[i]])
+    yi <- y_split_comp[[i]]
+    sum_xt_siginv_x <- sum_xt_siginv_x + t(Xi) %*% Sigma_inv %*% Xi
+    sum_xt_siginv_y <- sum_xt_siginv_y + t(Xi) %*% Sigma_inv %*% yi
+  }
+  sum_xt_siginv_x_post <- sum_xt_siginv_x + solve(Sigma_0)
+  sum_xt_siginv_y_post <- sum_xt_siginv_y + solve(Sigma_0) %*% mu_0
+  
+  V_beta <- solve(sum_xt_siginv_x_post)
+  m_beta <- V_beta %*% sum_xt_siginv_y_post
+  list(mean = m_beta, Sigma = V_beta)
+}
+
+# Gibbs sampling for complete-case data
+set.seed(2025)
+for (b in 1:B) {
+  beta_now  <- MASS::mvrnorm(1, mu_0, Sigma_0)
+  Sigma_now <- riwish(nu_0, V_0)
+  
+  for (s in 1:S) {
+    # Draw beta
+    post_info <- posterior_beta_mean_comp(Sigma_now)
+    beta_now  <- MASS::mvrnorm(1, mu = post_info$mean, Sigma = post_info$Sigma)
+    
+    # Draw Sigma
+    sum_res <- matrix(0, Ttime, Ttime)
+    for (i in seq_len(N_comp)) {
+      Xi <- as.matrix(X_split_comp[[i]])
+      yi <- y_split_comp[[i]]
+      res_i <- yi - Xi %*% beta_now
+      sum_res <- sum_res + tcrossprod(res_i)
+    }
+    nu_post <- N_comp + nu_0
+    V_post  <- V_0 + sum_res
+    Sigma_now <- riwish(v = nu_post, S = V_post)
+    
+    beta_draws_comp[s, , b]   <- beta_now
+    Sigma_draws_comp[s, , , b] <- Sigma_now
+  }
+}
+
+# Discard burn-in
+burn_in <- S / 2
+keep    <- (burn_in+1):S
+
+# Posterior quantiles for beta (95% central intervals)
+beta_post_all <- beta_draws_comp[keep, , ]  # dims: iteration, beta-dim, chain
+beta_post_vec <- as.data.frame(
+  do.call(rbind, lapply(1:B, function(ch) beta_post_all[ , , ch]))
+)
+colnames(beta_post_vec) <- paste0("beta_", 1:p)
+
+beta_summary <- beta_post_vec %>%
+  summarize(across(everything(),
+                   list(
+                     q2.5  = ~quantile(.x, probs=0.025),
+                     q50   = ~quantile(.x, probs=0.50),
+                     q97.5 = ~quantile(.x, probs=0.975)
+                   ), .names="{.col}_{.fn}"))
+
+beta_summary
+
+# Now for the correlation parameters among the errors.
+# e.g. correlation between measurement 2 and 1, measurement 3 and 1, etc.
+# We want: 
+#   (Sigma_{2,1} / sqrt(Sigma_{1,1} Sigma_{2,2})),
+#   (Sigma_{3,1} / sqrt(Sigma_{1,1} Sigma_{3,3})), 
+#   and so on.
+
+# Let's define a function that extracts those correlations from a 3x3 matrix
+extract_correlations <- function(Sig) {
+  c12 <- Sig[2,1] / sqrt(Sig[1,1]*Sig[2,2])
+  c13 <- Sig[3,1] / sqrt(Sig[1,1]*Sig[3,3])
+  # We could also do c23 if needed (Sigma_{3,2}), 
+  # but the question specifically highlights correlations with the first measurement.
+  c(c12, c13)
+}
+
+# Gather draws for Sigma, apply the correlation function
+cor_draws <- NULL
+for (b in 1:B) {
+  for (s in keep) {
+    Sig_now <- Sigma_draws_comp[s, , , b]
+    cvals   <- extract_correlations(Sig_now)
+    cor_draws <- rbind(cor_draws, cvals)
+  }
+}
+cor_draws_df <- as.data.frame(cor_draws)
+colnames(cor_draws_df) <- c("cor_21","cor_31")
+
+cor_summary <- cor_draws_df %>%
+  summarize(across(everything(),
+                   list(q2.5 = ~quantile(.x, probs=0.025),
+                        q50   = ~quantile(.x, probs=0.50),
+                        q97.5 = ~quantile(.x, probs=0.975)),
+                   .names="{.col}_{.fn}"))
+cor_summary
+
+# => This table shows the 95% posterior quantiles for the 
+#    correlation between residuals at measurements 2 & 1, 
+#    and measurements 3 & 1.
+#
+# That completes the requested Bayesian analysis on complete cases.
+```
+
+**Application to Complete Cases (Question 2.2).**  
+We applied the same Bayesian repeated-measures model to the `comp_case` dataset, generated posterior draws for $\beta$ and $\Sigma$, and then computed 95% central posterior quantiles for each dimension of $\beta$. We also computed correlation estimates for the repeated-measures error structure, reported as
+$$
+  \frac{\Sigma_{2,1}}{\sqrt{\Sigma_{1,1}\Sigma_{2,2}}}, \quad 
+  \frac{\Sigma_{3,1}}{\sqrt{\Sigma_{1,1}\Sigma_{3,3}}},
+$$
+and provided their 95% posterior intervals.
