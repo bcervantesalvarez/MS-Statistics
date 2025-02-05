@@ -1,0 +1,124 @@
+%========================================================================
+% Package Loading
+%========================================================================
+% Load essential packages for page layout, colors, headers, sections, and code highlighting
+\usepackage{geometry}   % For setting page dimensions
+\usepackage{xcolor}     % For defining and using colors
+\usepackage{eso-pic}    % For adding elements to each page (e.g., logos, backgrounds)
+\usepackage{fancyhdr}   % For custom page headers and footers
+\usepackage{sectsty}    % For styling section and chapter titles
+\usepackage{titlesec}   % For customizing section titles
+\usepackage{listings}   % For including code listings
+\usepackage{setspace}   % For adjusting line spacing
+\usepackage{mfirstuc}   % For capitalizing words
+\usepackage{fvextra}    % For enhanced verbatim environments
+
+%========================================================================
+% Custom Environments and Color Definitions
+%========================================================================
+% Define a custom verbatim environment that automatically wraps long lines.
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+
+% Define custom colors for use throughout the document
+\definecolor{light}{HTML}{000000}
+\definecolor{highlight}{HTML}{800080}
+\definecolor{dark}{HTML}{330033}
+
+%========================================================================
+% Page Setup for Letter Size Paper
+%========================================================================
+% Define page size and margin variables for easy adjustments
+\newcommand{\mypapersize}{letterpaper}         % Paper size setting (letter)
+\newcommand{\mytotal}{215.9mm,279.4mm}        % Total dimensions for letter size paper
+\newcommand{\myleft}{25mm}                    % Left margin
+\newcommand{\mytop}{15mm}                     % Top margin
+\newcommand{\mybottom}{25mm}                  % Bottom margin
+\newcommand{\myright}{35mm}                   % Right margin
+
+% Apply the geometry settings using the variables defined above
+\geometry{
+  \mypapersize, 
+  total={\mytotal}, 
+  left=\myleft, 
+  top=\mytop, 
+  bottom=\mybottom, 
+  right=\myright
+}
+
+%========================================================================
+% Title Customization
+%========================================================================
+% Customize the title format and spacing for a polished look
+\makeatletter
+\renewcommand{\maketitle}{
+    \bgroup
+    \begin{flushleft}
+        % Use a spacing environment for consistent title spacing
+        \begin{spacing}{1.25}
+            {\sffamily\fontsize{25}{20}\textbf{\capitalisewords{\@title}}} \vspace{0.3cm} \newline
+            {\large\@author} \newline
+            {\large\today} \newline  % Display the full date
+            {\large {\@subtitle}} \vspace{-1cm}
+        \end{spacing}
+    \end{flushleft}
+    \egroup
+}
+\makeatother
+
+%========================================================================
+% Document Line Spacing
+%========================================================================
+% Set overall document line spacing for improved readability
+\setstretch{1.15}  % Adjust to desired spacing (e.g., use \doublespacing if needed)
+
+%========================================================================
+% Section Title Styling
+%========================================================================
+% Customize the appearance of sections, subsections, and subsubsections
+\titleformat{\section}
+  {\vspace{-0.5cm}\sffamily\fontsize{18}{20}\bfseries} % Format for section titles
+  {\thesection}{1.1em}{}[{\titlerule[2pt]}]  % Underline styling for sections
+
+\titleformat{\subsection}
+  {\sffamily\fontsize{15}{15}\bfseries} 
+  {\thesubsection}{1.1em}{}[{\titlerule[1pt]}]  % Underline styling for subsections
+
+\titleformat{\subsubsection}
+  {\sffamily\fontsize{13}{13}\bfseries} 
+  {\thesubsubsection}{1.1em}{}[{\titlerule[0.5pt]}]  % Underline styling for subsubsections
+
+%========================================================================
+% Logo and Decorative Bar Placement
+%========================================================================
+% Add a decorative bar and logo to each page using eso-pic
+\AddToShipoutPicture{%
+    % Place a colored bar at a specific location
+    \AtPageLowerLeft{%
+        \put(\LenToUnit{\dimexpr\paperwidth-2.75cm},25cm){%
+            \color{light}\rule{3.25cm}{3cm}  % Adjust width and height as needed
+        }%
+    }%
+    % Place the logo image at the top right corner
+    \AtPageLowerLeft{%
+        \put(\LenToUnit{\dimexpr\paperwidth-2.6cm},25.2cm){%
+            \color{light}\includegraphics[width=2.5cm]{_extensions/OSULatexTheme/logo.png}%
+        }%
+    }%
+    
+}
+
+%========================================================================
+% Custom Footer Style
+%========================================================================
+% Define a custom page style using fancyhdr for footers
+\fancypagestyle{mystyle}{
+  \fancyhf{}  % Clear existing header and footer
+  \renewcommand\headrulewidth{0pt}  % Remove header rule
+  % Set footer on the right with page number styled
+  \fancyfoot[R]{\fontsize{20}{12}\selectfont\thepage} 
+  \fancyfootoffset{2cm}  % Offset footer to the right margin
+  \setlength{\footskip}{20pt}  % Adjust space between footer and page bottom
+}
+
+% Apply the custom page style to the document
+\pagestyle{mystyle}

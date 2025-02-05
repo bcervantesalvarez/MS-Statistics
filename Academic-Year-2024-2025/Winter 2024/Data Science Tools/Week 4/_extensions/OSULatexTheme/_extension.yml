@@ -1,0 +1,14 @@
+title: "OSULatexTheme"
+author: "Brian Cervantes Alvarez"
+version: 1.0.0
+contributes:
+  format: 
+    pdf:
+      highlight-style: github-dark
+      include-in-header: 
+       - "OSULatexTheme.tex"
+      include-before-body:
+       - "pagestyle.tex"
+      code-block-bg: "#000000"
+      linkcolor: highlight
+      urlcolor: highlight

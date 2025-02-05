@@ -1,6 +1,6 @@
-title: OSULatexTheme
-author: Brian Cervantes Alvarez
-version: 0.0.2
+title: "OSULatexTheme"
+author: "Brian Cervantes Alvarez"
+version: 1.0.0
 contributes:
   format: 
     pdf:
@@ -9,8 +9,6 @@ contributes:
        - "OSULatexTheme.tex"
       include-before-body:
        - "pagestyle.tex"
-      toc: false
       code-block-bg: "#000000"
       linkcolor: highlight
       urlcolor: highlight
-      code-copy: true

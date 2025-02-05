@@ -1,0 +1,11 @@
+survived,pclass,sex,age,sibsp,parch,fare,embarked,class,who,adult_male,deck,embark_town,alive,alone
+1,1,female,35.0,0,0,512.3292,C,First,woman,False,,Cherbourg,yes,True
+1,1,male,36.0,0,1,512.3292,C,First,man,True,B,Cherbourg,yes,False
+1,1,male,35.0,0,0,512.3292,C,First,man,True,B,Cherbourg,yes,True
+1,1,female,24.0,3,2,263.0,S,First,woman,False,C,Southampton,yes,False
+1,1,female,23.0,3,2,263.0,S,First,woman,False,C,Southampton,yes,False
+1,1,female,18.0,2,2,262.375,C,First,woman,False,B,Cherbourg,yes,False
+1,1,female,21.0,2,2,262.375,C,First,woman,False,B,Cherbourg,yes,False
+1,1,female,50.0,0,1,247.5208,C,First,woman,False,B,Cherbourg,yes,False
+1,1,female,18.0,1,0,227.525,C,First,woman,False,C,Cherbourg,yes,False
+1,1,female,38.0,0,0,227.525,C,First,woman,False,C,Cherbourg,yes,True

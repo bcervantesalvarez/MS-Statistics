@@ -1,0 +1,462 @@
+---
+title: "Lab 2: Reading and Manipulating Data with Pandas"
+format: ipynb
+eval: false
+---
+
+## Objective
+
+This lab aims to familiarize you with reading data into Python using pandas, manipulating DataFrames, reshaping data, indexing, assigning or modifying columns, merging DataFrames, sorting data, and exporting data. By the end of this lab, you will be able to:
+
+- Load datasets using `seaborn`'s `load_dataset` function.
+- Explore and inspect DataFrames.
+- Select and filter data using `iloc` and `loc`.
+- Assign or modify columns using `assign`.
+- Reshape DataFrames using `melt` and `pivot`.
+- Merge two DataFrames.
+- Sort data and select top entries.
+- Write DataFrames to CSV files.
+- Access function documentation.
+
+---
+
+## 1. Importing Necessary Libraries
+
+Begin by importing the necessary libraries. We'll use `pandas` for data manipulation and `seaborn` to load the Titanic dataset.
+
+```{python}
+import pandas as pd
+import seaborn as sns
+```
+
+---
+
+## 2. Loading the Titanic Dataset
+
+Load the Titanic dataset into a pandas DataFrame using `seaborn`'s `load_dataset` function.
+
+```{python}
+# Load the Titanic dataset
+titanic = sns.load_dataset("titanic")
+
+# Display the first few rows of the DataFrame
+print(titanic.head())
+```
+
+---
+
+## 3. Exploring the DataFrame
+
+Inspect the DataFrame to understand its structure, including the number of rows and columns, and data types of each column.
+
+```{python}
+# Display information about the DataFrame
+print(titanic.info())
+
+# Display summary statistics for numerical columns
+print(titanic.describe())
+
+# Display summary statistics for categorical columns
+print(titanic.describe(include=['object', 'category']))
+```
+
+---
+
+## 4. Selecting Specific Columns
+
+Select the `sex`, `class`, and `fare` columns from the DataFrame.
+
+```{python}
+# Select 'sex', 'class', and 'fare' columns
+selected_columns = titanic[['sex', 'class', 'fare']]
+
+# Display the first few rows of the selected columns
+print(selected_columns.head())
+```
+
+---
+
+## 5. Filtering Rows Based on a Condition
+
+Filter the DataFrame to include only rows where the `survived` is `1`.
+
+```{python}
+# Filter rows where 'survived' is 1 (passengers who survived)
+survived_passengers = titanic[titanic['survived'] == 1].copy()
+
+# Display the first few rows of the filtered DataFrame
+print(survived_passengers.head())
+```
+
+---
+
+## 6. Assigning or Modifying Columns Using `assign`
+
+Use the `assign` function to add or modify columns in a DataFrame.
+
+```{python}
+# Add a new column 'fare_category' based on fare
+titanic_cleaned = titanic.assign(
+    fare_category=lambda df: pd.cut(
+        df['fare'], 
+        bins=[0, 50, 100, 150, df['fare'].max()],
+        labels=['Low', 'Medium', 'High', 'Very High']
+    )
+)
+
+# Display the first few rows with the new column
+print(titanic_cleaned[['fare', 'fare_category']].head())
+```
+
+---
+
+## 7. Indexing DataFrames with `iloc` and `loc`
+
+### 7.1: Using `iloc` for Integer-Based Indexing
+
+The `iloc` function allows for integer-location based indexing for selection by position.
+
+```{python}
+# Using iloc to select the first 5 rows and first 3 columns
+subset_iloc = titanic_cleaned.iloc[:5, :3]
+print(subset_iloc)
+```
+
+### 7.2: Selecting Specific Rows and Columns with `iloc`
+
+```{python}
+# Using iloc to select specific rows and columns
+subset_iloc_specific = titanic_cleaned.iloc[[0, 2, 4], [1, 3]]
+print("\nSpecific subset using iloc:")
+print(subset_iloc_specific)
+```
+
+### 7.3: Using `loc` for Label-Based Indexing
+
+The `loc` function allows for label-based indexing to select rows and columns by their labels.
+
+```{python}
+# Using loc to select rows and columns based on labels
+subset_loc = titanic_cleaned.loc[
+    (titanic_cleaned['embarked'] == 'S') & (titanic_cleaned['class'] == 'Third'),
+    ['sex', 'fare', 'embarked']
+]
+
+# Display the subset
+print(subset_loc.head())
+```
+
+---
+
+## 8. Reshaping DataFrames
+
+Learn how to reshape DataFrames using `melt` and `pivot` functions.
+
+### 8.1 Using `melt` to Unpivot DataFrames
+
+The `melt` function transforms a DataFrame from wide format to long format.
+
+```{python}
+# Example DataFrame
+data = {
+    'id': [1, 2, 3],
+    'year_2020': [100, 150, 200],
+    'year_2021': [110, 160, 210]
+}
+df_wide = pd.DataFrame(data)
+print("Wide DataFrame:")
+print(df_wide)
+
+# Melt the DataFrame
+df_long = pd.melt(df_wide, id_vars=['id'], var_name='year', value_name='value')
+print("\nLong DataFrame:")
+print(df_long)
+```
+
+### 8.2 Using `pivot` to Reshape DataFrames
+
+The `pivot` function reshapes a DataFrame from long format to wide format.
+
+```{python}
+# Pivot the long DataFrame back to wide format
+df_pivot = df_long.pivot(index='id', columns='year', values='value').reset_index()
+print("\nPivoted DataFrame:")
+print(df_pivot)
+```
+
+---
+
+## 9. Merging Two DataFrames
+
+Combine two DataFrames using the `merge` function based on a common key.
+
+```{python}
+# Create a second DataFrame with class and number of passengers
+class_info = pd.DataFrame({
+    'class': ['First', 'Second', 'Third'],
+    'passengers': [216, 184, 491]
+})
+
+# Merge the two DataFrames on 'class'
+merged_df = pd.merge(grouped, class_info, on='class')
+
+# Display the merged DataFrame
+print(merged_df)
+```
+
+---
+
+## 10. Sorting Data and Selecting Top Entries
+
+Sort the `survived_passengers` DataFrame by the `fare` column in descending order and select the top 10 passengers who paid the highest fares.
+
+```{python}
+# Sort the DataFrame by 'fare' in descending order
+sorted_fare = survived_passengers.sort_values(by="fare", ascending=False)
+
+# Select the top 10 passengers with the highest fares
+top_ten_fares = sorted_fare.head(10)
+
+# Display the top 10 fares
+print(top_ten_fares[['sex', 'class', 'fare']])
+```
+
+---
+
+## 11. Writing the DataFrame to a CSV File
+
+Export the `top_ten_fares` DataFrame to a new CSV file named `top_ten_fares.csv`. Exclude the DataFrame index from the output file.
+
+```{python}
+# Write the DataFrame to a CSV file without the index
+top_ten_fares.to_csv("top_ten_fares.csv", index=False)
+
+# Confirm that the file has been written by displaying its contents
+print(pd.read_csv("top_ten_fares.csv"))
+```
+
+---
+
+## 12. Accessing Documentation
+
+Use the `help()` function to access the documentation for the `read_csv` function. This will provide detailed information about its parameters and usage.
+
+```{python}
+# Access the documentation for pandas.read_csv
+help(pd.read_csv)
+```
+
+*Alternatively, in a Jupyter Notebook, you can use the `?` operator:*
+
+```{python}
+pd.read_csv?
+```
+
+---
+
+# Lab Exercises
+
+## **Exercise 1: Selecting and Filtering Data**
+
+**Objective:**  
+Practice selecting specific columns and filtering rows based on multiple conditions to extract meaningful subsets of data.
+
+### **1.1: Selecting Specific Columns**
+
+**Question:**  
+From the `titanic_cleaned` DataFrame, select only the `sex`, `class`, and `fare` columns. Assign the resulting DataFrame to `selected_columns` and display the first five rows.
+
+```{python}
+# Select specific columns
+
+# Display the first five rows
+```
+
+### **1.2: Filtering Rows Based on Conditions**
+
+**Question:**  
+Filter the `titanic_cleaned` DataFrame to include only passengers who survived (`survived` == 1). Assign this filtered DataFrame to `survived_passengers` and display the first five rows.
+
+```{python}
+# Filter passengers who survived
+
+# Display the first five rows)
+```
+
+### **1.3: Combining Selection and Filtering with `loc[]`**
+
+**Question:**  
+Use the `loc[]` accessor to filter the `titanic_cleaned` DataFrame for passengers who survived and select only the `sex` and `fare` columns. Assign the resulting DataFrame to `survived_sex_fare` and display the first five rows.
+
+```{python}
+# Use loc[] to filter and select specific columns
+
+# Display the first five rows
+```
+
+---
+
+## **Exercise 2: Assigning or Modifying Columns Using `assign`**
+
+**Objective:**  
+Practice adding or modifying columns in a DataFrame using the `assign` function.
+
+### **2.1: Adding a Fare Category Column**
+
+**Question:**  
+Use the `assign` function to add a new column `fare_category` to the `titanic_cleaned` DataFrame. Categorize the `fare` into four categories: 'Low' (0-50), 'Medium' (50-100), 'High' (100-150), and 'Very High' (150 and above). Display the first five rows of the updated DataFrame.
+
+```{python}
+# Add a new column 'fare_category' based on fare
+
+# Display the first five rows with the new column
+```
+
+---
+
+## **Exercise 3: Indexing DataFrames with `iloc` and `loc`**
+
+**Objective:**  
+Practice subsetting rows and columns of a DataFrame using both integer indices (`iloc`) and labels (`loc`).
+
+### **3.1: Selecting Rows and Columns Using `iloc`**
+
+**Question:**  
+Use `iloc` to select the first 5 rows and the first 3 columns of the `titanic_cleaned` DataFrame. Assign the result to `subset_iloc` and display it.
+
+```{python}
+# Using iloc to select the first 5 rows and first 3 columns
+```
+
+### **3.2: Selecting Specific Rows and Columns with `iloc`**
+
+**Question:**  
+Use `iloc` to select rows at positions 0, 2, and 4 and columns at positions 1 and 3 from the `titanic_cleaned` DataFrame. Assign the result to `subset_iloc_specific` and display it.
+
+```{python}
+# Using iloc to select specific rows and columns
+```
+
+### **3.3: Selecting Rows and Columns Using `loc`**
+
+**Question:**  
+Use `loc` to select passengers who embarked from 'S' and are in 'Third' class. Select the `sex`, `fare`, and `embarked` columns. Assign the result to `subset_loc` and display it.
+
+```{python}
+# Using loc to select rows and columns based on labels
+```
+
+---
+
+## **Exercise 4: Reshaping DataFrames**
+
+**Objective:**  
+Learn how to reshape DataFrames using `melt` and `pivot` functions.
+
+### **4.1 Using `melt` to Unpivot DataFrames**
+
+**Question:**  
+Given the following DataFrame `df_wide`, use the `melt` function to transform it into a long format. Assign the result to `df_long` and display it.
+
+```{python}
+# Example DataFrame
+data = {
+    'id': [1, 2, 3],
+    'year_2020': [100, 150, 200],
+    'year_2021': [110, 160, 210]
+}
+
+# Melt the DataFrame
+
+```
+
+### **4.2 Using `pivot` to Reshape DataFrames**
+
+**Question:**  
+Use the `pivot` function to transform the `df_long` DataFrame back to its original wide format. Assign the result to `df_pivot` and display it.
+
+```{python}
+# Pivot the long DataFrame back to wide format
+```
+
+---
+
+## **Exercise 5: Merging Two DataFrames**
+
+**Objective:**  
+Combine two DataFrames based on a common key using the `merge` function.
+
+### **5.1: Merging with Class Information**
+
+**Question:**  
+Create a second DataFrame named `class_info` containing the `class` and the total number of passengers in each class. Merge this DataFrame with the `grouped` DataFrame on the `class` column. Assign the result to `merged_df` and display it.
+
+```{python}
+# Create a second DataFrame with class and number of passengers
+
+
+# Merge the two DataFrames on 'class'
+
+# Display the merged DataFrame
+```
+
+---
+
+## **Exercise 6: Sorting Data and Selecting Top Entries**
+
+**Objective:**  
+Develop skills in sorting DataFrames based on specific columns and ranking entries to identify key data points.
+
+### **6.1: Sorting by Fare in Descending Order**
+
+**Question:**  
+Sort the `survived_passengers` DataFrame by the `fare` column in descending order. Assign the sorted DataFrame to `sorted_fare` and display the first five rows.
+
+```{python}
+# Sort the DataFrame by 'fare' in descending order
+
+# Display the first five rows
+```
+
+### **6.2: Selecting Top 10 Passengers with Highest Fares**
+
+**Question:**  
+From the `sorted_fare` DataFrame, select the top 10 passengers who paid the highest fares. Assign this subset to `top_ten_fares` and display the `sex`, `class`, and `fare` columns.
+
+```{python}
+# Select the top 10 passengers with highest fares
+
+# Display the selected columns
+```
+
+---
+
+## **Exercise 7: Writing the DataFrame to a CSV File**
+
+**Objective:**  
+Export the `top_ten_fares` DataFrame to a CSV file for future use and verification.
+
+### **7.1: Exporting the Top Ten Fares to CSV**
+
+**Question:**  
+Export the `top_ten_fares` DataFrame to a CSV file named `top_ten_fares.csv` in the current working directory. Ensure that the index is not included in the exported file. Then, read the CSV file back into a new DataFrame named `exported_top_ten` and display its contents to confirm successful export.
+
+```{python}
+# Write the DataFrame to a CSV file without the index
+
+# Confirm export by reading the file back
+```
+
+---
+
+
+## Transparency Statement for Lab 2: Reading and Manipulating Data with Pandas
+
+*This lab's Python code and instructions were partially generated with the assistance of ChatGPT, an AI language model developed by OpenAI. The content is based on Chapter 2 of "Python for Data Analysis: Data Wrangling with Pandas, NumPy, and IPython" by Wes McKinney (2012) and other referenced materials.*
+
+## References
+
+- McKinney, W. (2012). *Python for Data Analysis: Data Wrangling with Pandas, NumPy, and IPython*. O'Reilly Media, Inc.
+- The Pandas Development Team. (2020). *pandas-dev/pandas: Pandas*. Retrieved from [https://doi.org/10.5281/zenodo.3509134](https://doi.org/10.5281/zenodo.3509134)
+- Seaborn Developers. (n.d.). *Seaborn: Statistical Data Visualization*. Retrieved from [https://seaborn.pydata.org/](https://seaborn.pydata.org/)
+```

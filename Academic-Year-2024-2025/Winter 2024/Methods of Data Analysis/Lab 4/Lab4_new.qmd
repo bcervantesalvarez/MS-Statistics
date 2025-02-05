@@ -1,0 +1,187 @@
+---
+title: "Lab 4: ST 412/512"
+author: "Brian Cervantes Alvarez"
+format: 
+  OSULatexTheme-pdf:
+    toc: true
+---
+
+{{< pagebreak >}}
+
+# Inference on Multiple Linear Regression in R
+
+**Lab Goals:**
+
+1. Perform F-tests for model comparison
+2. Calculate and interpret confidence intervals for mean responses
+3. Create prediction intervals for individual observations
+
+{{< pagebreak >}}
+
+## F-tests for Model Comparison
+
+### Nested Model F-test
+When comparing two nested models (where one is a simplified version of the other), we use an extra sum of squares F-test. In R:
+
+```{r}
+#| message: false
+library(Sleuth3)
+
+# Continuous intensity model
+fit_continuous <- lm(Flowers ~ Intensity + Time, data = case0901)
+
+# Categorical intensity model
+fit_indicator <- lm(Flowers ~ factor(Intensity) + Time, data = case0901)
+
+# Model comparison
+anova(fit_continuous, fit_indicator)
+```
+
+**Interpretation:** A small p-value suggests the more complex model (with categorical intensity) provides significantly better fit.
+
+{{< pagebreak >}}
+
+### Overall Model F-test
+To test the overall significance of a model against the intercept-only model:
+
+```{r}
+# Fit full model
+fit_full <- lm(Flowers ~ Intensity + Time, data = case0901)
+
+# ANOVA table for overall significance
+anova(fit_full)
+```
+
+**Key Components:**
+
+- **F-statistic:** Ratio of mean square regression to mean square residual
+- **p-value:** Probability of observing this F-statistic if null hypothesis (no relationship) is true
+
+```{r}
+# Manual F-statistic calculation
+F_stat <- (1733.35 / 41.49)
+p_value <- pf(F_stat, 2, 21, lower.tail = FALSE)
+cat("F-statistic:", F_stat, "\np-value:", p_value)
+```
+
+{{< pagebreak >}}
+
+## Confidence & Prediction Intervals
+
+### Model Setup
+We'll use the following model to predict log income:
+
+```{r}
+# Load and prepare data
+data(ex0923)
+head(ex0923)
+
+# Fit model with na handling
+income_model <- lm(log(Income2005) ~ AFQT + Educ + Gender,
+                   data = ex0923,
+                   na.action = na.exclude)
+```
+
+### Creating Prediction Grid
+Generate combinations of predictor values for visualization:
+
+```{r}
+pred_grid <- expand.grid(
+  Educ = unique(ex0923$Educ),
+  AFQT = seq(0, 100, 10),
+  Gender = unique(ex0923$Gender)
+)
+head(pred_grid)
+```
+
+### Making Predictions
+Calculate estimated means and intervals:
+
+```{r}
+# Confidence intervals for mean response
+conf_intervals <- predict(income_model, 
+                         newdata = pred_grid,
+                         interval = "confidence")
+
+# Prediction intervals for individual responses
+pred_intervals <- predict(income_model,
+                         newdata = pred_grid,
+                         interval = "prediction")
+
+# Combine results
+results <- cbind(pred_grid,
+                conf_mean = conf_intervals[, 1],
+                conf_lwr = conf_intervals[, 2],
+                conf_upr = conf_intervals[, 3],
+                pred_lwr = pred_intervals[, 2],
+                pred_upr = pred_intervals[, 3])
+head(results)
+```
+
+{{< pagebreak >}}
+
+### Visualization Examples
+
+**1. Mean Income by Education Level:**
+```{r}
+#| fig-height: 5
+#| fig-width: 7
+library(ggplot2)
+
+ggplot(subset(results, Educ == 12), 
+       aes(AFQT, conf_mean, color = Gender)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = conf_lwr, ymax = conf_upr), 
+              alpha = 0.2) +
+  labs(title = "Estimated Mean Income (12 Years Education)",
+       y = "Log Income",
+       x = "AFQT Score") +
+  theme_minimal()
+```
+
+**2. Prediction Intervals Comparison:**
+```{r}
+#| fig-height: 5
+#| fig-width: 7
+ggplot(subset(results, Educ == 12 & Gender == "male"), 
+       aes(AFQT, conf_mean)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = conf_lwr, ymax = conf_upr),
+              alpha = 0.3, fill = "blue") +
+  geom_ribbon(aes(ymin = pred_lwr, ymax = pred_upr),
+              alpha = 0.2, fill = "red") +
+  labs(title = "Male Income Prediction (12 Years Education)",
+       subtitle = "Blue: 95% CI for Mean | Red: 95% Prediction Interval",
+       y = "Log Income",
+       x = "AFQT Score") +
+  theme_minimal()
+```
+
+{{< pagebreak >}}
+
+## Exercises
+
+
+1. **Model Comparison:** Fit a model adding an `Educ:AFQT` interaction term. Compare it to our original model using an F-test. Interpret the results.
+
+2. **Visualization:** Recreate the first plot with back-transformed values (original income scale instead of log scale). What changes in the interpretation?
+
+3. **Interval Interpretation:** For a female with 16 years education and AFQT=85:
+   - Calculate both confidence and prediction intervals
+   - Explain the difference between these intervals in context
+
+{{< pagebreak >}}
+
+## Summary Table
+
+| Concept               | Purpose                                  | R Function          |
+|-----------------------|------------------------------------------|---------------------|
+| Nested Model F-test   | Compare model complexity                 | `anova(model1, model2)` |
+| Confidence Interval   | Estimate precision of mean response     | `predict(..., interval = "confidence")` |
+| Prediction Interval   | Range for individual observations       | `predict(..., interval = "prediction")` |
+
+**Key Takeaways:**
+
+- F-tests help determine if additional predictors significantly improve model fit
+- Confidence intervals quantify uncertainty about _mean_ responses
+- Prediction intervals account for both model uncertainty and individual variation

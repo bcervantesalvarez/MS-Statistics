@@ -1,0 +1,727 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  11pt,
+]{report}
+
+\usepackage{amsmath,amssymb}
+\usepackage{setspace}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{5}
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\definecolor{codebgcolor}{rgb}{0.95,0.95,0.95}
+\pagestyle{fancy}
+\fancyhead[L]{Spatial Statistics Notes}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\makeatletter
+\@ifpackageloaded{tcolorbox}{}{\usepackage[skins,breakable]{tcolorbox}}
+\makeatother
+\makeatletter
+\@ifundefined{shadecolor}{\definecolor{shadecolor}{rgb}{.97, .97, .97}}{}
+\makeatother
+\makeatletter
+\@ifundefined{codebgcolor}{\definecolor{codebgcolor}{named}{codebgcolor}}{}
+\makeatother
+\makeatletter
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[sharp corners, colback={codebgcolor}, borderline west={3pt}{0pt}{shadecolor}, boxrule=0pt, enhanced, breakable, frame hidden]}{\end{tcolorbox}}\fi
+\makeatother
+
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Spatial Statistics Notes},
+  pdfauthor={Brian Cervantes Alvarez},
+  pdfkeywords={Spatial Statistics, Kriging, Variograms, SAR
+Models, NNGP},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Spatial Statistics Notes}
+\author{Brian Cervantes Alvarez}
+\date{2025-02-04}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Spatial statistics is a crucial field that focuses on analyzing
+spatially referenced data, incorporating geographic and locational
+information to model relationships and dependencies. These notes cover
+foundational concepts such as spatial data types, coordinate reference
+systems, and spatial dependence, along with advanced topics including
+geostatistical models, spatial regression, and simultaneous
+autoregressive (SAR) models. Key topics include the multivariate normal
+distribution, variograms, kriging techniques, and methods for handling
+spatially structured big data, such as Nearest-Neighbor Gaussian
+Processes (NNGP). The notes also delve into areal data analysis, spatial
+autocorrelation measures like Moran's I and Geary's C, and model-based
+approaches for predicting spatial outcomes. A strong emphasis is placed
+on practical implementation, using R packages such as \texttt{sp},
+\texttt{sf}, \texttt{gstat}, \texttt{spmodel}, and \texttt{spNNGP} for
+real-world spatial data analysis. Applications span environmental
+monitoring, urban planning, epidemiology, and more, demonstrating the
+critical role of spatial statistics in decision-making and scientific
+research.
+\end{abstract}
+
+\renewcommand*\contentsname{Table of contents}
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+
+\setstretch{2}
+\chapter{Introduction to Spatial
+Statistics}\label{introduction-to-spatial-statistics}
+
+\section{Preliminaries}\label{preliminaries}
+
+\subsection{Tobler's First Law of
+Geography}\label{toblers-first-law-of-geography}
+
+``Everything is related to everything else, but near things are more
+related than distant things.'' --- Tobler (1970)
+
+\textbf{Why does this matter?} Imagine you're studying temperature
+changes across a region. If two locations are close, their temperatures
+are likely more similar than two locations far apart. This principle is
+fundamental in spatial analysis, affecting how we model relationships
+between data points.
+
+\subsection{Types of Spatial Data}\label{types-of-spatial-data}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Geostatistical Data}: Continuous spatial variables, e.g., soil
+  pollution measurements.
+\item
+  \textbf{Areal (Lattice) Data}: Aggregated over regions, e.g., census
+  data by county.
+\item
+  \textbf{Point Pattern Data}: Locations of events, e.g., earthquake
+  occurrences.
+\end{enumerate}
+
+\textbf{Example:} Consider air quality measurements across a city. If
+measured at scattered sensor locations, it's geostatistical data. If
+summarized at the neighborhood level, it's areal data. If recording only
+pollution source locations, it's point pattern data.
+
+\section{Spatial Coordinate Systems}\label{spatial-coordinate-systems}
+
+A coordinate system provides a mathematical way to specify locations.
+Important terms:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Datum}: Defines the origin and scale of a coordinate system.
+\item
+  \textbf{Geodetic Datum}: Relates the coordinate system to Earth's
+  shape.
+\item
+  \textbf{Coordinate Reference System (CRS)}: Specifies how a dataset's
+  coordinates relate to the real world.
+\end{itemize}
+
+\textbf{Analogy:} Think of CRS like different map apps---Google Maps,
+Apple Maps, and OpenStreetMap all display the same Earth, but their
+coordinate systems may differ slightly.
+
+\textbf{Example:} The Universal Transverse Mercator (UTM) system divides
+the world into zones, making local measurements more accurate.
+
+\chapter{Multivariate Normal
+Distributions}\label{multivariate-normal-distributions}
+
+\section{Bivariate Normal
+Distribution}\label{bivariate-normal-distribution}
+
+A two-variable generalization of the normal distribution, described by:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Means (\(\mu_1, \mu_2\))}: Expected values.
+\item
+  \textbf{Variances (\(\sigma_1^2, \sigma_2^2\))}: Spread of each
+  variable.
+\item
+  \textbf{Correlation (\(\rho\))}: Strength of their relationship.
+\end{itemize}
+
+\textbf{Why does this matter?} Many spatial models assume normality,
+making this distribution crucial for prediction and inference.
+
+\textbf{Example:} If you measure temperature and humidity across a city,
+they likely follow a bivariate normal distribution, where hotter days
+tend to be more humid.
+
+\section{Variance-Covariance
+Matrices}\label{variance-covariance-matrices}
+
+For multiple variables, we use a variance-covariance matrix: \[
+\Sigma = \begin{bmatrix} \sigma_1^2 & \text{cov}(Y_1, Y_2) \\ \text{cov}(Y_1, Y_2) & \sigma_2^2 \end{bmatrix}
+\] \textbf{Properties:}
+
+\begin{itemize}
+\tightlist
+\item
+  Always symmetric (\(\text{cov}(Y_1, Y_2) = \text{cov}(Y_2, Y_1)\)).
+\item
+  Positive definite (ensures meaningful variability).
+\end{itemize}
+
+\textbf{Analogy:} Think of covariance like how two stocks move
+together---if one rises when the other does, their covariance is
+positive.
+
+\section{Multivariate Normal
+Distribution}\label{multivariate-normal-distribution}
+
+A generalization for multiple correlated variables, defined by a mean
+vector and covariance matrix: \[
+f(y) = (2\pi)^{-n/2} |\Sigma|^{-1/2} \exp \left( -\frac{1}{2} (y - \mu)' \Sigma^{-1} (y - \mu) \right)
+\]
+
+\textbf{Example:} If you analyze rainfall, temperature, and humidity
+together, they likely follow a multivariate normal distribution, helping
+in climate modeling and weather prediction.
+
+\chapter{More on Variograms; Spatial Prediction With
+Covariates}\label{more-on-variograms-spatial-prediction-with-covariates}
+
+\section{Practical Range and Matérn Variogram
+Model}\label{practical-range-and-matuxe9rn-variogram-model}
+
+The \textbf{practical range} is the distance at which covariance drops
+to 5\% of the partial sill, varying by model type.
+
+\textbf{Why does this matter?} It helps determine the spatial scale of
+correlation, guiding interpolation decisions.
+
+\textbf{Example:} In environmental science, it informs sensor placement
+for air pollution monitoring.
+
+\subsection{Matérn Variogram Model}\label{matuxe9rn-variogram-model}
+
+The Matérn model introduces flexibility via the \textbf{smoothness
+parameter (κ)}, controlling how covariance decays.
+
+\textbf{Analogy:} Think of κ like road conditions---higher values make
+the transition from smooth to rough more gradual.
+
+\section{Universal Kriging}\label{universal-kriging}
+
+\textbf{Universal kriging} extends ordinary kriging by incorporating
+covariates like elevation.
+
+\textbf{Why does this matter?} It allows for better predictions when
+spatial trends exist.
+
+\textbf{Example:} Predicting soil contamination based on both spatial
+location and land elevation.
+
+\chapter{Regression With Geostatistical
+Data}\label{regression-with-geostatistical-data}
+
+\section{Prediction vs.~Estimation}\label{prediction-vs.-estimation}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Prediction}: Forecasts values at unsampled locations.
+\item
+  \textbf{Estimation}: Determines underlying relationships between
+  variables.
+\end{itemize}
+
+\textbf{Example:} Predicting temperature at an unmeasured site versus
+estimating how temperature depends on elevation.
+
+\section{Spatial Regression}\label{spatial-regression}
+
+Spatial regression extends traditional models by accounting for spatial
+dependence.
+
+\subsection{Key Model Differences:}\label{key-model-differences}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Ordinary Regression} assumes independence.
+\item
+  \textbf{Spatial Regression} incorporates a spatial covariance
+  structure.
+\end{enumerate}
+
+\textbf{Example:} Modeling heavy metal contamination while accounting
+for proximity effects.
+
+\subsection{Practical Implementation}\label{practical-implementation}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{lm()} for independent models.
+\item
+  \texttt{splm()} for spatial models, estimating covariance parameters.
+\end{itemize}
+
+\textbf{Why does this matter?} Spatial regression reduces bias and
+improves inference in geographically structured data.
+
+\chapter{Simultaneous Autoregressive (SAR)
+Models}\label{simultaneous-autoregressive-sar-models}
+
+\section{Row-Standardized Weights}\label{row-standardized-weights}
+
+SAR models rely on spatial weight matrices to define relationships
+between spatial units.
+
+\textbf{Example:} Consider housing prices in a city---neighboring
+properties often influence each other. SAR models capture this
+dependency through a structured matrix.
+
+\textbf{Types of Contiguity:}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Queen contiguity:} A single shared boundary point defines a
+  neighborhood.
+\item
+  \textbf{Binary weights:} Assigns 1 if two areas share a boundary and 0
+  otherwise.
+\item
+  \textbf{Row-standardized weights:} Adjusts for different numbers of
+  neighbors to ensure interpretability.
+\end{itemize}
+
+\textbf{Analogy:} Think of binary weights like direct friendships,
+whereas row-standardized weights are like adjusting for
+popularity---someone with many friends has each connection weighted
+less.
+
+\section{Simultaneous Autoregressive (SAR)
+Models}\label{simultaneous-autoregressive-sar-models-1}
+
+SAR models incorporate spatial dependence by modifying regression
+equations: \[
+Z = X\beta + B(Z - X\beta) + d
+\] where:
+
+\begin{itemize}
+\tightlist
+\item
+  \(B = \phi W\) describes spatial relationships,
+\item
+  \(W\) is the spatial weights matrix,
+\item
+  \(d\) is the error term.
+\end{itemize}
+
+\subsection{Variance-Covariance
+Structure}\label{variance-covariance-structure}
+
+The SAR model leads to: \[
+\Sigma_{SAR} = \sigma^2_{de} [(I - \phi W)(I - \phi W)^T]^{-1}
+\] This accounts for spatial correlation in the dependent variable.
+
+\textbf{Why does this matter?} Ordinary regression assumes independence,
+but ignoring spatial dependence can lead to biased estimates. SAR models
+correct this.
+
+\section{Implementing SAR Models in
+R}\label{implementing-sar-models-in-r}
+
+Using the \texttt{spmodel} package:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(spmodel)}
+\NormalTok{boston\_sar }\OtherTok{\textless{}{-}} \FunctionTok{spautor}\NormalTok{(MEDV }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ boston\_sf, }\AttributeTok{spcov\_type =} \StringTok{"sar"}\NormalTok{, }\AttributeTok{row\_s =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(boston\_sar)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Interpretation}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Intercept:} Represents the average property value.
+\item
+  \textbf{SAR spatial covariance parameters:} Indicate spatial
+  dependence strength.
+\end{itemize}
+
+\section{Row-Standardization and Its
+Effect}\label{row-standardization-and-its-effect}
+
+Row-standardization ensures each row sums to 1, making comparisons fair
+across regions:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{boston\_sar }\OtherTok{\textless{}{-}} \FunctionTok{spautor}\NormalTok{(MEDV }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ boston\_sf, }\AttributeTok{spcov\_type =} \StringTok{"sar"}\NormalTok{, }\AttributeTok{row\_s =} \ConstantTok{TRUE}\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(boston\_sar)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Example:} The impact of neighbors is scaled relative to the
+number of connections, preventing dominant effects from highly connected
+regions.
+
+\textbf{Analogy:} Think of row-standardization like adjusting for social
+media influence---someone with 1,000 friends has less influence per
+friend compared to someone with just 10.
+
+\textbf{Why does this matter?} Row-standardization helps maintain
+stability in the model, particularly for regions with varying numbers of
+neighbors.
+
+\chapter{Additional Topics}\label{additional-topics}
+
+\section{Spatial Point Processes}\label{spatial-point-processes}
+
+Spatial point processes model the random occurrence of events in space.
+They're crucial when the data consist of discrete event
+locations---think tracking the spread of disease outbreaks or modeling
+the locations of trees in a forest.
+
+\subsection{Poisson Point Process}\label{poisson-point-process}
+
+The \textbf{homogeneous Poisson point process} assumes that events occur
+completely at random with a constant intensity \(\lambda\) over the
+study region. The number of events in a region of area \(A\) follows a
+Poisson distribution: \[
+P(N(A) = k) = \frac{(\lambda A)^k e^{-\lambda A}}{k!}
+\]
+
+\textbf{Example:} If you're tracking meteorite impacts over a vast area,
+you might assume they occur randomly following a Poisson process.
+
+\subsubsection{R Implementation}\label{r-implementation}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(spatstat)}
+\CommentTok{\# Define a rectangular window for the study area}
+\NormalTok{win }\OtherTok{\textless{}{-}} \FunctionTok{owin}\NormalTok{(}\AttributeTok{xrange =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{100}\NormalTok{), }\AttributeTok{yrange =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{100}\NormalTok{))}
+\CommentTok{\# Simulate a homogeneous Poisson process with intensity 0.05 events per unit area}
+\NormalTok{pp\_poisson }\OtherTok{\textless{}{-}} \FunctionTok{rpoispp}\NormalTok{(}\AttributeTok{lambda =} \FloatTok{0.05}\NormalTok{, }\AttributeTok{win =}\NormalTok{ win)}
+\FunctionTok{plot}\NormalTok{(pp\_poisson, }\AttributeTok{main =} \StringTok{"Homogeneous Poisson Point Process"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Cluster and Inhibition
+Processes}\label{cluster-and-inhibition-processes}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Cluster Processes:} Events tend to occur in groups. For
+  instance, disease cases might cluster in certain neighborhoods due to
+  environmental factors.
+\item
+  \textbf{Inhibition Processes:} Events tend to repel each other (e.g.,
+  trees that compete for resources).
+\end{itemize}
+
+\textbf{Analogy:} Imagine a party---people might cluster around a snack
+table (cluster process) or spread out on the dance floor to give
+everyone room (inhibition process).
+
+\section{Bayesian Spatial Models}\label{bayesian-spatial-models}
+
+Bayesian approaches allow you to incorporate prior knowledge into
+spatial models, which is especially useful in data-scarce or highly
+uncertain environments.
+
+\subsection{Hierarchical Bayesian Spatial
+Models}\label{hierarchical-bayesian-spatial-models}
+
+In a hierarchical setup, spatial data are modeled on multiple levels.
+For example, the observed data might depend on latent spatial random
+effects that capture unmeasured spatial variation: \[
+Y(s) = X(s)\beta + w(s) + \epsilon(s)
+\] where: - \(w(s)\) is a latent spatial process (often modeled as a
+Gaussian Process), - \(\epsilon(s)\) is independent error.
+
+\textbf{Why does this matter?} By explicitly modeling spatial random
+effects, you capture dependencies that traditional models might miss,
+leading to improved uncertainty quantification.
+
+\subsubsection{\texorpdfstring{R Implementation with
+\texttt{spBayes}}{R Implementation with spBayes}}\label{r-implementation-with-spbayes}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(spBayes)}
+\CommentTok{\# Assume we have spatial data with coordinates \textquotesingle{}coords\textquotesingle{} and response \textquotesingle{}Y\textquotesingle{}}
+\CommentTok{\# Define a spatial decay parameter and variance components}
+\NormalTok{starting }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}\StringTok{"phi"} \OtherTok{=} \DecValTok{3}\NormalTok{, }\StringTok{"sigma.sq"} \OtherTok{=} \DecValTok{1}\NormalTok{, }\StringTok{"tau.sq"} \OtherTok{=} \FloatTok{0.1}\NormalTok{)}
+\NormalTok{tuning   }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}\StringTok{"phi"} \OtherTok{=} \FloatTok{0.1}\NormalTok{, }\StringTok{"sigma.sq"} \OtherTok{=} \FloatTok{0.1}\NormalTok{, }\StringTok{"tau.sq"} \OtherTok{=} \FloatTok{0.05}\NormalTok{)}
+\NormalTok{priors   }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}\StringTok{"phi.Unif"} \OtherTok{=} \FunctionTok{c}\NormalTok{(}\FloatTok{0.1}\NormalTok{, }\DecValTok{10}\NormalTok{), }\StringTok{"sigma.sq.IG"} \OtherTok{=} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{), }\StringTok{"tau.sq.IG"} \OtherTok{=} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\FloatTok{0.1}\NormalTok{))}
+\CommentTok{\# Fit a simple spatial regression model}
+\NormalTok{bayes\_model }\OtherTok{\textless{}{-}} \FunctionTok{spLM}\NormalTok{(Y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ X1 }\SpecialCharTok{+}\NormalTok{ X2, }
+                    \AttributeTok{data =}\NormalTok{ your\_data, }
+                    \AttributeTok{coords =}\NormalTok{ your\_data[, }\FunctionTok{c}\NormalTok{(}\StringTok{"x"}\NormalTok{, }\StringTok{"y"}\NormalTok{)],}
+                    \AttributeTok{starting =}\NormalTok{ starting, }
+                    \AttributeTok{tuning =}\NormalTok{ tuning, }
+                    \AttributeTok{priors =}\NormalTok{ priors, }
+                    \AttributeTok{cov.model =} \StringTok{"exponential"}\NormalTok{, }
+                    \AttributeTok{n.samples =} \DecValTok{1000}\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(bayes\_model)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Analogy:} Think of Bayesian models as using ``wisdom from the
+past'' (priors) to help guide predictions when new data are sparse or
+noisy.
+
+\section{Nearest-Neighbor Gaussian Processes
+(NNGP)}\label{nearest-neighbor-gaussian-processes-nngp}
+
+For large spatial datasets, traditional Gaussian Process models can be
+computationally prohibitive because of the inversion of large covariance
+matrices. \textbf{NNGP} approximates the full Gaussian Process by
+assuming that each location is conditionally independent given its
+nearest neighbors.
+
+\subsection{Key Benefits}\label{key-benefits}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Scalability:} Efficiently handles datasets with thousands (or
+  more) spatial locations.
+\item
+  \textbf{Flexibility:} Retains much of the interpretability of full
+  Gaussian Processes while reducing computational overhead.
+\end{itemize}
+
+\textbf{Example:} In urban planning, when analyzing city-wide sensor
+data (e.g., air quality), NNGP allows you to process massive datasets
+quickly without sacrificing much accuracy.
+
+\subsubsection{\texorpdfstring{R Implementation with
+\texttt{spNNGP}}{R Implementation with spNNGP}}\label{r-implementation-with-spnngp}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(spNNGP)}
+\CommentTok{\# Assume we have data \textquotesingle{}your\_data\textquotesingle{} with coordinates and response \textquotesingle{}Y\textquotesingle{}}
+\NormalTok{coords }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(your\_data[, }\FunctionTok{c}\NormalTok{(}\StringTok{"x"}\NormalTok{, }\StringTok{"y"}\NormalTok{)])}
+\CommentTok{\# Define priors and starting values for the model parameters}
+\NormalTok{starting }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}\StringTok{"phi"} \OtherTok{=} \DecValTok{3}\NormalTok{, }\StringTok{"sigma.sq"} \OtherTok{=} \DecValTok{1}\NormalTok{, }\StringTok{"tau.sq"} \OtherTok{=} \FloatTok{0.1}\NormalTok{)}
+\NormalTok{priors   }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}\StringTok{"phi.Unif"} \OtherTok{=} \FunctionTok{c}\NormalTok{(}\FloatTok{0.1}\NormalTok{, }\DecValTok{10}\NormalTok{), }\StringTok{"sigma.sq.IG"} \OtherTok{=} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{), }\StringTok{"tau.sq.IG"} \OtherTok{=} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\FloatTok{0.1}\NormalTok{))}
+\CommentTok{\# Fit the NNGP model using 10 nearest neighbors}
+\NormalTok{nngp\_model }\OtherTok{\textless{}{-}} \FunctionTok{spNNGP}\NormalTok{(Y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ X1 }\SpecialCharTok{+}\NormalTok{ X2, }
+                     \AttributeTok{data =}\NormalTok{ your\_data, }
+                     \AttributeTok{coords =}\NormalTok{ coords,}
+                     \AttributeTok{starting =}\NormalTok{ starting, }
+                     \AttributeTok{priors =}\NormalTok{ priors, }
+                     \AttributeTok{n.neighbors =} \DecValTok{10}\NormalTok{,}
+                     \AttributeTok{cov.model =} \StringTok{"exponential"}\NormalTok{, }
+                     \AttributeTok{n.samples =} \DecValTok{1000}\NormalTok{, }
+                     \AttributeTok{n.threads =} \DecValTok{2}\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(nngp\_model)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Analogy:} Think of NNGP like a squad of Gen Z influencers---each
+location only ``listens'' to its closest peers rather than the entire
+network, making the model both trendy and computationally sleek.
+
+
+
+
+\end{document}

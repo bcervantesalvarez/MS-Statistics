@@ -1,0 +1,114 @@
+---
+title: "Homework 3 Solutions Guide"
+author: "Brian Cervantes Alvarez"
+date: "2023-10-15"
+format: pdf
+---
+
+# Problem 1: Brain Weights and Extra Sum of Squares F-Test
+
+**Question:** After accounting for body weight, do gestation period and litter size affect brain weight?  
+
+## Step-by-Step Explanation  
+
+1. **What are we testing?**  
+   We want to know if two variables (**gestation period** and **litter size**) have a relationship with brain weight *after* we already include body weight in our model.  
+
+2. **How do we test this?**  
+   - **Full Model:** Includes body weight, gestation, and litter size.  
+   - **Reduced Model:** Only includes body weight.  
+   We compare these two models using an **F-test**.  
+
+3. **What does the F-test tell us?**  
+   - If adding gestation and litter size significantly improves the model.  
+   - **Null Hypothesis (H₀):** Neither gestation nor litter size matters.  
+   - **Alternative Hypothesis (Hₐ):** At least one of them matters.  
+
+4. **Results from the ANOVA Table:**  
+   - **F-statistic:** 23.68  
+   - **p-value:** < 0.0001 (extremely small!)  
+   - **Conclusion:** The p-value is less than 0.05, so we reject H₀. This means gestation period, litter size, or both are significantly associated with brain weight.  
+
+5. **Why log-transform the variables?**  
+   Body and brain weights are often skewed. Taking the log (lBrain, lBody) helps make the relationship linear and easier to model.  
+
+```{r}
+# Corrected Code (Original had a typo with "-" instead of "~")
+library(Sleuth3)
+data(case0902)
+Data <- case0902
+
+# Log-transform variables
+Data$lBrain <- log(Data$Brain)
+Data$lBody <- log(Data$Body)
+Data$llitter <- log(Data$litter)
+Data$lGestation <- log(Data$Gestation)
+
+# Full and reduced models
+lmod_full <- lm(lBrain ~ lBody + lGestation + llitter, data = Data)
+lmod_reduced <- lm(lBrain ~ lBody, data = Data)
+
+anova(lmod_reduced, lmod_full) # Compare models
+```
+
+# Problem 2: Butterfly Occurrences  
+
+## Part (a)  
+**Question:** Does reserve size affect the number of butterfly species after accounting for observation days?  
+
+### Key Results:  
+- **Two-sided p-value:** 0.2443  
+- **One-sided p-value (for positive effect):** 0.1222  
+
+### Explanation:  
+- The two-sided p-value is **not significant** (> 0.05), meaning we *fail to reject* the null hypothesis.  
+- If we test for a **positive effect** (one-sided), the p-value is still 0.12, which is not strong enough evidence.  
+- **Takeaway:** There’s no strong evidence that reserve size impacts species count *after accounting for observation days*.  
+
+⚠️ **Why does observation time matter?**  
+Researchers spent more days searching in larger reserves. More time = more species found, which could make reserve size *seem* important when it’s actually the effort!  
+
+{{< pagebreak >}}
+
+## Part (b)  
+**Question:** What’s the p-value for testing if the coefficient of log(size) is 1?  
+
+### Calculation:  
+1. **t-statistic:**  
+   $$
+   t = \frac{0.0809 - 1}{0.1131} = -8.126
+   $$  
+2. **p-value:**  
+   Very small ($1.88 \times 10^{-6}$).  
+
+**Conclusion:** The coefficient is *significantly different from 1*.  
+
+```{r}
+# Code for part (b)
+t_ratio <- (0.0809 - 1) / 0.1131
+p_value <- 2 * (1 - pt(abs(t_ratio), df = 13))
+p_value # Output: 1.88e-06
+```
+
+{{< pagebreak >}}
+
+## Part (c)  
+**Question:** What’s the 95% confidence interval for the coefficient of log(size)?  
+
+### Calculation:  
+- **Formula:**  
+  $$
+  0.0809 \pm (2.16 \times 0.1131) = (-0.163, 0.325)
+  $$  
+- **Interpretation:** The interval includes 0, meaning the effect of reserve size could be zero (supports part (a)).  
+
+{{< pagebreak >}}
+
+## Part (d)  
+**Question:** How much variation in species count is *unexplained* by reserve size and observation days?  
+
+### Answer:  
+- **R² = 11.41%** (explained variation).  
+- **Unexplained:** 100% - 11.41% = **88.59%**.  
+
+**Translation:** Even with reserve size and observation days, most of the variation in butterfly species remains a mystery! Other factors (like habitat quality) might matter.  

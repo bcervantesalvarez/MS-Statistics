@@ -1,0 +1,253 @@
+---
+title: "ST 567 Winter 2025 Computer Activity 9"
+format: html
+editor: visual
+---
+
+## Introduction
+
+In this activity, you'll do a simulation study to investigate the performance of the permutation test for spatial correlation using Moran's $I$ statistic. Make sure you have the following R packages installed and loaded into the library.
+
+```{r}
+library(sf)
+library(spData)
+library(spdep)
+library(spmodel)
+library(mapview)
+```
+
+## Boston data
+
+Read in the Boston data. If you have `spData` version 2.3.4, change `shapes/boston_tracts.shp` to `shapes/boston_tracts.gpkg`.
+
+```{r}
+data(boston)
+boston_sf <- st_read(system.file("shapes/boston_tracts.shp",
+               package = "spData"), quiet = TRUE)
+```
+
+Count how many polygons there are.
+
+```{r}
+(n <- nrow(boston_sf))
+```
+
+Fit a simultaneous autoregressive (SAR) model with no covariates.
+
+```{r}
+(boston_sar <- spautor(MEDV~1, data=boston_sf, spcov_type="sar"))
+```
+
+By default, `spauter` calculates the neighbor matrix using queen contiguity and row-standardization.
+
+If you want to replicate this process using the `spdep` package, here's how that goes.
+
+```{r}
+boston_queen <- poly2nb(boston_sf) # Create the neighbor lists
+boston_weights <- nb2listw(boston_queen, style="W") # Create the weights
+W <- listw2mat <- listw2mat(boston_weights) # Create the weight matrix
+class(W)
+```
+
+Or, in more tidy code using pipes:
+
+```{r}
+poly2nb(boston_sf) |>    # Create the neighbor lists
+  nb2listw(style="W") |> # Create the weights
+  listw2mat() -> W       # Create the weight matrix
+```
+
+The SAR variance-covariance matrix of the data is $$ \boldsymbol\Sigma_{\mbox{SAR}}=\sigma^2_{\mbox{de}}[(\boldsymbol I-\phi\boldsymbol W)(\boldsymbol I-\phi\boldsymbol W)^T]^{-1}$$
+
+We have estimates of $\sigma^2_{\mbox{de}}$ and $\phi$ in object `boston_sar`.
+
+```{r}
+boston_sar$coefficients$spcov
+```
+
+So,
+
+```{r}
+s2_de_hat <- boston_sar$coefficients$spcov["de"]
+phi_hat <- boston_sar$coefficients$spcov["range"]
+Sigma_hat <- s2_de_hat * solve((diag(nrow=n)-phi_hat*W) %*% t(diag(nrow=n)-phi_hat*W))
+```
+
+We now have an estimate of the variance-covariance matrix of the MEDV responses $Z_1,\ldots ,Z_n$. We also have an estimate of $E(Z_i)$ from `spautor()`:
+
+```{r}
+(mu_hat <- boston_sar$coefficients$fixed)
+```
+
+We can simulate data from the SAR model by simulating multivariate normal data with mean vector consisting of 506 copies of `mu_hat` and variance-covariance matrix `Sigma_hat`. Let's use the multivariate normal simulation function `rmvn()` from Finley et al. (the `spNNGP` people).
+
+```{r}
+rmvn <- function(n, mu = 0, V = matrix(1)) {
+  p <- length(mu)
+  if (any(is.na(match(dim(V), p))))
+    stop("Dimension problem!")
+  D <- chol(V)
+  t(matrix(rnorm(n * p), ncol = p) %*% D + rep(mu, rep(n, p)))
+}
+```
+
+Simulate one data set based on the Boston data. The MEDV data are MVN, according to the SAR model, and we'll borrow the geometry from `boston_sf`.
+
+```{r}
+boston_sfc <- st_geometry(boston_sf) # Get the geometry
+boston_sf_sim <- data.frame(MEDV=rmvn(1, mu=rep(mu_hat, n), V=Sigma_hat))
+st_geometry(boston_sf_sim) <- boston_sfc # Set the geometry
+```
+
+Check a map, just to make sure we're not doing something obviously wrong.
+
+```{r}
+mapview(boston_sf_sim)
+```
+
+Run the Moran $I$ test on the simulated data.
+
+```{r}
+moran.mc(boston_sf_sim$MEDV, listw=boston_weights, nsim=100)
+```
+
+You probably got $p=0.009901=1/101$, with the "observed rank" equal to 101, which means that all the 100 random reallocations of the observed MEDV values to the polygons yielded $I$ smaller than $I_{\mbox{obs}}$, the statistic calculated on the observed data.
+
+We can do a simulation study to see what the Moran p-value is over many realizations of the data, assuming the intercept-only SAR model is true (which it's not, of course).
+
+Here is code to simulate 500 realizations of the data and test $H_0: Z_1,\ldots , Z_n \mbox{ iid}$ via Moran's $I$ test. The code saves the $I$ statistic and p-value from each test so we can assess the performance of the test by approximating the Type 2 error.
+
+```{r}
+# Set the number of data sets to simulate, and
+# create a data frame to collect the simulation
+# results.
+N_Sims <- 500
+results <- data.frame(Istat=numeric(N_Sims), p_val=numeric(N_Sims))
+
+# Simulate the data sets. Each column of MEDV_sim
+# is one simulated data set.
+MEDV_sim <- rmvn(N_Sims, mu=rep(mu_hat, n), V=Sigma_hat)
+dim(MEDV_sim)
+
+# Loop through the data sets, setting the geometry and
+# conducting the moran.mc() test. Save the test statistics
+# and p-values.
+for (i in 1:N_Sims) {
+  boston_sf_sim <- data.frame(MEDV=MEDV_sim[,i])
+  st_geometry(boston_sf_sim) <- boston_sfc
+  m_test <- moran.mc(boston_sf_sim$MEDV, listw=boston_weights, nsim=100)
+  results$Istat[i] <- m_test$statistic
+  results$p_val[i] <- m_test$p.value
+}
+```
+
+Check the results.
+
+```{r}
+summary(results)
+```
+
+Using Type 1 error rate $\alpha=0.05$, the Type 2 error rate is the proportion of p-values that are greater than 0.05.
+
+```{r}
+sum(results$p_val>0.05)/N_Sims
+```
+
+These results raise questions, some of which we can answer using simulation.
+
+```{r}
+#| label: setup-iid
+#| warning: false
+#| message: false
+
+# -------------------------------------------------------
+# 1. Load packages and read data
+# -------------------------------------------------------
+library(sf)
+library(spData)
+library(spdep)
+
+# Boston polygons
+boston_sf <- st_read(
+  system.file("shapes/boston_tracts.shp", package = "spData"),
+  quiet = TRUE
+)
+
+n <- nrow(boston_sf)   # Should be 506
+
+# Create queen-based adjacency
+boston_nb <- poly2nb(boston_sf)
+boston_weights <- nb2listw(boston_nb, style = "W")
+
+# -------------------------------------------------------
+# 2. Build an MVN simulation function
+#    That returns a p x n_sims matrix:
+#    Each column is one realization of length p.
+# -------------------------------------------------------
+rmvn <- function(n_sims, mu, V) {
+  p <- length(mu)
+  if (any(is.na(match(dim(V), p)))) {
+    stop("Dimension problem: V must be p x p, where p = length(mu)")
+  }
+  D <- chol(V)
+  
+  # Random normal draws, p x n_sims
+  sims <- matrix(rnorm(n_sims * p), nrow = p, ncol = n_sims)
+  # Multiply by chol(V)
+  sims <- t(D) %*% sims
+  
+  # Add mean
+  sims <- sweep(sims, 1, mu, FUN = "+")
+  
+  # sims is p x n_sims => each column is one realization
+  return(sims)
+}
+
+# -------------------------------------------------------
+# 3. Simulate i.i.d. data using var(MEDV) as variance
+# -------------------------------------------------------
+sigma2    <- var(boston_sf$MEDV)   # sample variance
+Sigma_iid <- sigma2 * diag(n)      # sigma^2 * I
+mu_iid    <- rep(mean(boston_sf$MEDV), n)  # same mean for every location
+
+N_Sims <- 500   # number of simulated datasets
+
+# This yields a 506 x 500 matrix
+MEDV_sim <- rmvn(n_sims = N_Sims, mu = mu_iid, V = Sigma_iid)
+dim(MEDV_sim)  # Expect 506 x 500
+
+# -------------------------------------------------------
+# 4. Run Moran's I permutation test for each simulated dataset
+# -------------------------------------------------------
+results_iid <- data.frame(Istat = numeric(N_Sims),
+                          p_val = numeric(N_Sims))
+
+for (i in seq_len(N_Sims)) {
+  # Column i => 506-length vector
+  medv_col <- MEDV_sim[, i]
+  
+  # Attach geometry to new sf object
+  boston_sf_sim <- boston_sf
+  boston_sf_sim$MEDV_sim <- medv_col
+  
+  # Moran's I with nsim=99 or 999 permutations
+  m_test <- moran.mc(boston_sf_sim$MEDV_sim,
+                     listw = boston_weights,
+                     nsim = 99)
+  
+  # Store results
+  results_iid$Istat[i] <- m_test$statistic
+  results_iid$p_val[i] <- m_test$p.value
+}
+
+# -------------------------------------------------------
+# 5. Type 1 error rate: proportion of p < 0.05
+# -------------------------------------------------------
+type1_error <- mean(results_iid$p_val < 0.05)
+type1_error
+
+# Summaries
+summary(results_iid)
+
+```
+
