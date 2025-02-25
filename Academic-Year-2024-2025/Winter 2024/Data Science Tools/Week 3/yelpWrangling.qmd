@@ -1,0 +1,222 @@
+---
+title: "yelpWrangling"
+author: "Brian Cervantes Alvarez"
+date: today
+date-format: long
+format: html
+---
+
+
+Below is a consolidated version of your wrangling script along with explanations for each step. In summary, we:
+
+1. **Clean and Split the Business Data:**  
+   – Read the Yelp business data.  
+   – Split the `categories` column into a primary and a secondary category, trimming any extra whitespace.  
+   – Filter out rows where either category is food‐related (using your predefined list).  
+
+2. **Filter to Top Categories & Handle Missingness:**  
+   – Identify the top 20 most frequent primary categories.  
+   – Keep only rows where the primary (and, when present, secondary) category is in the top 20.  
+   – Replace missing secondary categories with `"unknown"`.  
+   – Drop columns with more than 5,000 missing values, replace remaining NAs in character/factor columns, and finally drop any remaining NA rows.
+
+3. **Save the Pure Business Dataset:**  
+   – This final “business” dataset (denoted as \(\mathbf{D_{B}}\)) is saved after removing its identifier column (`businessId`).
+
+4. **Merge with the Reviews Dataset:**  
+   – Read and preprocess the reviews dataset (converting business IDs to lower case to match).  
+   – Left-join the cleaned business data with reviews, dropping unnecessary review columns (`date` and `stars`).  
+   – Remove all identifier columns (e.g. `businessId`, `review_id`, `user_id`) before saving the merged dataset \(\mathbf{D_{BR}}\).
+
+5. **Create a Stratified Sample of 50,000 Rows:**  
+   – To preserve the proportional distribution of the primary categories, compute per-stratum sample sizes so that  
+     \[
+     n_{\text{stratum}} = \text{round}\left( \frac{n_{\text{stratum (total)}} \times 50\,000}{n_{\text{total}}} \right)
+     \]
+   – Sample accordingly from the merged dataset.  
+   – Remove the identifier columns before saving the stratified sample (\(\mathbf{D_{BR\_sample}}\)).
+
+
+
+---
+
+```{r}
+# Load required libraries
+library(tidyverse)
+library(forcats)
+library(readr)
+
+## Step 1: Clean & Split the Business Data
+
+# Read the business dataset
+yelpBusiness <- read_csv("yelpDatasetsCSV/yelpBusinessData.csv")
+
+# Split 'categories' into primary & secondary categories; trim whitespace.
+yelpBusiness_clean <- yelpBusiness %>%
+  separate(
+    col = categories,
+    into = c("primaryCategory", "secondaryCategory"),
+    sep = ",",
+    extra = "drop",   # Drop extra categories beyond the first two
+    fill = "right"    # Fill with NA if a secondary category is missing
+  ) %>%
+  mutate(
+    primaryCategory   = trimws(primaryCategory),
+    secondaryCategory = trimws(secondaryCategory)
+  )
+
+# Define food-related categories to exclude
+foodCats <- c(
+  "restaurants", "food", "brewpubs", "burgers", "coffee & tea", "pubs",
+  "ice cream & frozen yogurt", "vietnamese", "american (traditional)",
+  "american (new)", "steakhouses", "pizza", "desserts", "fast food",
+  "juice bars & smoothies", "seafood", "sushi bars", "hot dogs",
+  "sandwiches", "cupcakes", "donuts", "food trucks", "food stands",
+  "hot pot", "ramen", "korean", "mexican", "thai", "chinese", "barbeque",
+  "buffets", "latin american", "greek", "italian", "caribbean", "food banks",
+  "kitchen supplies", "restaurants"
+)
+
+# Filter out rows with any food category in either primary or secondary
+yelpBusiness_nonFood <- yelpBusiness_clean %>%
+  filter(!(primaryCategory %in% foodCats | secondaryCategory %in% foodCats))
+
+## Step 2: Filter to Top Categories & Handle Missingness
+
+# Identify top 20 primary categories
+top20_primary <- yelpBusiness_nonFood %>%
+  count(primaryCategory, sort = TRUE) %>%
+  slice(1:20) %>%
+  pull(primaryCategory)
+
+# Keep rows where the primary category is in the top 20 and secondary is either in the top 20 or NA.
+yelpBusiness_nonFood_top20 <- yelpBusiness_nonFood %>%
+  filter(
+    primaryCategory   %in% top20_primary,
+    secondaryCategory %in% top20_primary | is.na(secondaryCategory)
+  ) %>%
+  mutate(
+    primaryCategory   = fct_drop(as.factor(primaryCategory)),
+    secondaryCategory = fct_drop(as.factor(secondaryCategory))
+  ) %>%
+  # Recode NA in secondaryCategory to "unknown"
+  mutate(
+    secondaryCategory = as.character(secondaryCategory),
+    secondaryCategory = if_else(is.na(secondaryCategory), "unknown", secondaryCategory),
+    secondaryCategory = fct_drop(as.factor(secondaryCategory))
+  )
+
+# Drop columns with more than 5000 missing values
+missing_counts <- colSums(is.na(yelpBusiness_nonFood_top20))
+cols_to_drop   <- names(missing_counts[missing_counts > 5000])
+yelpBusiness_drop <- yelpBusiness_nonFood_top20 %>%
+  select(-all_of(cols_to_drop))
+
+# Replace remaining NAs in character and factor columns with "unknown"
+yelpBusiness_final <- yelpBusiness_drop %>%
+  mutate(
+    across(
+      .cols = where(is.character),
+      .fns  = ~ tidyr::replace_na(.x, "unknown")
+    ),
+    across(
+      .cols = where(is.factor),
+      .fns  = ~ fct_na_value_to_level(.x, "unknown")
+    )
+  )
+
+# Drop any remaining rows with NA values
+yelpBusiness_final_noNA <- yelpBusiness_final %>%
+  drop_na()
+
+# Save the pure business dataset (remove ID column 'businessId')
+yelpBusinessDs <- yelpBusiness_final_noNA %>%
+  select(-businessId)
+
+write_csv(yelpBusinessDs, "yelpBusiness.csv")
+
+## Step 3: Merge Business Data with Reviews
+
+# Read the reviews dataset and ensure business IDs are lower case
+yelpReviewDs <- read_csv("yelpDatasetsCSV/yelp_academic_dataset_review.csv") %>%
+  mutate(business_id = tolower(business_id))
+
+# Also convert business IDs in the business dataset to lower case
+yelpBusiness_final_noNA <- yelpBusiness_final_noNA %>%
+  mutate(businessId = tolower(businessId))
+
+# Merge business and review datasets on matching business IDs;
+# drop the 'date' and 'stars' columns from reviews.
+yelpMergedDsBusRev_clean <- yelpBusiness_final_noNA %>%
+  left_join(
+    yelpReviewDs %>% select(-date, -stars),
+    by = c("businessId" = "business_id")
+  )
+
+# Remove ID columns from the merged dataset.
+# Here we remove: businessId, review_id, and user_id (if present).
+yelpMergedDsBusRev_clean_clean <- yelpMergedDsBusRev_clean %>%
+  select(-businessId, -review_id, -user_id)
+
+write_csv(yelpMergedDsBusRev_clean, "yelpBusinessReviewsMerged.csv")
+
+
+ds <- read_csv("yelpBusinessReviewsMerged.csv")
+
+
+## Step 4: Create a Stratified Random Sample (50,000 Rows)
+
+# Set seed for reproducibility
+set.seed(123)
+
+merged_clean <- yelpMergedDsBusRev_clean
+
+# Compute total rows in merged_clean
+total_rows <- nrow(merged_clean)
+
+# Calculate sample sizes for each stratum (primaryCategory)
+strata_counts <- merged_clean %>%
+  count(primaryCategory) %>%
+  mutate(sample_n = round(n * 50000 / total_rows))
+
+set.seed(123)
+yelpBRMsample <- merged_clean %>%
+  group_by(primaryCategory) %>%
+  group_modify(~ {
+    # Use group keys from .y instead of .x
+    current_cat <- as.character(.y$primaryCategory)
+    n_sample <- strata_counts %>% 
+      filter(primaryCategory == current_cat) %>% 
+      pull(sample_n)
+    slice_sample(.x, n = n_sample)
+  }) %>%
+  ungroup()
+
+# Remove identifier columns (if they exist) before saving
+yelpBRMsample_clean <- yelpBRMsample %>%
+  select(-any_of(c("businessId", "review_id", "user_id")))
+
+write_csv(yelpBRMsample_clean, "yelpBRMsample.csv")
+
+```
+
+---
+
+### Explanation Recap
+
+- **Splitting & Cleaning:**  
+  The `categories` column is split into two separate columns. We filter out food-related rows using a custom list so that only non-food businesses remain.
+
+- **Top Category Filtering & Missing Data:**  
+  We restrict our data to the top 20 primary categories. Missing secondary categories are replaced with `"unknown"`. Columns with excessive missing data (\(>5000\) NAs) are dropped, and remaining missing values in character/factor columns are handled.
+
+- **Saving the Pure Business Data:**  
+  We remove the `businessId` column (an identifier) and save the cleaned business data as `"yelpBusiness.csv"`.
+
+- **Merging Reviews:**  
+  The business data is merged with the reviews (after converting business IDs to lower case). We drop unnecessary review columns (`date` and `stars`) and then remove all identifier columns (such as `businessId`, `review_id`, `user_id`) before saving the merged dataset as `"yelpBusinessReviewsMerged.csv"`.
+
+- **Stratified Sampling:**  
+  We compute the number of rows to sample per `primaryCategory` so that the overall sample size is \(\approx 50\,000\) rows. This ensures that the sample preserves the original distribution of business categories. Finally, we remove the ID columns before saving the sample as `"yelpBRMsample.csv"`.
+
+This refactored script should be clearer, reproducible, and ready for your teammates to use while preserving the integrity of your data wrangling process.
