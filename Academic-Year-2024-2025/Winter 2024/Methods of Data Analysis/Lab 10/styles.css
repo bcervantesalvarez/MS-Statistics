@@ -1,0 +1,153 @@
+/* =============================
+   Root Variables
+   ============================= */
+:root {
+  /* Font Choices */
+  --header-font: "Georgia", serif;
+  --body-font: "Open Sans", sans-serif;
+  
+  /* Core OSU Brand Colors */
+  --beaver-orange: #D73F09; /* Primary brand color */
+  --paddletail-black: #000000;
+  --bucktooth-white: #ffffff;
+
+  /* Recommended Digital Use Colors */
+  --off-white-bg: #f7f5f5; /* Common OSU background for websites */
+  --body-text-color: #423e3c; /* Slightly softer black recommended for body copy */
+
+  /* Highlight Colors (brand secondary example: Luminance) */
+  --highlight-bg: #FFB500;
+  --highlight-border: #D73F09; /* Beaver Orange */
+
+  /* Font Sizes & Spacing 
+     Increasing base font size and line-height for readability.
+  */
+  --base-font-size: 18px;
+  --line-height: 1.8;
+  --space-unit: 1em;
+}
+
+/* =============================
+   Global Resets & Body
+   ============================= */
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--off-white-bg);
+  color: var(--body-text-color);
+  font-family: var(--body-font);
+  font-size: var(--base-font-size);
+  line-height: var(--line-height);
+}
+
+/* =============================
+   Headings
+   ============================= */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--header-font);
+  font-weight: normal; /* or 'bold' if you prefer */
+  color: var(--beaver-orange);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* =============================
+   Paragraphs & Links
+   ============================= */
+p {
+  margin: 0 0 var(--space-unit);
+}
+
+a {
+  color: var(--beaver-orange);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* =============================
+   Highlight Class
+   ============================= 
+   Use <span class="highlight">...</span>
+   or wrap any element in <div class="highlight">...</div>
+*/
+.highlight {
+  background-color: var(--highlight-bg);
+  border-left: 4px solid var(--highlight-border);
+  padding: 0.5em;
+  display: inline-block;
+  margin: 0.5em 0;
+}
+
+/* =============================
+   Code & Output Containers
+   =============================
+   We apply shadows to the *container* classes 
+   to avoid "nested shadow" layering.
+*/
+
+/* Code chunks: Quarto often places them in <div class="sourceCode"> */
+.sourceCode {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  border-radius: 6px;
+  background-color: var(--bucktooth-white);
+  margin: var(--space-unit) 0;
+  padding: 1em;
+}
+
+/* Set <pre> inside .sourceCode to transparent so shadow is only on container */
+.sourceCode pre {
+  background-color: transparent;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  /* Keep code text slightly smaller if desired, or remove: */
+  font-size: 0.95em;
+}
+
+/* Output blocks: 
+   Quarto or Jupyter outputs often appear in <div class="cell-output">,
+   .cell-output-display, or .quarto-output
+*/
+.cell-output, .cell-output-display, .quarto-output {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  border-radius: 6px;
+  background-color: var(--bucktooth-white);
+  margin: var(--space-unit) 0;
+  padding: 1em;
+}
+
+/* =============================
+   Inline code
+   =============================
+   Shown between backticks in text, e.g. `x <- 10`
+*/
+code {
+  font-family: "Courier New", monospace;
+  background-color: #f1f1f1;
+  color: #2f2f2f;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+}
+
+/* =============================
+   Tables
+   ============================= */
+table {
+  border-collapse: collapse;
+  margin: var(--space-unit) 0;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 0.5em;
+}
+
+th {
+  background-color: #ebebeb;
+  text-align: left;
+}

@@ -1,0 +1,23 @@
+---
+title: "Histogram goes His His His His"
+format: html
+---
+
+```{r}
+library(ggplot2)
+
+# Generate data from an exponential distribution
+data <- runif(1000, min = 0, max = 1 )
+
+# Create the ggplot histogram
+p <- ggplot(data.frame(x = data), aes(x = x)) +
+  geom_histogram(binwidth = 400, fill = "black", color = "white", alpha = 0.3) +
+  theme_void() +  # removes axes and labels
+  theme(
+    plot.background = element_blank()  # ensures the background is transparent
+  )
+
+# Save the plot with transparent background
+ggsave("uniform_histogram_logo.png", plot = p, width = 9, height = 9, units = "in", dpi = 600, bg = "transparent")
+ 
+```

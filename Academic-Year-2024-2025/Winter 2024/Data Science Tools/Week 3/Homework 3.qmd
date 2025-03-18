@@ -680,6 +680,11 @@ ggplot() +
   coord_fixed(1.3, xlim = c(-130, -60), ylim = c(25, 60))  # Show all US and southern Canada
 ```
 
+```{r}
+library(tidyverse)
+yelpMerged<- read_csv("yelpBusinessReviewsMerged.csv")
+```
+
 
 
 

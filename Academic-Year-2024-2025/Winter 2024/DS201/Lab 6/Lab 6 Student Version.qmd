@@ -1,0 +1,179 @@
+---
+title: "Lab 6: Evaluating & Tuning Diagnosisifiers"
+format: ipynb
+jupyter: python3
+eval: false
+---
+
+## Objective
+
+In this lab, you will learn how to:
+
+1. Load and inspect the breast cancer dataset.
+2. Split the data into training and test sets (using stratified sampling).
+3. Preprocess the data by standardizing selected features.
+4. Build a baseline **KNN Diagnosisifier** and evaluate its performance using accuracy and a confusion matrix.
+5. Tune the Diagnosisifier using **GridSearchCV** with cross‑validation.
+
+> **Reference**: For details, see *Data Science: A First Introduction with Python*, especially Chapter 6.
+
+---
+
+## Step 1: Data Loading and Inspection
+
+```{python}
+# TODO: Import the necessary packages
+# Hint: you'll need at least pandas, numpy (for setting a random seed),
+# and from sklearn: train_test_split, StandardScaler, make_column_transformer,
+# KNeighborsClassifier, GridSearchCV, and make_pipeline.
+# from sklearn.model_selection import cross_val_score might be useful too.
+
+# TODO: Read the "wdbc.csv" file into a DataFrame called cancer.
+#       Then replace 'M' with 'Malignant' and 'B' with 'Benign'
+#       in the "Diagnosis" column.
+
+# Print the first 5 rows to verify
+print(cancer.head())
+
+# Print info about the dataset
+print(cancer.info())
+```
+
+---
+
+## Step 2: Preprocessing and Train/Test Split
+
+```{python}
+# TODO: Split the dataset into training (75%) and test (25%) sets.
+#       Make sure to stratify on the "Diagnosis" column
+#       and set random_state=1 for reproducibility.
+
+# Print shapes to confirm
+print("Training shape:", cancer_train.shape)
+print("Test shape:", cancer_test.shape)
+
+# TODO: Create a preprocessor that standardizes
+#       "area_mean" and "smoothness_mean"
+```
+
+---
+
+## Step 3: Building and Evaluating a Baseline Diagnosisifier
+
+```{python}
+# TODO: Create a KNeighborsClassifier with n_neighbors=5
+#       Then make a pipeline (preprocessor + your KNN classifier).
+
+# TODO: From the training set, select X_train = ["area_mean", "smoothness_mean"]
+#       and y_train = ["Diagnosis"].
+#       Fit the pipeline on (X_train, y_train).
+
+# Evaluate the pipeline on the test set
+# (select the same 2 columns from the test set)
+baseline_accuracy = ___
+print("Baseline Accuracy:", baseline_accuracy)
+```
+
+---
+
+## Step 4: Tuning the Diagnosisifier with GridSearchCV
+
+```{python}
+# TODO: Define a parameter_grid for "kneighborsclassifier__n_neighbors"
+#       that tries values: 1, 6, 11, ... 96 (hint: range(1, 100, 5))
+
+# Create a fresh pipeline for tuning
+knn_for_tuning = KNeighborsClassifier()
+tune_pipeline = ___
+
+# Use GridSearchCV with cv=10
+grid_search = GridSearchCV(___)
+grid_search.fit(___)
+
+print("Best parameters:", grid_search.best_params_)
+print("Best cross-validation accuracy:", grid_search.best_score_)
+```
+
+*(Optional)* A quick cross-validation check:
+```{python}
+# (If you wish) cross_val_score demonstration
+# cv_scores = cross_val_score(tune_pipeline, X_train, y_train, cv=5)
+# print("Cross-validation scores:", cv_scores)
+# print("Mean CV accuracy:", cv_scores.mean())
+```
+
+---
+
+## Step 5: Evaluating the Tuned Model
+
+```{python}
+# TODO: Predict on X_test using the fitted grid_search.
+#       Then measure the test-set accuracy.
+
+# Save predictions into a column "predicted" in cancer_test
+cancer_test["predicted"] = ___
+
+# Evaluate test accuracy
+tuned_accuracy = ___
+print("Test Accuracy (Tuned):", tuned_accuracy)
+
+# Create and print a confusion matrix
+import pandas as pd
+conf_matrix = pd.crosstab(cancer_test["Diagnosis"], cancer_test["predicted"])
+print("Confusion Matrix:")
+print(conf_matrix)
+```
+
+---
+
+## Final Reflection
+
+1. Compare the **baseline** vs. **tuned** model’s test accuracy. Did the hyperparameter tuning help?  
+2. Why use **cross-validation** inside `GridSearchCV` rather than the test set for tuning?  
+3. Look at the confusion matrix: where might your classifier be making mistakes?  
+4. In a medical context, do you think false negatives or false positives are more concerning? Could you see ways to adjust for that?
+
+---
+
+## **Function Summary**
+
+Below are quick reminders on a few important functions:
+
+1. **`pd.read_csv("some_file.csv")`**  
+   - Reads a CSV into a `pandas` DataFrame.
+
+2. **`df.replace({"OldVal": "NewVal"})`**  
+   - Replaces values in a DataFrame or Series. For example, `df["col"].replace({"M": "Malignant"})`.
+
+3. **`train_test_split(X, y, train_size=..., stratify=..., random_state=...)`**  
+   - Splits data into training and test subsets.  
+   - `train_size=0.75` means 75% training, 25% test.  
+   - `stratify` ensures proportional class representation.
+
+4. **`StandardScaler()`**  
+   - Standardizes numerical columns (mean=0, stdev=1).
+
+5. **`make_column_transformer((Transformer(), [columns]))`**  
+   - Specifies which columns to transform, e.g. `StandardScaler`.
+
+6. **`KNeighborsClassifier(n_neighbors=...)`**  
+   - A K-NN classifier. You can tune `n_neighbors`.
+
+7. **`make_pipeline(preprocessor, model)`**  
+   - Chains steps into one workflow: first preprocessor, then model.
+
+8. **`pipeline.fit(X, y)`**  
+   - Trains (fits) the pipeline (which in turn fits the preprocessor + model).
+
+9. **`pipeline.score(X, y)`**  
+   - Returns the accuracy on `(X, y)` if the model is a classifier.
+
+10. **`GridSearchCV(estimator=..., param_grid=..., cv=..., ...)`**  
+    - Tries multiple hyperparameter combos using cross-validation.  
+    - The `best_params_` and `best_score_` can be accessed after `.fit(...)`.
+
+11. **`pipeline.predict(X)`**  
+    - Predicts classes for the rows of `X`.
+
+12. **`pd.crosstab(col1, col2)`**  
+    - Creates a cross-tabulation (confusion matrix) comparing `col1` vs. `col2`.

@@ -1,0 +1,253 @@
+---
+title: "Project 3: Analyzing Online Retail Transactions"
+format: ipynb
+jupyter: python3
+eval: false
+---
+
+## Overview and Objectives
+
+You will work with the [Online Retail dataset](https://archive.ics.uci.edu/dataset/352/online+retail).
+
+Your tasks:
+
+1. **Explore** the data (EDA).
+2. **Segment** customers with **K-Means** (unsupervised learning).
+3. **Build** a **K-Nearest Neighbors** (KNN) classification model (supervised learning).
+4. **Interpret** the results and suggest potential business applications.
+
+References:  
+- Chapters 2 & 3 on Data Loading and Cleaning  
+- Chapter 6 on Classification & Tuning  
+- Chapter 9 on Clustering  
+
+---
+
+## 1. Dataset Description and Setup
+
+The Online Retail dataset contains transactions from a UK-based retail business:
+
+- **InvoiceNo**: Transaction ID (some start with "C" for cancellations).  
+- **StockCode**: Product item code.  
+- **Description**: Product/item name.  
+- **Quantity**: Number of products in the transaction.  
+- **InvoiceDate**: Date and time of the transaction.  
+- **UnitPrice**: Price per unit (in British pounds).  
+- **CustomerID**: Unique 5-digit customer ID.  
+- **Country**: Country where the customer resides.
+
+### 1.1. Import Packages & Load the Dataset
+
+```{python}
+# [Student Code]
+# Import pandas, numpy, altair (or other plotting libraries).
+# Also import from sklearn:
+#   - train_test_split, StandardScaler, make_column_transformer
+#   - KNeighborsClassifier, KMeans
+#   - make_pipeline, GridSearchCV, cross_val_score (as needed)
+
+# For example:
+import pandas as pd
+import numpy as np
+import altair as alt
+# from sklearn... (etc.)
+
+# Load the Online Retail dataset (e.g., "OnlineRetail.csv")
+# Make sure the file is in the same directory or specify the path.
+online = pd.read_csv("OnlineRetail.csv")
+
+# Verify load
+print("First 5 rows:")
+print(online.head())
+
+print("DataFrame info:")
+print(online.info())
+```
+
+> **Note**: Check that your dataset columns match the dictionary above.
+
+---
+
+## 2. Data Preparation and Exploration
+
+### 2.1 Basic Checks
+
+```{python}
+# [Student Code] 
+# - Print the shape of the dataset 
+# - Check for missing values
+# - Possibly examine unique InvoiceNo or StockCode values
+# - Summarize basic statistics for 'Quantity', 'UnitPrice', etc.
+```
+
+> **Question (Outside Code)**:  
+> What is the shape of the dataset? Are there any missing values or odd entries you notice (e.g., negative quantities for returns/cancellations)?
+
+### 2.2 Feature Engineering (Customer-Level)
+
+You will need to create **customer-level** features (e.g., total spending, frequency of purchases).
+
+```{python}
+# [Student Code]
+# Steps might include:
+#  - Remove cancelled transactions (InvoiceNo starting with 'C') 
+#    or decide how to handle them.
+#  - Group by 'CustomerID' to compute features like:
+#      total_spending = sum(Quantity * UnitPrice)
+#      total_quantity = sum(Quantity)
+#      transaction_count = number of transactions
+#  - Possibly rename columns for clarity.
+```
+
+> **Hint**: For grouping techniques, recall GroupBy methods from Chapters 2 & 3.  
+> **Question (Outside Code)**:  
+> Which features do you think best capture “customer behavior” for segmenting?
+
+---
+
+## 3. Unsupervised Learning: Customer Segmentation
+
+We will use **K-Means** clustering to find natural groupings.
+
+### 3.1 Selecting and Standardizing Features
+
+```{python}
+# [Student Code]
+# Suppose you created a dataframe "customer_df" with columns:
+#   CustomerID, total_spending, total_quantity, transaction_count, ...
+# We will keep only numeric columns for clustering (e.g., total_spending, total_quantity, transaction_count).
+
+# Example:
+# X = customer_df[["total_spending", "total_quantity", "transaction_count"]]
+
+# Create a pipeline:
+#   - ColumnTransformer or StandardScaler for numeric columns
+#   - KMeans(n_clusters=3) as initial attempt
+```
+
+### 3.2 Initial K-Means and Elbow Plot
+
+```{python}
+# [Student Code]
+# - Start with k=3 just to see initial results
+# - Then create an elbow plot for k in range(1,10), storing inertia_ values
+# - Plot the inertia_ vs. k to find the "elbow."
+
+# Example of creating multiple KMeans, each with different n_clusters,
+# collecting the inertia_, then plotting with altair.
+```
+
+> **Question (Outside Code)**:  
+> Based on your elbow plot, which value of k seems appropriate?
+
+### 3.3 Visualizing Clusters
+
+```{python}
+# [Student Code]
+# After deciding on an optimal k, fit the KMeans model again 
+# and assign cluster labels to the customer_df (or another dataframe).
+# Then visualize, e.g., a scatter plot of total_spending vs. total_quantity
+# colored by the cluster label.
+```
+
+> **Question (Outside Code)**:  
+> How would you describe each cluster? Are there distinct patterns (e.g., high spend vs. low spend)?
+
+---
+
+## 4. Supervised Learning: Building a KNN Classifier
+
+Now, we will define a **binary target**. For instance, “Is a customer a repeat buyer?” or “Does the customer spend more than a threshold?”
+
+### 4.1 Creating the Target Variable
+
+```{python}
+# [Student Code]
+# Example: 
+#   target = (customer_df["transaction_count"] > 1).astype(int)
+# This yields 1 if the customer is a repeat buyer, else 0.
+```
+
+### 4.2 Train-Test Split and Preprocessing
+
+```{python}
+# [Student Code]
+# from sklearn.model_selection import train_test_split
+
+# X could be numeric features (like total_spending, total_quantity, etc.)
+# y is the target you defined above
+
+# Split: train_size=0.75, stratify=y, random_state=1
+# Then make a pipeline with (preprocessor, KNeighborsClassifier())
+# Example preprocessor: StandardScaler for numeric columns
+```
+
+### 4.3 Baseline KNN and Accuracy
+
+```{python}
+# [Student Code]
+# - Fit a baseline KNeighborsClassifier (k=5) 
+# - Evaluate on test set with pipeline.score(...)
+# - Print baseline accuracy
+```
+
+### 4.4 Tuning with Cross-Validation
+
+```{python}
+# [Student Code]
+# - Use GridSearchCV with a parameter grid for 
+#     kneighborsclassifier__n_neighbors (like range(1,30,2))
+# - cv=5 or cv=10
+# - Fit on the training set
+# - Check grid_search.best_params_ and grid_search.best_score_
+```
+
+### 4.5 Final Evaluation
+
+```{python}
+# [Student Code]
+# - Predict on test set
+# - Evaluate final accuracy 
+# - Create a confusion matrix to see false positives & false negatives
+# from sklearn.metrics import confusion_matrix, precision_score, recall_score
+
+# conf_mat = confusion_matrix(y_test, y_pred)
+# ...
+```
+
+> **Question (Outside Code)**:  
+> Discuss how well your classifier performs. Are there business implications if you misclassify a “repeat buyer” vs. a “one-time buyer”?
+
+---
+
+## 5. Interpretation and Reporting
+
+### 5.1 Integrating Clustering & Classification Findings
+
+In **Markdown** (outside of code), discuss:
+
+1. **Cluster Profiles**: How do the clusters differ in terms of spending, quantity, or frequency?  
+2. **Classifier Performance**: Summarize accuracy, confusion matrix, and any relevant metrics like precision, recall, or F1-score.  
+3. **Business Insights**:  
+   - Possible marketing strategies for each cluster.  
+   - How to leverage the classification results (e.g., target likely repeat buyers with special offers?).  
+   - Potential trade-offs between capturing all repeat buyers (recall) vs. incorrectly labeling some non-repeat buyers (precision).
+
+### 5.2 Limitations & Further Work
+
+- Are there outliers (very large orders)?  
+- Could you consider other models or more advanced clustering (e.g., DBSCAN)?  
+- What might you do with time-based features (like recency of purchase)?
+
+---
+
+## Final Deliverables
+
+1. **Fully Executed Notebook**  
+   - Includes your code, outputs, and commentary.  
+   - All sections completed, from EDA to unsupervised (K-Means) to supervised (KNN).  
+2. **Short Report** (1–2 pages)  
+   - Summarizes your methodology, key findings, and recommendations for a hypothetical marketing or business team.  
+   - Optionally, highlight interesting examples of how you could use your clusters or your classification predictions in real practice.
+
+---

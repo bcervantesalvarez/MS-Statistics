@@ -1,0 +1,183 @@
+---
+title: "ST 412/512 Lab 8: Two-way ANOVA"
+format: html
+message: false
+warning: false
+---
+
+## Objectives
+
+- Create an interaction plot.
+- Estimate contrasts.
+
+## 1. Setup
+
+Download the `Lab8Anova.r` script from Canvas and open it in RStudio. Load the required packages. The `dplyr` package offers many useful data-manipulation functions.
+
+```{r}
+library(Sleuth3)
+library(ggplot2)
+library(dplyr)
+```
+
+## 2. Create the Data Frame
+
+Create the `seaweed` data frame and add a logit-transformed response:
+
+```{r}
+seaweed <- case1301
+seaweed$logitCover <- with(case1301, log(Cover/(100 - Cover)))
+```
+
+## 3. Interaction Plot
+
+An interaction plot in a two-way ANOVA displays group means on the vertical axis and levels of one factor on the horizontal axis. The other factor is represented by different line types or plotting symbols.
+
+### (a) Using `interaction.plot()`
+
+```{r}
+with(seaweed, interaction.plot(Block, Treat, response = logitCover))
+```
+
+> The first argument specifies the factor for the horizontal axis. Typically, choose the factor with the most levels (here, `Block`).
+
+### (b) Using `dplyr` and `ggplot2`
+
+First, calculate the mean response for each Block–Treatment combination.
+
+1. **Group the Data:**
+
+```{r}
+seaweed1 <- group_by(seaweed, Block, Treat)
+```
+
+Printing `seaweed1` shows a tibble with grouping information (first by `Block`, then by `Treat`).
+
+2. **Summarize the Data:**
+
+```{r}
+seaweed2 <- summarize(seaweed1, Trt_mean = mean(logitCover))
+seaweed2
+```
+
+The result is a tibble with grouping only by `Block`.
+
+3. **Plot the Data:**
+
+```{r}
+ggplot(data = seaweed2, aes(x = Block, y = Trt_mean, shape = Treat)) +
+  geom_point() +
+  geom_line(aes(group = Treat))
+```
+
+### (d) Optional: Using the Pipe Operator
+
+The above two-step process can be streamlined with the pipe operator `%>%`:
+
+```{r}
+seaweed %>%
+  group_by(Block, Treat) %>%
+  summarize(Trt_mean = mean(logitCover)) -> seaweed2
+```
+
+## 4. Estimating Contrasts
+
+We now estimate contrasts to assess seaweed grazer effects. For example, the **Large Fish contrast** is given by:
+
+$$
+\frac{1}{2}\mu_{LfF} - \frac{1}{2}\mu_{Lf} + \frac{1}{2}\mu_{fF} - \frac{1}{2}\mu_{f}
+$$
+
+Contrasts are linear combinations of means with coefficients that sum to 0. Here, the coefficients for the Large Fish contrast are:
+
+$$
+\frac{1}{2},\ -\frac{1}{2},\ \frac{1}{2},\ -\frac{1}{2},\ 0,\ 0
+$$
+
+corresponding to treatment means $\mu_{LfF}$, $\mu_{Lf}$, $\mu_{fF}$, $\mu_{f}$, $\mu_{L}$, and $\mu_{C}$.
+
+### (a) Estimating Contrasts via Sample Means
+
+1. **Calculate Sample Means and Sizes:**
+
+```{r}
+summary(seaweed$Treat)
+Means <- with(seaweed, unlist(lapply(split(logitCover, Treat), mean)))
+names(Means) <- names(summary(seaweed$Treat))
+Means
+```
+
+2. **Estimate $\sigma$:**
+
+Fit the model to obtain $\sigma$:
+
+```{r}
+model <- lm(logitCover ~ Treat + Block, data = seaweed)
+summary(model)
+s <- summary(model)$sigma
+s
+```
+
+### (b) Estimate the Large Fish Contrast and Its Standard Error
+
+```{r}
+ghat <- 0.5 * Means["LfF"] - 0.5 * Means["Lf"] + 0.5 * Means["fF"] - 0.5 * Means["f"]
+SE_ghat <- s * sqrt((0.5)^2 / 16 + (-0.5)^2 / 16 + (0.5)^2 / 16 + (-0.5)^2 / 16)
+```
+
+Compare these calculations with the estimates in Display 13.13 from the lab manual.
+
+### (c) Construct a 95% Confidence Interval
+
+The degrees of freedom for the $t$-quantile are from the residual degrees of freedom in the model.
+
+```{r}
+ci_lower <- ghat - qt(0.975, 83) * SE_ghat
+ci_upper <- ghat + qt(0.975, 83) * SE_ghat
+ci_lower
+ci_upper
+```
+
+### (d) Optional: Estimating All Five Contrasts Simultaneously
+
+Redefine the contrasts attribute of the factor variable `Treat` using a contrast matrix $ M $.
+
+1. **Create the Matrix $ M $:**
+
+```{r}
+M <- matrix(c(0, 0, -1/2, 1/2, -1/2, 1/2,
+              -1/2, -1/2, 1/2, 0, 1/2, 0,
+              1/3, -1/3, -1/3, -1/3, 1/3, 1/3,
+              1, -1, 1/2, 1/2, -1/2, -1/2,
+              0, 0, -1, 1, 1, -1), nrow = 6, ncol = 5)
+M
+```
+
+2. **Set the Contrasts for `Treat`:**
+
+```{r}
+contrasts(seaweed$Treat) <- M %*% solve(t(M) %*% M)
+```
+
+This instructs R to reparameterize the six groups in terms of five linearly independent contrasts.
+
+3. **Estimate Parameters and Confidence Intervals:**
+
+```{r}
+model_contrasts <- lm(logitCover ~ Treat + Block, data = seaweed)
+summary(model_contrasts)$coefficients
+confint(model_contrasts)
+```
+
+Verify that these estimates agree with Display 13.13.
+
+4. **Restore the Original Contrasts:**
+
+```{r}
+Indicators <- contr.treatment(6)
+colnames(Indicators) <- names(Means)[-1]
+contrasts(seaweed$Treat) <- Indicators
+```
+
+The second command assigns names to the indicator variables for clarity.
+

@@ -1,0 +1,387 @@
+---
+title: "Missing Data | Homework 3"
+author: "Brian Cervantes Alvarez"
+date: today
+date-format: full
+format: OSULatexTheme-pdf
+message: false
+warning: false
+---
+
+# Main Findings
+
+## Problem 1
+
+### Part A Results
+
+I simulated data for 1000 subjects, each with 5 covariates measured at 3 time points. I randomly chose the true parameters and padded each subject’s outcome vector to have 3 measurements (missing values were marked “NA” for those who dropped out). I then used the ECM algorithm to estimate the model parameters.
+
+- **Convergence:** The Q‐function started at $-2980.9778$ (Iteration 1) and improved until it reached $-287.5468$ at Iteration 31.  
+- **Iteration Count:** The algorithm converged in **31 iterations**, with a final difference of about $7 \times 10^{-6}$.  
+
+Below is the estimated covariance matrix:
+$$
+\hat{\Sigma} = \begin{pmatrix}
+3.7669305 & 2.9530130 & -0.9207553 \\
+2.9530129 & 2.7803850 & -2.1797457 \\
+-0.9207553 & -2.1797460 & 4.8424833
+\end{pmatrix}.
+$$
+
+The table shows the **final coefficient estimates**, their **standard errors**, and the **95% confidence intervals**:
+
+| **Parameter** | **Estimate**   | **Std. Error**  | **95% CI Lower** | **95% CI Upper** |
+|:-------------:|:--------------:|:---------------:|:----------------:|:----------------:|
+| $\beta_1$   | 0.0839916      | 0.001794170     | 0.08047503       | 0.08750817       |
+| $\beta_2$   | 1.1878703      | 0.001806340     | 1.18432983       | 1.19141068       |
+| $\beta_3$   | $-0.8272324$ | 0.001809628     | $-0.83077925$  | $-0.82368551$  |
+| $\beta_4$   | $-0.3056589$ | 0.001780572     | $-0.30914881$  | $-0.30216897$  |
+| $\beta_5$   | $-0.9184975$ | 0.001825956     | $-0.92207639$  | $-0.91491865$  |
+
+The very narrow confidence intervals suggest a high level of precision in our estimates—this makes sense given our large sample size and the way I set up the simulation. In most repeated simulations, these intervals would be expected to include the true values used to generate the data.
+
+{{< pagebreak >}}
+
+### Part B Results 
+
+The Q‐function went from about $-20231.48$ to $-19889.58$ over **29 iterations**.
+
+Below is the estimated covariance matrix:
+$$
+\hat{\Sigma} = \begin{pmatrix}
+194.5852 & 163.1883 & 160.0425 \\
+163.1883 & 418.2026 & 374.7859 \\
+160.0425 & 374.7859 & 496.2113
+\end{pmatrix}.
+$$
+
+The table below shows the **final coefficient estimates**, their **standard errors**, and the **95% confidence intervals**:
+
+| **Parameter** | **Estimate**       | **Std. Error**  | **95% CI Lower**   | **95% CI Upper**   |
+|:-------------:|:------------------:|:---------------:|:------------------:|:------------------:|
+| $\beta_1$   | $-5.21513003$    | 0.37056342      | $-5.94143430$    | $-4.48882572$    |
+| $\beta_2$   | $-0.86183388$    | 0.37056342      | $-1.58813820$    | $-0.13552957$    |
+| $\beta_3$   | $-1.45963556$    | 0.06266164      | $-1.58245240$    | $-1.33681875$    |
+| $\beta_4$   | $-0.02500182$    | 0.06266164      | $-0.14781860$    | 0.09781499         |
+
+The ECM algorithm converged after 29 iterations. Even though I don’t know the *true* parameter values for real data, these estimates and confidence intervals help us see how treatment and time might affect outcomes.
+
+{{< pagebreak >}}
+
+### Part C Results
+
+Here, I changed our ECM algorithm into a full EM algorithm by updating both $\beta$ and $\Sigma$ fully at each step before moving to the next iteration. I tested this on the same simulated dataset:
+
+- **Iterations:** The Q‐function went from about $-2976.1468$ to $-287.5468$ across **31 outer iterations**.
+- **Final Estimates:**  
+  $$
+  \hat{\Sigma} = \begin{pmatrix}
+  3.7669305 & 2.9530130 & -0.9207553 \\
+  2.9530129 & 2.7803850 & -2.1797457 \\
+  -0.9207553 & -2.1797460 & 4.8424833
+  \end{pmatrix}.
+  $$
+
+The table below shows the **final coefficient estimates**, their **standard errors**, and the **95% confidence intervals**:
+
+| **Parameter** | **Estimate**       | **Std. Error**  | **95% CI Lower**   | **95% CI Upper**   |
+|:-------------:|:------------------:|:---------------:|:------------------:|:------------------:|
+| $\beta_1$   | 0.08399159         | 0.001794170     | 0.08047502         | 0.08750817         |
+| $\beta_2$   | 1.18787026         | 0.001806340     | 1.18432983         | 1.19141069         |
+| $\beta_3$   | $-0.82723238$    | 0.001809628     | $-0.83077925$    | $-0.82368551$    |
+| $\beta_4$   | $-0.30565888$    | 0.001780572     | $-0.30914880$    | $-0.30216896$    |
+| $\beta_5$   | $-0.91849752$    | 0.001825956     | $-0.92207639$    | $-0.91491864$    |
+
+After 31 outer iterations, the EM algorithm’s parameter estimates are nearly the same as those from ECM. The standard errors and confidence intervals also remain very narrow, showing that both ECM and EM produce precise results for this simulated data.
+
+
+
+{{< pagebreak >}}
+
+# Appendix
+
+## Problem 1
+
+### Part A
+
+
+```{r}
+set.seed(032025)
+n <- 1000
+p <- 5
+K <- 3
+betaTrue <- rnorm(p)
+L <- matrix(rnorm(K * K), K, K)
+sigmaTrue <- L %*% t(L)
+phi <- rnorm(p)
+xList <- vector("list", n)
+yList <- vector("list", n)
+dropout <- integer(n)
+for(i in seq_len(n)) {
+  xList[[i]] <- matrix(rnorm(p * K), nrow = K, ncol = p)
+  yFull <- xList[[i]] %*% betaTrue + MASS::mvrnorm(mu = rep(0, K), Sigma = sigmaTrue)
+  yFull <- as.numeric(yFull)  
+  logitPM <- xList[[i]] %*% phi + c(-2, -1, 1)
+  pM <- exp(logitPM) / sum(exp(logitPM))
+  d_i <- rmultinom(1, 1, pM)
+  dropout[i] <- which(d_i == 1)
+  ySim <- yFull
+  if(dropout[i] < K) ySim[(dropout[i] + 1):K] <- NA
+  yList[[i]] <- ySim
+}
+
+conditionalMoments <- function(yObs, xObs, xFull, beta, sigma) {
+  muFull <- xFull %*% beta
+  obsIdx <- which(!is.na(yObs))
+  misIdx <- which(is.na(yObs))
+  muObs <- muFull[obsIdx]
+  muMis <- muFull[misIdx]
+  sigmaObsObs <- sigma[obsIdx, obsIdx, drop = FALSE]
+  sigmaObsMis <- sigma[obsIdx, misIdx, drop = FALSE]
+  sigmaMisObs <- sigma[misIdx, obsIdx, drop = FALSE]
+  sigmaMisMis <- sigma[misIdx, misIdx, drop = FALSE]
+  if(length(misIdx) == 0) {
+    eYFull <- as.vector(yObs)
+    eYYFull <- as.vector(yObs) %o% as.vector(yObs)
+  } else {
+    misMean <- as.vector(muMis + sigmaMisObs %*% solve(sigmaObsObs) %*% (yObs[obsIdx] - muObs))
+    eYFull <- numeric(length(muFull))
+    eYFull[obsIdx] <- yObs[obsIdx]
+    eYFull[misIdx] <- misMean
+    misCov <- sigmaMisMis - sigmaMisObs %*% solve(sigmaObsObs) %*% sigmaObsMis
+    eMisOuter <- misCov + (misMean %o% misMean)
+    eYYFull <- matrix(0, nrow = length(muFull), ncol = length(muFull))
+    eYYFull[obsIdx, obsIdx] <- as.vector(yObs[obsIdx]) %o% as.vector(yObs[obsIdx])
+    eYYFull[obsIdx, misIdx] <- as.vector(yObs[obsIdx]) %o% misMean
+    eYYFull[misIdx, obsIdx] <- misMean %o% as.vector(yObs[obsIdx])
+    eYYFull[misIdx, misIdx] <- eMisOuter
+  }
+  list(eYFull = eYFull, eYYFull = eYYFull)
+}
+
+ECMFit <- function(xList, yList, p, K, tol = 1e-5, maxiter = 100, verbose = TRUE) {
+  n <- length(xList)
+  betaHat <- rep(0, p)
+  sigmaHat <- diag(1, K)
+  qOld <- -Inf
+  iter <- 0
+  repeat {
+    iter <- iter + 1
+    eY <- vector("list", n)
+    eYY <- vector("list", n)
+    for(i in seq_len(n)) {
+      yObs <- yList[[i]]
+      xObs <- xList[[i]][seq_along(yObs), , drop = FALSE]
+      xFull <- xList[[i]]
+      out <- conditionalMoments(yObs, xObs, xFull, betaHat, sigmaHat)
+      eY[[i]] <- out$eYFull
+      eYY[[i]] <- out$eYYFull
+    }
+    A <- matrix(0, p, p)
+    B <- numeric(p)
+    for(i in seq_len(n)) {
+      Xi <- xList[[i]]
+      A <- A + t(Xi) %*% solve(sigmaHat) %*% Xi
+      B <- B + t(Xi) %*% solve(sigmaHat) %*% eY[[i]]
+    }
+    betaNew <- solve(A, B)
+    S <- matrix(0, K, K)
+    for(i in seq_len(n)) {
+      Xi <- xList[[i]]
+      yBar <- as.vector(eY[[i]])
+      xb <- as.vector(Xi %*% betaNew)
+      EYYTerm <- eYY[[i]]
+      crossTerm <- yBar %*% t(xb) + xb %*% t(yBar)
+      newResi <- EYYTerm - crossTerm + xb %*% t(xb)
+      S <- S + newResi
+    }
+    sigmaNew <- S / n
+    invSigmaNew <- solve(sigmaNew)
+    logdetSig <- determinant(sigmaNew, logarithm = TRUE)$modulus
+    qNew <- -0.5 * n * logdetSig
+    accum <- 0
+    for(i in seq_len(n)) {
+      Xi <- xList[[i]]
+      ybari <- eY[[i]] - Xi %*% betaNew
+      ERes <- eYY[[i]] - eY[[i]] %*% t(Xi %*% betaNew) - (Xi %*% betaNew) %*% t(eY[[i]]) + (Xi %*% betaNew) %*% t(Xi %*% betaNew)
+      accum <- accum + sum(diag(ERes %*% invSigmaNew))
+    }
+    qNew <- qNew - 0.5 * accum
+    if(verbose) cat(sprintf("Iteration %d: Q=%.4f, diff=%.6f\n", iter, qNew, qNew - qOld))
+    if((qNew - qOld) < tol || iter >= maxiter) break
+    betaHat <- betaNew
+    sigmaHat <- sigmaNew
+    qOld <- qNew
+  }
+  list(beta = betaHat, sigma = sigmaHat, iter = iter)
+}
+
+computeObservedInfoBeta <- function(xList, yList, betaHat, sigmaHat) {
+  n <- length(xList)
+  I_beta <- matrix(0, nrow = length(betaHat), ncol = length(betaHat))
+  for(i in seq_len(n)) {
+    Xi <- xList[[i]]
+    yObs <- yList[[i]]
+    xObs <- Xi[seq_along(yObs), , drop = FALSE]
+    out <- conditionalMoments(yObs, xObs, Xi, betaHat, sigmaHat)
+    eY <- out$eYFull
+    eYY <- out$eYYFull
+    xb <- as.vector(Xi %*% betaHat)
+    R_i <- eYY - (eY %*% t(xb)) - (xb %*% t(eY)) + (xb %*% t(xb))
+    I_i <- t(Xi) %*% solve(sigmaHat) %*% R_i %*% solve(sigmaHat) %*% Xi
+    I_beta <- I_beta + I_i
+  }
+  return(I_beta)
+}
+
+fitEcm <- ECMFit(xList, yList, p, K)
+fitEcm$beta
+fitEcm$sigma
+fitEcm$iter
+
+I_beta <- computeObservedInfoBeta(xList, yList, fitEcm$beta, fitEcm$sigma)
+varBeta <- solve(I_beta)
+seBeta <- sqrt(diag(varBeta))
+
+ciLower <- fitEcm$beta - 1.96 * seBeta
+ciUpper <- fitEcm$beta + 1.96 * seBeta
+
+list(standardErrors = seBeta, ciLower = ciLower, ciUpper = ciUpper)
+
+```
+
+{{< pagebreak >}}
+
+### Part B
+
+```{r}
+library(Surrogate)
+library(dplyr)
+data("Schizo_PANSS")
+hwData <- Schizo_PANSS[, c("Id", "Treat", "Week1", "Week4", "Week8")]
+hwData <- subset(hwData, (!is.na(Week1) & !is.na(Week4) & !is.na(Week8)) |
+                     (!is.na(Week1) & !is.na(Week4) & is.na(Week8)) |
+                     (!is.na(Week1) & is.na(Week4) & is.na(Week8)))
+ids <- unique(hwData$Id)
+xListReal <- list()
+yListReal <- list()
+times <- c(1, 4, 8)
+for(i in seq_along(ids)) {
+  tmp <- hwData[hwData$Id == ids[i], ]
+  xMat <- matrix(NA, nrow = length(times), ncol = 4)
+  yVec <- rep(NA, length(times))
+  for(j in seq_along(times)) {
+    tt <- times[j]
+    varName <- paste0("Week", tt)
+    xMat[j, ] <- c(1, tmp$Treat[1], tt, tmp$Treat[1] * tt)
+    yVec[j] <- tmp[[varName]][1]
+  }
+  xListReal[[length(xListReal) + 1]] <- xMat
+  yListReal[[length(yListReal) + 1]] <- yVec
+}
+
+
+fitEcmReal <- ECMFit(xListReal, yListReal, p = 4, K = 3)
+fitEcmReal$beta
+fitEcmReal$sigma
+fitEcmReal$iter
+
+I_beta_real <- computeObservedInfoBeta(xListReal, yListReal, fitEcmReal$beta, fitEcmReal$sigma)
+varBeta_real <- solve(I_beta_real)
+seBeta_real <- sqrt(diag(varBeta_real))
+
+ciLower_real <- fitEcmReal$beta - 1.96 * seBeta_real
+ciUpper_real <- fitEcmReal$beta + 1.96 * seBeta_real
+list(standardErrors = seBeta_real, ciLower = ciLower_real, ciUpper = ciUpper_real)
+
+```
+
+{{< pagebreak >}}
+
+### Part C
+
+```{r}
+EMFit <- function(xList, yList, p, K, tol = 1e-5, maxiter = 100, verbose = TRUE) {
+  n <- length(xList)
+  betaHat <- rep(0, p)
+  sigmaHat <- diag(1, K)
+  qOld <- -Inf
+  iter <- 0
+  repeat {
+    iter <- iter + 1
+    eY <- vector("list", n)
+    eYY <- vector("list", n)
+    for(i in seq_len(n)) {
+      yObs <- yList[[i]]
+      xObs <- xList[[i]][seq_along(yObs), , drop = FALSE]
+      xFull <- xList[[i]]
+      out <- conditionalMoments(yObs, xObs, xFull, betaHat, sigmaHat)
+      eY[[i]] <- out$eYFull
+      eYY[[i]] <- out$eYYFull
+    }
+    betaInner <- betaHat
+    sigmaInner <- sigmaHat
+    repeat {
+      A <- matrix(0, p, p)
+      B <- numeric(p)
+      for(i in seq_len(n)) {
+        Xi <- xList[[i]]
+        A <- A + t(Xi) %*% solve(sigmaInner) %*% Xi
+        B <- B + t(Xi) %*% solve(sigmaInner) %*% eY[[i]]
+      }
+      betaNew <- solve(A, B)
+      S <- matrix(0, K, K)
+      for(i in seq_len(n)) {
+        Xi <- xList[[i]]
+        yBar <- as.vector(eY[[i]])
+        xb <- as.vector(Xi %*% betaNew)
+        EYYTerm <- eYY[[i]]
+        crossTerm <- yBar %*% t(xb) + xb %*% t(yBar)
+        newResi <- EYYTerm - crossTerm + xb %*% t(xb)
+        S <- S + newResi
+      }
+      sigmaNew <- S / n
+      if(sqrt(sum((betaNew - betaInner)^2)) < 1e-8 &&
+         sqrt(sum((sigmaNew - sigmaInner)^2)) < 1e-8) break
+      betaInner <- betaNew
+      sigmaInner <- sigmaNew
+    }
+    invSigmaNew <- solve(sigmaNew)
+    logdetSig <- determinant(sigmaNew, logarithm = TRUE)$modulus
+    qNew <- -0.5 * n * logdetSig
+    accum <- 0
+    for(i in seq_len(n)) {
+      Xi <- xList[[i]]
+      ybari <- eY[[i]] - Xi %*% betaNew
+      ERes <- eYY[[i]] - eY[[i]] %*% t(Xi %*% betaNew) - (Xi %*% betaNew) %*% t(eY[[i]]) + (Xi %*% betaNew) %*% t(Xi %*% betaNew)
+      accum <- accum + sum(diag(ERes %*% invSigmaNew))
+    }
+    qNew <- qNew - 0.5 * accum
+    if(verbose) cat(sprintf("Iteration %d: Q=%.4f, diff=%.6f\n", iter, qNew, qNew - qOld))
+    if((qNew - qOld) < tol || iter >= maxiter) break
+    betaHat <- betaNew
+    sigmaHat <- sigmaNew
+    qOld <- qNew
+  }
+  list(beta = betaHat, sigma = sigmaHat, iter = iter)
+}
+
+fitEm <- EMFit(xList, yList, p, K)
+fitEm$beta
+fitEm$sigma
+fitEm$iter
+
+emSteps <- fitEm$iter
+ecmSteps <- fitEcm$iter
+emSteps
+ecmSteps
+
+I_beta_em <- computeObservedInfoBeta(xList, yList, fitEm$beta, fitEm$sigma)
+varBeta_em <- solve(I_beta_em)
+seBeta_em <- sqrt(diag(varBeta_em))
+
+ciLower_em <- fitEm$beta - 1.96 * seBeta_em
+ciUpper_em <- fitEm$beta + 1.96 * seBeta_em
+list(standardErrors = seBeta_em, ciLower = ciLower_em, ciUpper = ciUpper_em)
+```
+

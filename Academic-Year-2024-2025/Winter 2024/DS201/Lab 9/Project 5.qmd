@@ -1,0 +1,37 @@
+---
+title: "Project 5"
+format: html
+---
+
+```{python}
+from transformers import pipeline
+from tqdm.auto import tqdm
+import textwrap
+
+# Define the initial prompt with more context
+initial_prompt = (
+    "What is Data Science?"
+)
+
+# Create a text-generation pipeline using the pre-trained GPT-2 model with PyTorch
+generator = pipeline("text-generation", model="EleutherAI/gpt-neo-1.3B", framework="pt")
+
+# Use a progress bar during text generation and adjust sampling parameters
+for _ in tqdm(range(1), desc="Generating text"):
+    response = generator(
+        initial_prompt,
+        max_length=250,       # Increase the length to allow more output
+        temperature=0.7,      # Lower temperature for more coherent output
+        top_k=50,             # Limit to the top 50 tokens
+        top_p=0.95            # Use nucleus sampling to cover 95% of probability mass
+    )
+
+# Extract and format the generated text
+generated_text = response[0]['generated_text']
+formatted_text = textwrap.fill(generated_text, width=80)
+
+print("\nGenerated Response:\n")
+print(formatted_text)
+
+```
+

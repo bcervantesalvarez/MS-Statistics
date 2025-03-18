@@ -1,0 +1,5 @@
+---
+title: "Project 5: Exploring AI with GPT‑2, Prompt Engineering, and Ethics (DRAFT)"
+format: ipynb
+jupyter: python3
+---

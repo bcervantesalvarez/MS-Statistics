@@ -45,11 +45,15 @@ Below is a consolidated version of your wrangling script along with explanations
 library(tidyverse)
 library(forcats)
 library(readr)
+library(dplyr)
 
 ## Step 1: Clean & Split the Business Data
 
 # Read the business dataset
 yelpBusiness <- read_csv("yelpDatasetsCSV/yelpBusinessData.csv")
+# Read the business dataset
+yelpMerged<- read_csv("yelpBusinessReviewsMerged.csv")
+glimpse(yelpMerged)
 
 # Split 'categories' into primary & secondary categories; trim whitespace.
 yelpBusiness_clean <- yelpBusiness %>%
@@ -220,3 +224,12 @@ write_csv(yelpBRMsample_clean, "yelpBRMsample.csv")
   We compute the number of rows to sample per `primaryCategory` so that the overall sample size is \(\approx 50\,000\) rows. This ensures that the sample preserves the original distribution of business categories. Finally, we remove the ID columns before saving the sample as `"yelpBRMsample.csv"`.
 
 This refactored script should be clearer, reproducible, and ready for your teammates to use while preserving the integrity of your data wrangling process.
+
+```{r}
+library(readr)
+library(dplyr)
+
+ds <- read_csv("yelpBusinessReviewsMerged.csv")
+glimpse(ds)
+```
+

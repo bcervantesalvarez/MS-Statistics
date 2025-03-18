@@ -1,0 +1,181 @@
+---
+title: "Lab 9"
+author: "ST 412/512"
+date: today
+date-format: long
+format:
+  html:
+    css: "styles.css"
+warning: false
+message: false
+---
+
+
+# Introduction
+
+In this lab, we explore methods of visualizing experimental data in R, with an emphasis on how to transform and arrange our dataset to highlight relationships between variables. By effectively reshaping data and constructing insightful plots, we gain a deeper understanding of how factors (such as different pollutants or experimental treatments) can affect a response variable (such as yield). 
+
+We often rely on these techniques because they help us see how multiple factors interact to influence an outcome. It’s somewhat like organizing the shelves of a store: we group certain items together to clearly see patterns—such as which items sell better in certain aisles or under specific conditions—giving us insights we’d miss if we simply left everything piled in random places.
+
+This lab also continues to hone your skills with the **ggplot2** framework for plotting and the **tidyr** and **dplyr** packages for data manipulation. These packages are core to the “tidy” approach to data science, a method that simplifies how we transform and interpret datasets. Understanding these approaches allows us to clean, visualize, and interpret real-world data in a more intuitive way, which is why this is such a mainstay in statistics and data science.
+
+---
+
+# Objectives
+
+- Recreate a **2×2** plot to visualize yield on a log scale, with data separated by pollutant treatments and color-coded by another factor.
+- Recreate a **sorted plot** comparing different signs learned by chimps, showing the individual observations and sorting by average time to learn each sign.
+
+---
+
+# Setup
+
+We will use the following R packages throughout this lab:
+
+```{r}
+# Load necessary packages
+library(Sleuth3)   # Contains the datasets 'case1402' and 'case1401'
+library(ggplot2)   # Core data visualization package
+library(tidyr)     # Contains pivot_longer() to reshape data
+library(dplyr)     # Data wrangling (group_by, mutate, etc.)
+library(forcats)   # Factor manipulation (fct_reorder, etc.)
+```
+
+**Datasets used**:
+
+- `case1402`  
+- `case1401`
+
+Both are included in the **Sleuth3** package.
+
+---
+
+# Part 1: Recreating the 2×2 Plot (Display 14.12)
+
+We begin by focusing on the `case1402` dataset, which examines soybean yield (`Forrest` vs. `William`) under different stress treatments, along with two pollutant variables, **SO2** and **O3**. These pollutant columns are numeric, which is convenient for plotting.
+
+## 1.1 Data Reshaping
+
+First, we stack the cultivar responses into a single column. This step consolidates the `Forrest` and `William` columns into one **Yield** column, and creates a corresponding factor column **Cultivar** to indicate which cultivar the yield came from.
+
+```{r}
+# Examine the structure of the dataset
+str(case1402)
+
+# Convert from wide to long format
+case1402_long1 <- pivot_longer(
+  case1402,
+  cols = c("Forrest", "William"),
+  names_to = "Cultivar",
+  values_to = "Yield"
+)
+
+head(case1402_long1)
+```
+
+Next, we want to incorporate both **SO2** and **O3** levels into a single **Pollutant** column, again using `pivot_longer()`. This transformation allows us to separate the pollutant’s “name” (SO2 or O3) from its level.
+
+```{r}
+case1402_long2 <- pivot_longer(
+  case1402_long1,
+  cols = c("SO2", "O3"),
+  names_to = "Pollutant",
+  values_to = "Level"
+)
+
+head(case1402_long2)
+```
+
+## 1.2 Plotting on a Log Scale
+
+We want to see how yield relates to each pollutant level, color-coded by `Stress`, and split by both `Cultivar` and `Pollutant`. One of the best ways to illustrate differences across multiple categories is by **faceting** your plot, creating a grid of subplots (one for each combination of factors).
+
+```{r}
+ggplot(
+  data = case1402_long2,
+  aes(x = Level, y = Yield, color = Stress)
+) +
+  geom_point(position = "jitter") +
+  coord_trans(y = "log") +  # log transform on y-axis
+  facet_grid(Cultivar ~ Pollutant, scales = "free") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab(paste0("\U03BC", "L/L")) +     # Unicode for the µ character
+  ylab("Yield (log scale)")
+```
+
+### Thoughts?
+
+- **Why a log scale?** Often, yield and other biological responses can vary across several orders of magnitude. Plotting them on a log scale helps reveal multiplicative changes and patterns we might otherwise miss.  
+- **Real-world stuff** Think of it like measuring tiny objects under a microscope: if you simply used a standard ruler, many small features would be invisible. By switching to finer measuring tools (the log scale), those features become clearer.
+
+This plot is crucial in many scientific experiments because it neatly separates and visualizes multiple dimensions of data (cultivar type, pollutant, stress level) in a single, coherent view. It’s a go-to strategy for repeated-measures or multi-factor designs—common in agriculture, environmental science, and beyond—because it allows researchers to see how each factor might be interacting or influencing the outcome.
+
+---
+
+# Part 2: Recreating the Sorted Plot (Display 14.5)
+
+In the second example, we explore the `case1401` dataset, which tracks how long it took chimps to learn different signs. We have multiple chimps learning multiple signs, and we want to:
+
+1. Arrange signs in ascending order of **mean time** to learn them.
+2. Show each individual chimp’s data on the same plot for context.
+
+## 2.1 Sorting by Average Time
+
+We start by calculating the average time for each sign. Then we reorder the sign factors based on these averages. Here is a step-by-step approach without using the pipe operator:
+
+```{r}
+# Group by 'Sign'
+case1401_1 <- group_by(case1401, Sign)
+
+# Add a 'Mean_Time' column with the average time per sign
+case1401_2 <- mutate(case1401_1, Mean_Time = mean(Minutes))
+
+# Remove the grouping
+case1401_3 <- ungroup(case1401_2)
+
+# Reorder 'Sign' based on 'Mean_Time'
+case1401_4 <- mutate(case1401_3, Sign = fct_reorder(Sign, Mean_Time))
+
+head(case1401_4)
+```
+
+When we now plot, the signs appear in order of average time.
+
+```{r}
+ggplot(data = case1401_4, aes(x = Sign, y = Minutes, shape = Chimp)) +
+  geom_point() +
+  geom_line(aes(group = Chimp, linetype = Chimp)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+## 2.2 Using the Pipe Operator
+
+Alternatively, you can streamline the above steps using the **pipe** (`%>%`):
+
+```{r}
+case1401 %>%
+  group_by(Sign) %>%
+  mutate(Mean_Time = mean(Minutes)) %>%
+  ungroup() %>%
+  mutate(Sign = fct_reorder(Sign, Mean_Time)) %>%
+  ggplot(aes(x = Sign, y = Minutes)) +
+  geom_point(aes(shape = Chimp)) +
+  geom_line(aes(group = Chimp, linetype = Chimp)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+### Why We Do This
+
+Sorting and grouping like this is common practice because it clarifies how certain categories compare to one another. If you simply graphed everything in alphabetical order, you might fail to see which sign was hardest or easiest to learn. By reordering, patterns (such as outlier signs that take considerably longer) come to the forefront.
+
+### Real-World Parallel
+
+In many industries—whether it’s which products take longer to produce on a factory line, or which tasks in a workflow have the longest waiting times—sorting by an average can be the difference between ignoring a critical bottleneck and identifying it quickly.  
+
+---
+
+# Conclusion
+
+This lab exemplifies how **data wrangling** and **visualization** come together to help us notice trends and relationships, especially when multiple factors are at play. By reshaping data into tidy formats and then leveraging faceting and reordering, we get clear, multi-dimensional views of how different treatments or categories compare. This approach is a cornerstone of modern data science because it integrates the data transformation and plotting process into a straightforward, reproducible workflow.
+
+By practicing these techniques—reshaping, grouping, sorting, and plotting—you’re essentially mastering a flexible system that works in countless real-world scenarios, from precision agriculture to wildlife research to production pipelines.

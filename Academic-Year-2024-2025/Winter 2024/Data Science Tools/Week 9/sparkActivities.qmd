@@ -1,0 +1,57 @@
+---
+title: "Spark Homework"
+author: "Brian Cervantes Alvarez"
+date: today
+date-format: full
+format: OSULatexTheme-pdf
+include-in-header: 
+  text: |
+    \usepackage{fvextra}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+eval: false
+---
+
+# Part 1
+
+```{r}
+# Part 1
+rdd1 = sc.parallelize(range(25), 3)
+print(rdd1.glom().collect())
+```
+
+# Part 2
+
+```{r}
+rdd2 = sc.parallelize(range(50), 4)
+print(rdd2.glom().collect())
+rdd2_coalesced = rdd2.coalesce(2)
+print(rdd2_coalesced.glom().collect())
+```
+
+# Part 3
+
+```{r}
+rdd3 = sc.parallelize(range(26))
+evenOdd = rdd3.map(lambda x: (x % 2 == 0, x)).partitionBy(2)
+print(evenOdd.map(lambda pair: pair[1]).glom().collect())
+```
+
+# Part 4
+
+```{r}
+strings = ["str" + str(i) for i in range(20)]
+rdd4 = sc.parallelize(strings, 3)
+print(rdd4.glom().collect())
+rdd4_all_in_one = rdd4.coalesce(1).repartition(4)
+print(rdd4_all_in_one.glom().collect())
+```
+
+# Part 5
+
+```{r}
+rdd5 = sc.parallelize(range(100))
+print(rdd5.repartition(20).glom().collect())
+rdd5_kv = sc.parallelize(range(100)).map(lambda x: (x, x))
+print(rdd5_kv.partitionBy(20).glom().collect())
+```
+

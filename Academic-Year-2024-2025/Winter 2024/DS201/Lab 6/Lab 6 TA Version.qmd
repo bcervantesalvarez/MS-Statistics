@@ -1,0 +1,207 @@
+---
+title: "Lab 6: Evaluating & Tuning Diagnosisifiers (TA Version)"
+format: ipynb
+jupyter: python3
+---
+
+## TA Guidance
+
+> **TA Instructions:**  
+> 1. Have **students** render the **Student Version** of this lab. They will see minimal commentary—just the tasks and essential instructions.  
+> 2. **You**, as the teaching assistant, should keep *this* **TA Version** open in another tab/window. It contains additional commentary and tips for each step, as well as clarifications to help you guide the lab session effectively.  
+> 3. Point out important details from your side, but do not show students the entire TA text.  
+> 4. Encourage them to read the reference chapters (Chapters 2–3 on data loading/inspection and Chapter 6 on classification evaluation and tuning).  
+> 5. Emphasize the difference between a baseline model and a tuned model, ensuring they understand the concept of not peeking at the test set.  
+> 6. At the end, you can discuss the reflection questions as a group, focusing on the real-world implications of classification performance.
+
+--------------------------------------------------------------------------------
+
+## Objective
+
+In this lab, students will learn how to evaluate and tune a K‑nearest neighbors (KNN) Diagnosisifier. They will:
+
+- Load and inspect the breast cancer dataset.
+- Split the data into training and test sets (using stratified sampling).
+- Preprocess the data by standardizing selected features.
+- Build a baseline KNN Diagnosisifier and evaluate its performance using accuracy, precision, recall, and a confusion matrix.
+- Tune the Diagnosisifier using GridSearchCV with cross-validation.
+
+> **Reference for Students (Chapters 2–3, 6)**: *Data Science: A First Introduction with Python*
+
+---
+
+### TA Note  
+
+- **Goal**: Students get practice building a classifier, splitting data, evaluating performance, and applying hyperparameter tuning with cross-validation.  
+- **Key Emphasis**:  
+  - Reproducibility (set `random_state` for `train_test_split` or `np.random.seed`).  
+  - Importance of not using the test set until the very end.  
+  - Use of standardization in a pipeline so as not to contaminate training vs. test data.  
+
+--------------------------------------------------------------------------------
+
+## Step 1. Data Loading and Inspection
+
+**TA Note**:  
+- Remind students to verify the CSV path and watch for spelling errors.  
+- Encourage them to confirm class distributions—**Benign** vs. **Malignant**.  
+- Stress how Pandas `info()` or `describe()` can help them understand the dataset shape and any missing data.
+
+```{python}
+import pandas as pd
+import numpy as np  # We'll use NumPy for setting the random seed
+
+# Modeling imports
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.compose import make_column_transformer
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.pipeline import make_pipeline
+
+# TA: We are using the WDBC breast cancer dataset.
+cancer = pd.read_csv("wdbc.csv")
+
+# Replace shorthand labels with full names.
+cancer["Diagnosis"] = cancer["Diagnosis"].replace({"M": "Malignant", "B": "Benign"})
+
+print("First 5 rows of the cancer dataset:")
+print(cancer.head())
+
+print("\nDataset Info:")
+print(cancer.info())
+```
+
+---
+
+## Step 2. Preprocessing and Train/Test Split
+
+**TA Note**:  
+- Emphasize why we do **train/test splits** *before* tuning.  
+- Show them how `stratify=cancer["Diagnosis"]` keeps class proportions consistent.  
+- They should note the shapes of both splits and confirm they add up to the original size.
+
+```{python}
+# TA: random_state for reproducibility
+cancer_train, cancer_test = train_test_split(
+    cancer, train_size=0.75, stratify=cancer["Diagnosis"], random_state=1
+)
+
+print("Training set shape:", cancer_train.shape)
+print("Test set shape:", cancer_test.shape)
+
+# TA: Only standardize the features "area_mean" and "smoothness_mean" for illustration.
+preprocessor = make_column_transformer(
+    (StandardScaler(), ["area_mean", "smoothness_mean"])
+)
+```
+
+---
+
+## Step 3. Building and Evaluating the Baseline Diagnosisifier
+
+**TA Note**:  
+- Students need to see how to do a “basic” classification with `KNeighborsClassifier(n_neighbors=5)`.  
+- Encourage them to interpret the code: build pipeline → fit → evaluate.  
+- They’ll see “accuracy” from `score`. We can define advanced metrics (precision, recall) if time permits.
+
+```{python}
+# TA: KNN with k=5 as baseline
+knn = KNeighborsClassifier(n_neighbors=5)
+knn_pipeline = make_pipeline(preprocessor, knn)
+
+X_train = cancer_train[["area_mean", "smoothness_mean"]]
+y_train = cancer_train["Diagnosis"]
+
+# Train (fit) baseline model
+knn_pipeline.fit(X_train, y_train)
+print("KNN pipeline trained (k=5).")
+
+# Evaluate on test set
+X_test = cancer_test[["area_mean", "smoothness_mean"]]
+y_test = cancer_test["Diagnosis"]
+baseline_accuracy = knn_pipeline.score(X_test, y_test)
+print("Baseline test set accuracy (k=5):", baseline_accuracy)
+```
+
+---
+
+## Step 4. Tuning the Diagnosisifier with GridSearchCV
+
+**TA Note**:  
+- Explain `GridSearchCV` is a systematic approach to try multiple `k` values.  
+- Stress that cross-validation is a strategy to avoid overfitting to training data.  
+- We keep `cv=10` folds; mention we can tweak folds if needed.
+
+```{python}
+parameter_grid = {"kneighborsclassifier__n_neighbors": range(1, 100, 5)}
+
+# New pipeline for tuning
+knn_for_tuning = KNeighborsClassifier()
+tune_pipeline = make_pipeline(preprocessor, knn_for_tuning)
+
+grid_search = GridSearchCV(
+    estimator=tune_pipeline,
+    param_grid=parameter_grid,
+    cv=10,
+    n_jobs=-1  # speed
+)
+grid_search.fit(X_train, y_train)
+
+print("Best parameters found:", grid_search.best_params_)
+print("Best cross-validation accuracy:", grid_search.best_score_)
+```
+
+---
+
+## (Bonus!) Quick Glimpse of Cross-Validation Directly
+
+**TA Note**:  
+- This snippet is optional. Good to demonstrate the direct use of `cross_val_score` if students want a quick measure of how well a model might perform.
+
+```{python}
+cv_scores = cross_val_score(tune_pipeline, X_train, y_train, cv=5)
+print("Cross-validation scores:", cv_scores)
+print("Mean cross-validation accuracy:", cv_scores.mean())
+```
+
+---
+
+## Step 5. Evaluating the Tuned Model
+
+**TA Note**:  
+- This is where we do a final test-set evaluation with the chosen `k`.  
+- Students should see how test-set results might differ from cross-validation.  
+- Encourage them to examine confusion matrices to see types of error.
+
+```{python}
+# Predict on the test set
+cancer_test["predicted"] = grid_search.predict(X_test)
+
+# Test accuracy of tuned model
+tuned_accuracy = grid_search.score(X_test, y_test)
+print("Test set accuracy (tuned model):", tuned_accuracy)
+
+# Confusion matrix
+conf_matrix = pd.crosstab(cancer_test["Diagnosis"], cancer_test["predicted"])
+print("Confusion Matrix:")
+print(conf_matrix)
+```
+
+---
+
+## Final Reflection & Extension
+
+**TA Note**:  
+- Guide students to connect evaluation metrics to real-world impacts (especially misclassification in medical contexts).  
+- Ensure they reflect on how the final accuracy compares to the baseline.  
+- If time remains, show how `precision_score` and `recall_score` can add insight—especially when diagnosing serious conditions.
+
+**For Students**:  
+1. Compare your baseline test accuracy to the tuned model’s test accuracy. Did tuning help?  
+2. Why is cross‑validation used in the tuning step instead of just reusing the test set?  
+3. Interpret the confusion matrix. Where are **false negatives** and **false positives**? Are they equally important for tumor diagnoses?  
+4. In real‑life medical contexts, consider if it’s riskier to have a false negative or a false positive. Reflect on how you might adjust your approach (e.g., focusing on recall vs. precision).  
+
+**Bonus**  
+- Plot accuracy vs. $k$ to see if you can spot overfitting vs. underfitting patterns.  
+

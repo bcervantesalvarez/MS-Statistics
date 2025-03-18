@@ -1,0 +1,187 @@
+---
+title: "Homework Guide: Multifactor Studies & Time Series Analysis"
+author: "TA Solutions"
+date: today
+format: html
+---
+
+# Introduction
+
+This homework guide provides step-by-step instructions for two problems:
+
+1. **Problem 1** (Multifactor studies without replication) using a small soybean dataset.
+2. **Problem 2** (Adjustment for serial correlation) using an annual temperature dataset.
+
+The goal is for students to learn how to set up, interpret, and communicate their statistical analyses.
+
+---
+
+# Problem 1: Multifactor Studies Without Replication
+
+You have a dataset on seed yield of two soybean cultivars (Forrest and William) grown under different levels of:
+
+- Soil Moisture Stress (categorical: "Well-watered" vs. other levels)
+- SO₂ (continuous)
+- O₃ (continuous)
+- Yield for two cultivars (Forrest, William)
+
+An example slice of the data:
+
+| Stress        | SO2  | O3   | Forrest | William |
+|---------------|------|------|---------|---------|
+| Well-watered  | 0.00 | 0.02 | 4376    | 5561    |
+| Well-watered  | 0.00 | 0.05 | 4544    | 5947    |
+| Well-watered  | 0.00 | 0.07 | 2806    | 4273    |
+| Well-watered  | 0.00 | 0.08 | 3339    | 3470    |
+| Well-watered  | 0.00 | 0.10 | 3320    | 3080    |
+| Well-watered  | 0.02 | 0.02 | 3747    | 5092    |
+
+## (a) Effect of Soil Moisture Stress on Yield
+
+We want to examine if **Soil Moisture Stress** affects yield beyond O₃ and SO₂.
+
+1. **Reshape the data** into a long format so we have one "Yield" column:
+
+```{r}
+library(tidyr)
+library(dplyr)
+
+soy_data <- case1402
+
+# Suppose your data frame is named `soy_data`.
+
+tidy_data <- soy_data %>%
+  pivot_longer(
+    cols = c(Forrest, William),
+    names_to = "Cultivar",
+    values_to = "Yield"
+  )
+
+head(soy_data)
+head(tidy_data)
+
+
+
+```
+
+2. **Fit an additive model**:
+
+```{r}
+model1 <- lm(Yield ~ Stress + SO2 + O3 + Cultivar, data = tidy_data)
+summary(model1)
+model2 <- lm(Yield ~ Stress + SO2 + O3, data = tidy_data)
+summary(model2)
+
+
+williamModel <- lm(William ~ Stress + SO2 + O3, data = soy_data)
+summary(williamModel)
+forrestModel <- lm(Forrest ~ Stress + SO2 + O3, data = soy_data)
+summary(forrestModel)
+
+
+```
+
+- **Interpretation**:
+  - Look at the coefficient and p-value for `Stress`. A small p-value (< 0.05) indicates that Stress significantly influences yield after adjusting for O₃, SO₂, and Cultivar.
+
+## (b) Testing Interactive Effects
+
+Next, check if there is any *interaction* among the factors (Stress, SO₂, O₃):
+
+```{r}
+interaction_model <- lm(Yield ~ Stress * SO2 * O3 + Cultivar, data = tidy_data)
+summary(interaction_model)
+```
+
+- **Interpretation**:
+  - If interaction terms (e.g., `Stress:O3`) are significant, the effect of one variable depends on another.
+  - If no interactions are significant, the additive model might be sufficient.
+
+---
+
+# Problem 2: Adjustment for Serial Correlation
+
+You have annual temperature anomaly data for the Southern Hemisphere with columns:
+
+| Year | Temperature |
+|------|------------|
+| 1850 | -0.499     |
+| 1851 | -0.383     |
+| 1852 | -0.431     |
+| 1853 | -0.452     |
+| 1854 | -0.478     |
+| 1855 | -0.436     |
+
+We want to model Temperature over time and check for possible autocorrelation.
+
+## (a) Quadratic Regression and Residual Plot
+
+1. **Fit the quadratic model**:
+
+```{r}
+model_quad <- lm(Temperature ~ Year + I(Year^2), data = temp_data)
+summary(model_quad)
+```
+
+2. **Plot the residuals**:
+
+```{r}
+res <- resid(model_quad)
+plot(temp_data$Year, res, type = "o", main = "Residuals vs. Year")
+abline(h = 0, col = "red")
+```
+
+- **Interpretation**: Look for any patterns or runs of positive/negative residuals.
+
+## (b) Partial Autocorrelation Plot
+
+Check if the residuals have autocorrelation:
+
+```{r}
+# Generate PACF
+pacf(res, main = "Partial ACF of Residuals")
+```
+
+- **Interpretation**: A spike at lag 1 suggests AR(1) autocorrelation.
+
+## (c) Estimate the First Serial Correlation Coefficient (\(\alpha\))
+
+```{r}
+alpha_hat <- cor(res[-1], res[-length(res)])
+alpha_hat
+```
+
+- **Interpretation**: \(\alpha\) is between -1 and 1.
+
+## (d) Cochrane-Orcutt Procedure
+
+Adjust for autocorrelation by iteratively estimating \(\rho\) and refitting:
+
+```{r}
+library(orcutt)
+co_model <- cochrane.orcutt(model_quad)
+summary(co_model)
+```
+
+- **Interpretation**: New estimates of coefficients and an estimate of \(\rho\) that accounts for serial correlation.
+
+## (e) 95% Confidence Intervals (Manual Calculation)
+
+If you need manual CIs:
+
+$$
+CI_{95\%}(\beta_j) = \hat{\beta}_j \pm t_{\alpha/2,df}\times SE(\hat{\beta}_j).
+$$
+
+- Use degrees of freedom \(n - k\) or adjusted for AR(1) fits.
+
+---
+
+# Final Teaching Tips
+
+1. **Factorial Designs** (Problem 1): Highlight how to interpret main effects and interactions.
+2. **Time Series** (Problem 2): Emphasize the importance of diagnostic checks (residual plots, PACF) when data are time-ordered.
+3. **Interpretation**:
+   - Encourage students to frame findings in plain language.
+   - Example: "Moisture Stress significantly decreases yield" or "Temperature anomalies exhibit autocorrelation."
+

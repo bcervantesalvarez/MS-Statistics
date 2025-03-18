@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.55">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>ST 412/512 Lab 8: Two-way ANOVA</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Lab 8_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Lab 8_files/libs/quarto-html/quarto.js"></script>
+<script src="Lab 8_files/libs/quarto-html/popper.min.js"></script>
+<script src="Lab 8_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Lab 8_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Lab 8_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Lab 8_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Lab 8_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Lab 8_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Lab 8_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">ST 412/512 Lab 8: Two-way ANOVA</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="objectives" class="level2">
+<h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
+<ul>
+<li>Create an interaction plot.</li>
+<li>Estimate contrasts.</li>
+</ul>
+</section>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">1. Setup</h2>
+<p>Download the <code>Lab8Anova.r</code> script from Canvas and open it in RStudio. Load the required packages. The <code>dplyr</code> package offers many useful data-manipulation functions.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Sleuth3)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="create-the-data-frame" class="level2">
+<h2 class="anchored" data-anchor-id="create-the-data-frame">2. Create the Data Frame</h2>
+<p>Create the <code>seaweed</code> data frame and add a logit-transformed response:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>seaweed <span class="ot">&lt;-</span> case1301</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>seaweed<span class="sc">$</span>logitCover <span class="ot">&lt;-</span> <span class="fu">with</span>(case1301, <span class="fu">log</span>(Cover<span class="sc">/</span>(<span class="dv">100</span> <span class="sc">-</span> Cover)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="interaction-plot" class="level2">
+<h2 class="anchored" data-anchor-id="interaction-plot">3. Interaction Plot</h2>
+<p>An interaction plot in a two-way ANOVA displays group means on the vertical axis and levels of one factor on the horizontal axis. The other factor is represented by different line types or plotting symbols.</p>
+<section id="a-using-interaction.plot" class="level3">
+<h3 class="anchored" data-anchor-id="a-using-interaction.plot">(a) Using <code>interaction.plot()</code></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(seaweed, <span class="fu">interaction.plot</span>(Block, Treat, <span class="at">response =</span> logitCover))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab-8_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>The first argument specifies the factor for the horizontal axis. Typically, choose the factor with the most levels (here, <code>Block</code>).</p>
+</blockquote>
+</section>
+<section id="b-using-dplyr-and-ggplot2" class="level3">
+<h3 class="anchored" data-anchor-id="b-using-dplyr-and-ggplot2">(b) Using <code>dplyr</code> and <code>ggplot2</code></h3>
+<p>First, calculate the mean response for each Block–Treatment combination.</p>
+<ol type="1">
+<li><strong>Group the Data:</strong></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>seaweed1 <span class="ot">&lt;-</span> <span class="fu">group_by</span>(seaweed, Block, Treat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Printing <code>seaweed1</code> shows a tibble with grouping information (first by <code>Block</code>, then by <code>Treat</code>).</p>
+<ol start="2" type="1">
+<li><strong>Summarize the Data:</strong></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>seaweed2 <span class="ot">&lt;-</span> <span class="fu">summarize</span>(seaweed1, <span class="at">Trt_mean =</span> <span class="fu">mean</span>(logitCover))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>seaweed2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 48 × 3
+# Groups:   Block [8]
+   Block Treat Trt_mean
+   &lt;fct&gt; &lt;fct&gt;    &lt;dbl&gt;
+ 1 B1    C       -1.51 
+ 2 B1    L       -3.18 
+ 3 B1    Lf      -3.21 
+ 4 B1    LfF     -4.24 
+ 5 B1    f       -1.62 
+ 6 B1    fF      -2.05 
+ 7 B2    C       -0.942
+ 8 B2    L       -2.51 
+ 9 B2    Lf      -3.11 
+10 B2    LfF     -3.21 
+# ℹ 38 more rows</code></pre>
+</div>
+</div>
+<p>The result is a tibble with grouping only by <code>Block</code>.</p>
+<ol start="3" type="1">
+<li><strong>Plot the Data:</strong></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> seaweed2, <span class="fu">aes</span>(<span class="at">x =</span> Block, <span class="at">y =</span> Trt_mean, <span class="at">shape =</span> Treat)) <span class="sc">+</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">group =</span> Treat))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Lab-8_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="d-optional-using-the-pipe-operator" class="level3">
+<h3 class="anchored" data-anchor-id="d-optional-using-the-pipe-operator">(d) Optional: Using the Pipe Operator</h3>
+<p>The above two-step process can be streamlined with the pipe operator <code>%&gt;%</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>seaweed <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Block, Treat) <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">Trt_mean =</span> <span class="fu">mean</span>(logitCover)) <span class="ot">-&gt;</span> seaweed2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="estimating-contrasts" class="level2">
+<h2 class="anchored" data-anchor-id="estimating-contrasts">4. Estimating Contrasts</h2>
+<p>We now estimate contrasts to assess seaweed grazer effects. For example, the <strong>Large Fish contrast</strong> is given by:</p>
+<p><span class="math display">\[
+\frac{1}{2}\mu_{LfF} - \frac{1}{2}\mu_{Lf} + \frac{1}{2}\mu_{fF} - \frac{1}{2}\mu_{f}
+\]</span></p>
+<p>Contrasts are linear combinations of means with coefficients that sum to 0. Here, the coefficients for the Large Fish contrast are:</p>
+<p><span class="math display">\[
+\frac{1}{2},\ -\frac{1}{2},\ \frac{1}{2},\ -\frac{1}{2},\ 0,\ 0
+\]</span></p>
+<p>corresponding to treatment means <span class="math inline">\(\mu_{LfF}\)</span>, <span class="math inline">\(\mu_{Lf}\)</span>, <span class="math inline">\(\mu_{fF}\)</span>, <span class="math inline">\(\mu_{f}\)</span>, <span class="math inline">\(\mu_{L}\)</span>, and <span class="math inline">\(\mu_{C}\)</span>.</p>
+<section id="a-estimating-contrasts-via-sample-means" class="level3">
+<h3 class="anchored" data-anchor-id="a-estimating-contrasts-via-sample-means">(a) Estimating Contrasts via Sample Means</h3>
+<ol type="1">
+<li><strong>Calculate Sample Means and Sizes:</strong></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(seaweed<span class="sc">$</span>Treat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  C   L  Lf LfF   f  fF 
+ 16  16  16  16  16  16 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Means <span class="ot">&lt;-</span> <span class="fu">with</span>(seaweed, <span class="fu">unlist</span>(<span class="fu">lapply</span>(<span class="fu">split</span>(logitCover, Treat), mean)))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(Means) <span class="ot">&lt;-</span> <span class="fu">names</span>(<span class="fu">summary</span>(seaweed<span class="sc">$</span>Treat))</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>Means</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         C          L         Lf        LfF          f         fF 
+ 0.1804836 -1.7119924 -2.0043847 -2.7246679 -0.3136515 -0.8214197 </code></pre>
+</div>
+</div>
+<ol start="2" type="1">
+<li><strong>Estimate <span class="math inline">\(\sigma\)</span>:</strong></li>
+</ol>
+<p>Fit the model to obtain <span class="math inline">\(\sigma\)</span>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(logitCover <span class="sc">~</span> Treat <span class="sc">+</span> Block, <span class="at">data =</span> seaweed)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = logitCover ~ Treat + Block, data = seaweed)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.43960 -0.38863  0.01354  0.32217  1.33326 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  -1.2226     0.2204  -5.548 3.37e-07 ***
+TreatL       -1.8925     0.2117  -8.938 8.68e-14 ***
+TreatLf      -2.1849     0.2117 -10.319  &lt; 2e-16 ***
+TreatLfF     -2.9052     0.2117 -13.721  &lt; 2e-16 ***
+Treatf       -0.4941     0.2117  -2.334   0.0220 *  
+TreatfF      -1.0019     0.2117  -4.732 9.03e-06 ***
+BlockB2       0.4600     0.2445   1.881   0.0634 .  
+BlockB3       2.1046     0.2445   8.608 3.97e-13 ***
+BlockB4       2.9807     0.2445  12.192  &lt; 2e-16 ***
+BlockB5       1.2160     0.2445   4.974 3.49e-06 ***
+BlockB6       2.0251     0.2445   8.283 1.77e-12 ***
+BlockB7       1.1085     0.2445   4.534 1.93e-05 ***
+BlockB8       1.3300     0.2445   5.440 5.27e-07 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.5989 on 83 degrees of freedom
+Multiple R-squared:  0.8534,    Adjusted R-squared:  0.8322 
+F-statistic: 40.25 on 12 and 83 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>sigma</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>s</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.5988628</code></pre>
+</div>
+</div>
+</section>
+<section id="b-estimate-the-large-fish-contrast-and-its-standard-error" class="level3">
+<h3 class="anchored" data-anchor-id="b-estimate-the-large-fish-contrast-and-its-standard-error">(b) Estimate the Large Fish Contrast and Its Standard Error</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ghat <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">*</span> Means[<span class="st">"LfF"</span>] <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> Means[<span class="st">"Lf"</span>] <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> Means[<span class="st">"fF"</span>] <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> Means[<span class="st">"f"</span>]</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>SE_ghat <span class="ot">&lt;-</span> s <span class="sc">*</span> <span class="fu">sqrt</span>((<span class="fl">0.5</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="dv">16</span> <span class="sc">+</span> (<span class="sc">-</span><span class="fl">0.5</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="dv">16</span> <span class="sc">+</span> (<span class="fl">0.5</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="dv">16</span> <span class="sc">+</span> (<span class="sc">-</span><span class="fl">0.5</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="dv">16</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Compare these calculations with the estimates in Display 13.13 from the lab manual.</p>
+</section>
+<section id="c-construct-a-95-confidence-interval" class="level3">
+<h3 class="anchored" data-anchor-id="c-construct-a-95-confidence-interval">(c) Construct a 95% Confidence Interval</h3>
+<p>The degrees of freedom for the <span class="math inline">\(t\)</span>-quantile are from the residual degrees of freedom in the model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ci_lower <span class="ot">&lt;-</span> ghat <span class="sc">-</span> <span class="fu">qt</span>(<span class="fl">0.975</span>, <span class="dv">83</span>) <span class="sc">*</span> SE_ghat</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>ci_upper <span class="ot">&lt;-</span> ghat <span class="sc">+</span> <span class="fu">qt</span>(<span class="fl">0.975</span>, <span class="dv">83</span>) <span class="sc">*</span> SE_ghat</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>ci_lower</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       LfF 
+-0.9118042 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>ci_upper</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       LfF 
+-0.3162472 </code></pre>
+</div>
+</div>
+</section>
+<section id="d-optional-estimating-all-five-contrasts-simultaneously" class="level3">
+<h3 class="anchored" data-anchor-id="d-optional-estimating-all-five-contrasts-simultaneously">(d) Optional: Estimating All Five Contrasts Simultaneously</h3>
+<p>Redefine the contrasts attribute of the factor variable <code>Treat</code> using a contrast matrix $ M $.</p>
+<ol type="1">
+<li><strong>Create the Matrix $ M $:</strong></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>M <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>,</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>              <span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="dv">0</span>,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>              <span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>              <span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>              <span class="dv">0</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>), <span class="at">nrow =</span> <span class="dv">6</span>, <span class="at">ncol =</span> <span class="dv">5</span>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>M</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1] [,2]       [,3] [,4] [,5]
+[1,]  0.0 -0.5  0.3333333  1.0    0
+[2,]  0.0 -0.5 -0.3333333 -1.0    0
+[3,] -0.5  0.5 -0.3333333  0.5   -1
+[4,]  0.5  0.0 -0.3333333  0.5    1
+[5,] -0.5  0.5  0.3333333 -0.5    1
+[6,]  0.5  0.0  0.3333333 -0.5   -1</code></pre>
+</div>
+</div>
+<ol start="2" type="1">
+<li><strong>Set the Contrasts for <code>Treat</code>:</strong></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(seaweed<span class="sc">$</span>Treat) <span class="ot">&lt;-</span> M <span class="sc">%*%</span> <span class="fu">solve</span>(<span class="fu">t</span>(M) <span class="sc">%*%</span> M)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This instructs R to reparameterize the six groups in terms of five linearly independent contrasts.</p>
+<ol start="3" type="1">
+<li><strong>Estimate Parameters and Confidence Intervals:</strong></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>model_contrasts <span class="ot">&lt;-</span> <span class="fu">lm</span>(logitCover <span class="sc">~</span> Treat <span class="sc">+</span> Block, <span class="at">data =</span> seaweed)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_contrasts)<span class="sc">$</span>coefficients</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               Estimate Std. Error     t value     Pr(&gt;|t|)
+(Intercept) -2.63573255  0.1728768 -15.2463059 8.744201e-26
+Treat1      -0.61402573  0.1497157  -4.1012782 9.539869e-05
+Treat2      -0.39326371  0.1497157  -2.6267366 1.026464e-02
+Treat3       1.82881916  0.1222424  14.9606013 2.778453e-25
+Treat4       0.09548527  0.2593152   0.3682209 7.136460e-01
+Treat5      -0.21251501  0.2994314  -0.7097286 4.798616e-01
+BlockB2      0.45997017  0.2444847   1.8813862 6.342524e-02
+BlockB3      2.10462971  0.2444847   8.6084307 3.967901e-13
+BlockB4      2.98070960  0.2444847  12.1918036 3.440293e-20
+BlockB5      1.21603709  0.2444847   4.9738778 3.491656e-06
+BlockB6      2.02513052  0.2444847   8.2832603 1.772265e-12
+BlockB7      1.10850715  0.2444847   4.5340551 1.928506e-05
+BlockB8      1.33003266  0.2444847   5.4401465 5.267230e-07</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confint</span>(model_contrasts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                  2.5 %      97.5 %
+(Intercept) -2.97957755 -2.29188755
+Treat1      -0.91180423 -0.31624722
+Treat2      -0.69104222 -0.09548521
+Treat3       1.58568403  2.07195429
+Treat4      -0.42028223  0.61125277
+Treat5      -0.80807202  0.38304200
+BlockB2     -0.02630009  0.94624043
+BlockB3      1.61835945  2.59089997
+BlockB4      2.49443934  3.46697986
+BlockB5      0.72976683  1.70230735
+BlockB6      1.53886026  2.51140078
+BlockB7      0.62223689  1.59477741
+BlockB8      0.84376240  1.81630292</code></pre>
+</div>
+</div>
+<p>Verify that these estimates agree with Display 13.13.</p>
+<ol start="4" type="1">
+<li><strong>Restore the Original Contrasts:</strong></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>Indicators <span class="ot">&lt;-</span> <span class="fu">contr.treatment</span>(<span class="dv">6</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(Indicators) <span class="ot">&lt;-</span> <span class="fu">names</span>(Means)[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">contrasts</span>(seaweed<span class="sc">$</span>Treat) <span class="ot">&lt;-</span> Indicators</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The second command assigns names to the indicator variables for clarity.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

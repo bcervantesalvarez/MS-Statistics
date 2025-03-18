@@ -1,0 +1,203 @@
+---
+title: "Spatial Statistics | Homework 4"
+author: "Brian Cervantes Alvarez"
+date: today
+format: OSULatexTheme-pdf
+editor:
+  render-on-save: true
+message: false
+warning: false
+---
+
+# Problem 1
+
+## Part A
+
+
+```{r}
+library(sf)
+library(spatstat)
+library(ggplot2)
+library(viridis)
+
+eqData <- data.frame(
+  longitude = c(140.123, 139.000, 141.250),
+  latitude  = c(35.600, 36.500, 34.800),
+  depth     = c(20, 12, 18),
+  magnitude = c(5.2, 4.6, 5.0)
+)
+eqSf <- st_as_sf(eqData, coords = c("longitude", "latitude"), crs = 4326)
+eqSfUtm <- st_transform(eqSf, crs = 32654)
+summary(eqSfUtm)
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+```{r, fig.width = 10, fig.height = 10} 
+coords <- st_coordinates(eqSfUtm)
+eqWindow <- owin(
+  xrange = range(coords[, 1]),
+  yrange = range(coords[, 2])
+)
+eqPpp <- ppp(
+  x = coords[, 1],
+  y = coords[, 2],
+  window = eqWindow,
+  marks = data.frame(
+    depth     = eqSfUtm$depth,
+    magnitude = eqSfUtm$magnitude
+  )
+)
+summary(eqPpp)
+eqDataUtm <- data.frame(
+  x         = coords[, 1],
+  y         = coords[, 2],
+  depth     = eqSfUtm$depth,
+  magnitude = eqSfUtm$magnitude
+)
+
+ggplot(eqDataUtm, aes(x = x, y = y)) +
+  geom_point(aes(color = depth, size = magnitude), alpha = 0.7) +
+  scale_size_continuous(name = "Magnitude", range = c(1, 6)) +
+  coord_fixed() +
+  labs(title = "Earthquake Locations (UTM) by Depth and Magnitude ") +
+  theme_minimal()
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+The envelope analysis shows that the observed $K$-function mostly stays inside the simulation envelope. This means the earthquake locations seem to occur in a completely random pattern. There's no clear sign of either clustering or a regular spacing out (inhibition), so overall, the spatial distribution of these earthquakes appears random.
+
+```{r}
+envEq <- envelope(eqPpp, fun = Kest, nsim = 39)
+plot(envEq, main = "Envelope for Ripley's K-function")
+```
+
+
+{{< pagebreak >}}
+
+# Problem 2
+
+## Part A
+
+```{r, fig.width = 10, fig.height = 10} 
+
+data(clmfires)
+dfClmFires <- data.frame(
+  x         = clmfires$x,
+  y         = clmfires$y,
+  cause     = clmfires$marks$cause,
+  burntArea = clmfires$marks$burnt.area
+)
+
+regionPoly <- as.polygonal(Window(clmfires))  
+regionSf   <- st_as_sf(regionPoly)           
+
+causeColors <- c(
+  "lightning"   = "purple",
+  "accident"    = "red",
+  "intentional" = "blue",
+  "other"       = "green"
+)
+
+causeShapes <- c(
+  "lightning"   = 15,
+  "accident"    = 16,
+  "intentional" = 17,
+  "other"       = 18
+)
+
+ggplot() +
+  geom_sf(data = regionSf, fill = NA, color = "black") +
+  geom_point(
+    data = dfClmFires,
+    aes(x = x, y = y, shape = cause, color = cause, size = burntArea),
+    alpha = 0.7
+  ) +
+  scale_size_area(max_size = 8, name = "Burnt Area") +
+  scale_color_manual(
+    name   = "Cause of Fire",
+    values = causeColors,
+    breaks = names(causeColors),
+    labels = c("Lightning", "Accident", "Intentional", "Other")
+  ) +
+  scale_shape_manual(
+    name   = "Cause of Fire",
+    values = causeShapes,
+    breaks = names(causeShapes),
+    labels = c("Lightning", "Accident", "Intentional", "Other")
+  ) +
+  guides(
+    color = guide_legend(order = 1, override.aes = list(shape = causeShapes)),
+    shape = guide_legend(order = 1, override.aes = list(color = causeColors)),
+    size  = guide_legend(order = 2)
+  ) +
+  labs(title = "Castilla-La Mancha Fires: Cause and Burnt Area") +
+  theme_minimal()
+```
+
+{{< pagebreak >}}
+
+## Part B
+
+```{r, fig.width = 10, fig.height = 10}
+clmFiresUnmarked <- unmark(clmfires)
+summary(clmFiresUnmarked)
+densityEst <- density(clmFiresUnmarked)
+densityDf <- as.data.frame(densityEst, xy = TRUE)
+regionPolygon <- as.polygonal(Window(clmFiresUnmarked))
+regionSf <- st_as_sf(regionPolygon)
+ggplot() +
+  geom_raster(data = densityDf, aes(x = x, y = y, fill = value)) +
+  geom_sf(data = regionSf, fill = NA, color = "black") +
+  scale_fill_viridis_c(name = "Intensity", option = "magma") +
+  coord_sf() +
+  labs(title = "Estimated Intensity Function for Fires") +
+  theme_minimal()
+```
+
+{{< pagebreak >}}
+
+## Part C
+
+```{r}
+summary(clmfires$marks[["burnt.area"]])
+```
+
+{{< pagebreak >}}
+
+## Part D
+
+```{r}
+medianBurnt <- median(clmfires$marks[["burnt.area"]])
+firesCut <- cut(clmfires, "burnt.area",
+                breaks = c(-Inf, medianBurnt, Inf),
+                labels = c("small", "large"))
+summary(firesCut)
+```
+
+{{< pagebreak >}}
+
+## Part E
+
+```{r}
+firesSplit <- split(firesCut)
+summary(firesSplit$small)
+summary(firesSplit$large)
+```
+
+```{r}
+data(clmfires.extra)
+modelLarge <- ppm(firesSplit$large ~ elevation,
+                  data = clmfires.extra[["clmcov100"]])
+summary(modelLarge)
+```
+
+The estimated intensity function is  
+$$
+\lambda(x,y) = \exp\Big(0.06122692 +  0.99985269\cdot\text{elevation}(x,y)\Big).
+$$

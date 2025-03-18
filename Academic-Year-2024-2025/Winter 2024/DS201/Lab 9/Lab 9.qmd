@@ -1,0 +1,280 @@
+---
+title: "Lab 9: Ethical Analysis of Loan Approval Predictions in Biased Black Box Models"
+format: ipynb
+jupyter: python3
+---
+
+## TA Guidance
+
+> **TA Instructions:**  
+> 1. Walk the students through this lab step by step, emphasizing that our focus is on making **loan approval predictions**.  
+> 2. Explain that we use the **loanApproval.csv** dataset augmented with a new **Race** column to simulate how demographic factors can affect loan decisions.  
+> 3. Show how we override the original “Loan_Status” to mimic the following approval rates by race:  
+>    - **White:** 55% approval  
+>    - **Asian:** 30% approval  
+>    - **Black:** 7% approval  
+>    - **Hispanic:** 16% approval  
+> 4. Note that we remove any missing values prior to training the model.  
+> 5. Demonstrate how a RandomForestClassifier—a typical black box model—is used to predict loan approvals, and then illustrate how extra bias is injected for the “Black” group.  
+> 6. **Crucial Discussion Point:** Explain why this model is problematic:  
+>    - The model enforces arbitrary, racially skewed approval rates instead of learning from genuine credit data.  
+>    - Its black box nature conceals how decisions are made, making it easier to hide unethical biases.  
+>    - Injecting additional bias (flipping predictions for “Black” applicants) undermines fairness and transparency in critical financial decisions.
+
+---
+
+## Objective
+
+In this lab, students will:
+1. **Load** the **loanApproval.csv** dataset and **augment** it with a new “Race” column to simulate demographic impacts on loan approvals.  
+2. **Override** the “Loan_Status” to force biased approval rates:  
+   - **White:** 55% approval  
+   - **Asian:** 30% approval  
+   - **Black:** 7% approval  
+   - **Hispanic:** 16% approval  
+3. **Clean** the data by removing rows with missing values.  
+4. **Train** a RandomForestClassifier on selected features to predict loan approvals.  
+5. **Inject** additional bias for the “Black” group to mimic unethical manipulation in decision-making.  
+6. **Visualize** and compare the true versus predicted loan statuses across races using Altair.  
+7. **Discuss** the ethical implications and explore bias mitigation strategies.
+
+> **For Students:**  
+> Remember: Fairness and transparency in models used for high-stakes decisions like loan approvals are as important as overall accuracy.
+
+---
+
+## Step 0. Setup and Altair Renderer Configuration
+
+```{python}
+import altair as alt
+alt.renderers.enable('default')
+```
+
+---
+
+## Step 1. Load the Dataset and Augment with Demographics
+
+### 1a. Load the Dataset
+
+```{python}
+import pandas as pd
+
+# Load the loanApproval.csv dataset (expected: 614 rows, 13 columns)
+data = pd.read_csv("loanApproval.csv")
+print("Original shape:", data.shape)
+data.head()
+```
+
+### 1b. Add the "Race" Column
+
+We assign each row a race label. Here, we use an equal distribution for illustration.
+
+```{python}
+import numpy as np
+
+n = len(data)  # Expected to be 614 rows
+races = np.random.choice(
+    ['White', 'Asian', 'Black', 'Hispanic'], 
+    size=n,
+    p=[0.25, 0.25, 0.25, 0.25]
+)
+data['Race'] = races
+```
+
+### 1c. Override "Loan_Status" Based on Race
+
+We simulate loan approval rates:
+- **White:** 55% “Y” (Approved)  
+- **Asian:** 30% “Y” (Approved)  
+- **Black:** 7% “Y” (Approved)  
+- **Hispanic:** 16% “Y” (Approved)
+
+```{python}
+new_loan_status = []
+for r in data['Race']:
+    rand_val = np.random.rand()
+    if r == 'White':
+        new_loan_status.append('Y' if rand_val < 0.55 else 'N')
+    elif r == 'Asian':
+        new_loan_status.append('Y' if rand_val < 0.30 else 'N')
+    elif r == 'Black':
+        new_loan_status.append('Y' if rand_val < 0.07 else 'N')
+    else:  # Hispanic
+        new_loan_status.append('Y' if rand_val < 0.16 else 'N')
+
+data['Loan_Status'] = new_loan_status
+
+print("Augmented shape:", data.shape)
+data.head(10)
+```
+
+---
+
+## Step 2. Data Cleaning for Modeling
+
+Since the RandomForestClassifier cannot handle missing values, we drop any rows with missing data.
+
+```{python}
+# Select feature columns for modeling
+feature_cols = [
+    'ApplicantIncome',
+    'CoapplicantIncome',
+    'LoanAmount',
+    'Loan_Amount_Term',
+    'Credit_History'
+]
+
+X = data[feature_cols]
+y = data['Loan_Status']  # "Y" or "N"
+y_binary = (y == 'Y').astype(int)
+
+# Drop rows with missing values in features or target
+mask = X.notnull().all(axis=1) & y_binary.notnull()
+X_clean = X[mask]
+y_clean = y_binary[mask]
+
+print("Shape after dropping missing values:", X_clean.shape)
+```
+
+---
+
+## Step 3. Train a Baseline Black Box Model
+
+We split the data and train a RandomForestClassifier to predict loan approvals.
+
+```{python}
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+# Train/test split (stratified to preserve approval proportions)
+X_train, X_test, y_train, y_test = train_test_split(
+    X_clean, y_clean, stratify=y_clean, test_size=0.25, random_state=42
+)
+
+# Train the RandomForestClassifier
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# Generate predictions on the test set
+y_pred = model.predict(X_test)
+baseline_accuracy = accuracy_score(y_test, y_pred)
+print("Baseline test accuracy:", baseline_accuracy)
+```
+
+---
+
+## Step 4. Inject Additional Bias for the “Black” Group
+
+To simulate unethical bias in loan approval predictions, we flip the predictions for test samples where **Race** is "Black" with a 20% probability.
+
+```{python}
+# Align the original data rows with our test set indices
+test_indices = X_test.index
+data_test = data.loc[test_indices].copy()
+
+# Add model predictions (binary: 1 for "Y", 0 for "N")
+data_test['predicted_label'] = y_pred
+
+# Identify rows for which Race is "Black"
+mask_black = data_test['Race'] == 'Black'
+
+# Flip the prediction for 20% of these rows
+flip = np.random.rand(mask_black.sum()) < 0.20
+data_test.loc[mask_black, 'predicted_label'] = np.where(
+    flip,
+    1 - data_test.loc[mask_black, 'predicted_label'],  # Flip: 1→0, 0→1
+    data_test.loc[mask_black, 'predicted_label']
+)
+
+# Recompute overall accuracy using the original Loan_Status as ground truth
+true_binary = data_test['Loan_Status'].map({'Y': 1, 'N': 0})
+biased_accuracy = accuracy_score(true_binary, data_test['predicted_label'])
+print("Overall test accuracy (with injected bias):", biased_accuracy)
+```
+
+---
+
+## Step 5. Visualize Loan Approval Predictions
+
+### 5a. True Loan Approval Distribution by Race
+
+```{python}
+data_test['true_label'] = data_test['Loan_Status'].map({'Y': 1, 'N': 0}).astype('int')
+
+chart_true = alt.Chart(data_test).mark_bar().encode(
+    x=alt.X('Race:N', title='Race'),
+    y=alt.Y('count()', title='Count'),
+    color=alt.Color('true_label:N', title='True Loan Status')
+).properties(
+    title='Distribution of True Loan Approvals by Race'
+)
+chart_true
+```
+
+### 5b. Predicted Loan Approval Distribution by Race
+
+```{python}
+chart_pred = alt.Chart(data_test).mark_bar().encode(
+    x=alt.X('Race:N', title='Race'),
+    y=alt.Y('count()', title='Count'),
+    color=alt.Color('predicted_label:N', title='Predicted Loan Status')
+).properties(
+    title='Distribution of Predicted Loan Approvals by Race'
+)
+chart_pred
+```
+
+### 5c. Faceted Comparison: True vs. Predicted Labels
+
+```{python}
+# Reshape the data for faceted comparison
+plot_df = data_test.melt(
+    id_vars=['Race'],
+    value_vars=['true_label', 'predicted_label'],
+    var_name='Label_Type',
+    value_name='Label'
+)
+
+chart_facet = alt.Chart(plot_df).mark_bar().encode(
+    x=alt.X('Label:N', title='Label (0 = Denied, 1 = Approved)'),
+    y=alt.Y('count()', title='Count'),
+    color=alt.Color('Label:N', title='Label')
+).properties(
+    width=150,
+    height=200
+).facet(
+    column=alt.Column('Race:N', title='Race'),
+    row=alt.Row('Label_Type:N', title='Label Type')
+).resolve_scale(
+    y='independent'
+)
+chart_facet
+```
+
+---
+
+## Step 6. Discussion & Reflection
+
+**TA Discussion Points:**  
+1. Analyze whether the true loan approval distributions align with the simulated rates.  
+2. Evaluate the effect of bias injection on predicted loan approvals, especially for the “Black” group.  
+3. Discuss the ethical implications of using an opaque (black box) model for loan decisions, where predictions are manipulated instead of based on genuine financial factors.  
+4. Consider how such a model could lead to discriminatory practices and why transparency and fairness are critical in financial decision-making.
+
+---
+
+## (Extension) Step 7. Experimenting with Bias Mitigation
+
+If time permits, experiment with bias mitigation strategies such as using balanced class weights.
+
+```{python}
+# Retrain the model using balanced class weights
+model_balanced = RandomForestClassifier(random_state=42, class_weight='balanced')
+model_balanced.fit(X_train, y_train)
+y_pred_balanced = model_balanced.predict(X_test)
+
+balanced_accuracy = accuracy_score(y_test, y_pred_balanced)
+print("Test accuracy with balanced class weights:", balanced_accuracy)
+```
+
