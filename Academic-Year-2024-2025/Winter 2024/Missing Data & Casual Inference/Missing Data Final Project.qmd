@@ -1,0 +1,1394 @@
+---
+title: "Effects of Alcohol on Student Academic Performance"
+author: "Brian Cervantes Alvarez"
+date: "March 19, 2025"
+format: pdf
+---
+
+
+
+```{r}
+#| echo: false
+
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(mice)
+library(tidyr)
+library(janitor)
+library(patchwork)
+library(RColorBrewer)
+
+# ------------------------------------------------------------------------------
+# Oregon State University Colors
+# ------------------------------------------------------------------------------
+osu_beaver_orange    <- "#D73F09"  # Beaver Orange
+osu_paddletail_black <- "#000000"  # Paddletail Black
+osu_bucktooth_white  <- "#FFFFFF"  # Bucktooth White
+
+# Secondary Colors
+osu_pine_stand    <- "#4A773C"
+osu_high_tide     <- "#00859B"
+osu_luminance     <- "#FFB500"
+osu_stratosphere  <- "#006A8E"
+osu_reindeer_moss <- "#C4D6A4"
+osu_seafoam       <- "#B8DDE1"
+osu_candela       <- "#FDD26E"
+osu_moondust      <- "#C6DAE7"
+osu_hop_bine      <- "#AA9D2E"
+osu_rogue_wave    <- "#0D5257"
+osu_solar_flare   <- "#D3832B"
+osu_star_canvas   <- "#003B5C"
+osu_till          <- "#B7A99A"
+osu_coastline     <- "#A7ACA2"
+osu_high_desert   <- "#7A6855"
+osu_crater        <- "#8E9089"
+
+# ------------------------------------------------------------------------------
+# 1. Categorical Palette
+# ------------------------------------------------------------------------------
+osu_categorical_palette <- c(
+  osu_beaver_orange,
+  osu_pine_stand,
+  osu_high_tide,
+  osu_luminance,
+  osu_stratosphere,
+  osu_reindeer_moss,
+  osu_seafoam,
+  osu_candela,
+  osu_moondust,
+  osu_hop_bine,
+  osu_rogue_wave,
+  osu_solar_flare,
+  osu_star_canvas,
+  osu_till,
+  osu_coastline,
+  osu_high_desert,
+  osu_crater
+)
+
+scale_fill_osu_categorical <- function(...) {
+  scale_fill_manual(values = osu_categorical_palette, ...)
+}
+
+scale_color_osu_categorical <- function(...) {
+  scale_color_manual(values = osu_categorical_palette, ...)
+}
+
+# ------------------------------------------------------------------------------
+# 2. Binary Palette
+# ------------------------------------------------------------------------------
+osu_binary_palette <- c(
+  "TRUE"  = osu_beaver_orange,
+  "FALSE" = osu_paddletail_black
+)
+
+scale_fill_osu_binary <- function(...) {
+  scale_fill_manual(values = osu_binary_palette, ...)
+}
+
+scale_color_osu_binary <- function(...) {
+  scale_color_manual(values = osu_binary_palette, ...)
+}
+
+# ------------------------------------------------------------------------------
+# 3. Sequential Palette (Monochromatic)
+# ------------------------------------------------------------------------------
+osu_sequential_pal <- function(n) {
+  colorRampPalette(c("#cceeff", osu_high_tide, osu_stratosphere))(n)
+}
+
+scale_fill_osu_sequential <- function(discrete = TRUE, ...) {
+  if (discrete) {
+    scale_fill_manual(values = osu_sequential_pal(10), ...)
+  } else {
+    scale_fill_gradientn(colors = osu_sequential_pal(10), ...)
+  }
+}
+
+scale_color_osu_sequential <- function(discrete = TRUE, ...) {
+  if (discrete) {
+    scale_color_manual(values = osu_sequential_pal(10), ...)
+  } else {
+    scale_color_gradientn(colors = osu_sequential_pal(10), ...)
+  }
+}
+
+# ------------------------------------------------------------------------------
+# OSU Theme Function
+# ------------------------------------------------------------------------------
+theme_osu <- function(base_size = 14, base_family = "sans") {
+  theme_minimal(base_size = base_size, base_family = base_family) %+replace%
+    theme(
+      plot.title    = element_text(face = "bold", color = osu_beaver_orange, size = base_size * 1.3, hjust = 0.5),
+      plot.subtitle = element_text(color = "#000000", size = base_size * 1.1),
+      axis.title    = element_text(face = "bold", color = "#000000", size = base_size),
+      legend.title  = element_text(face = "bold", color = "#000000", size = base_size),
+      axis.text     = element_text(color = "#000000", size = base_size * 0.9),
+      panel.grid.major = element_line(color = "#A7ACA2"),
+      panel.grid.minor = element_line(color = "#A7ACA2", linetype = "dotted"),
+      legend.position = "right",
+      legend.text     = element_text(color = "#000000", size = base_size * 0.9),
+      plot.caption    = element_text(color = "#000000", size = base_size * 0.8, hjust = 1)
+    )
+}
+
+# Load and clean data
+data <- read_csv("studentDrinking.csv")
+
+data_clean <- data %>% 
+  clean_names() %>% 
+  rename(
+    sex                     = your_sex,
+    matricGPA               = your_matric_grade_12_average_gpa_in_percent,
+    lastStudentYear         = what_year_were_you_in_last_year_2023,
+    faculty                 = what_faculty_does_your_degree_fall_under,
+    academicGPA2023         = your_2023_academic_year_average_gpa_in_percent_ignore_if_you_are_2024_1st_year_student,
+    accommodationStatus2023 = your_accommodation_status_last_year_2023,
+    monthlyAllowance2023    = monthly_allowance_in_2023,
+    scholarship             = were_you_on_scholarship_bursary_in_2023,
+    studyHours              = additional_amount_of_studying_in_hrs_per_week,
+    socialising             = how_often_do_you_go_out_partying_socialising_during_the_week,
+    alcoholDrinks           = on_a_night_out_how_many_alcoholic_drinks_do_you_consume,
+    classesMissed           = how_many_classes_do_you_miss_per_week_due_to_alcohol_reasons_i_e_being_hungover_or_too_tired,
+    modulesFailed           = how_many_modules_have_you_failed_thus_far_into_your_studies,
+    romanticRelationship    = are_you_currently_in_a_romantic_relationship,
+    parentsApproval         = do_your_parents_approve_alcohol_consumption,
+    parentRelationship      = how_strong_is_your_relationship_with_your_parent_s
+  )
+
+# Summarize missing values by column
+missing_summary <- data_clean %>%
+  summarize(across(everything(), ~ sum(is.na(.))))
+missing_summary
+
+# Create a complete cases dataset for baseline modeling
+data_complete <- data_clean %>% drop_na()
+
+# Assign cleaned data to df for further analysis
+df <- data_clean
+
+# Quick EDA Plots
+# 1) Missing Data Heatmap
+df_long <- df %>% 
+  mutate(row = row_number()) %>%
+  pivot_longer(
+    cols = -row,
+    names_to = "variable", 
+    values_to = "value", 
+    values_transform = list(value = as.character)
+  ) %>%
+  mutate(missing = is.na(value))
+
+ggplot(df_long, aes(x = variable, y = row, fill = missing)) +
+  geom_tile() +
+  scale_fill_osu_binary() +
+  theme_osu() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  labs(
+    title = "Missing Data Heatmap",
+    x = "Variable", 
+    y = "Observation",
+    fill = "Missing"
+  )
+
+# 2) Matric GPA Distribution by Missing Academic GPA
+df %>%
+  mutate(academicGPA_missing = is.na(academicGPA2023)) %>%
+  ggplot(aes(x = matricGPA, fill = academicGPA_missing)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_osu_binary() +
+  theme_osu() +
+  labs(
+    title = "Matric GPA Distribution by Missing Academic GPA",
+    x = "Matric GPA", 
+    fill = "Academic GPA\nMissing"
+  )
+
+# 3) Proportion of Missing Academic GPA by Faculty
+df %>%
+  filter(!is.na(faculty)) %>%
+  mutate(academicGPA_missing = is.na(academicGPA2023)) %>%
+  group_by(faculty, academicGPA_missing) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  ggplot(aes(x = faculty, y = count, fill = academicGPA_missing)) +
+    geom_bar(stat = "identity", position = "fill") +
+    coord_flip() +
+    scale_fill_osu_binary() +
+    theme_osu() +
+    labs(
+      title = "Proportion of Missing Academic GPA by Faculty",
+      y = "Proportion",
+      fill = "Academic GPA\nMissing"
+    )
+```
+
+## Abstract
+
+Understanding the drivers behind students' academic performance is key to effective policy and resource allocation in higher education. In this study, we explore how alcohol consumption, monthly allowance, and study hours influence students’ academic averages. Missing data on academic performance necessitated a robust analysis of multiple imputation and sensitivity methods. We compare complete-case analysis, multiple imputation (Predictive Mean Matching, Normal), EM/FIML, Bayesian approaches, IPW, and a pattern-mixture model. Results reveal that different missing data assumptions can materially shift coefficient estimates, emphasizing the importance of carefully selecting and reporting the handling of missing data.
+
+
+
+## Introduction
+
+Understanding how alcohol consumption affects college students' grades is important because universities want to help students succeed. But academic success isn't just about alcohol—it also depends on things like how much money students have each month (their allowance), whether they have scholarships, and how many hours they spend studying each week. Our goal is to learn how all these different factors combine to influence student grades, but there's one challenge: some students didn't report their grades, creating missing data.
+
+To study this, we used information collected in 2023 from students at Stellenbosch University. The data includes students' backgrounds, such as which faculty they belong to and their gender, along with financial details like their monthly allowance and scholarship status. Importantly, the main thing we're measuring—students' academic average—has missing values for some students. This missing data issue made it necessary to carefully examine how different methods of filling in those gaps might change our results.
+
+Therefore, our research asks: *How do factors like monthly allowance, faculty membership, accommodation, weekly study hours, and alcohol consumption influence students' grades?* Since some academic averages are missing, we also tested different ways to handle missing data (such as assuming the data is randomly missing or missing for specific reasons) to ensure that our conclusions about student performance are accurate and reliable.
+
+
+{{< pagebreak >}}
+
+## Methodology
+
+### 1. Exploratory Data Analysis (EDA)
+
+We first visualized missingness patterns and examined whether the data appeared Missing Completely at Random (MCAR) or Missing at Random (MAR). The initial EDA suggested that missingness in the academic average was likely **not MCAR**, as it correlated with factors like faculty and matric grades.
+
+```{r missingness-table, echo=TRUE}
+# Display a summary table of missing values for each variable
+missing_summary <- data.frame(
+  Variable = c("accommodationStatus2023","monthlyAllowance2023","scholarship",
+               "studyHours","socialising","alcoholDrinks",
+               "classesMissed","modulesFailed","romanticRelationship",
+               "parentsApproval","parentRelationship"),
+  MissingCount = c(23,31,8,3,2,2,3,3,3,4,3)
+)
+missing_summary
+```
+
+This table shows the total number of missing entries per variable. For example, **accommodationStatus2023** has 23 missing entries, while **monthlyAllowance2023** has 31. Such counts highlight which variables may require special attention during imputation or further data cleaning.
+
+
+
+```{r fig-missing-heatmap, echo=TRUE, fig.width=6, fig.height=4}
+# Missing Data Heatmap (Visualization 1)
+library(ggplot2)
+library(dplyr)
+
+ggplot(df_long, aes(x = variable, y = row, fill = missing)) +
+  geom_tile() +
+  scale_fill_manual(values = c("FALSE" = "black", "TRUE" = "#D73F09")) +
+  labs(
+    title = "Missing Data Heatmap",
+    x = "Variable",
+    y = "Observation",
+    fill = "Missing"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1),
+    plot.title  = element_text(color = "#D73F09", face = "bold")
+  )
+```
+
+**Figure 1. Missing Data Heatmap for Key Variables**  
+  
+Each row represents a student, and each column is a variable in the dataset. Black cells indicate observed values, while orange cells indicate missing values. We can see certain patterns in the columns where missingness tends to cluster (e.g., around _faculty_ or _monthlyAllowance2023_), suggesting the data might not be missing completely at random.
+
+
+
+```{r fig-matric-gpa, echo=TRUE, fig.width=6, fig.height=4}
+# Density Plot of Matric GPA by Missingness in Academic GPA (Visualization 2)
+
+# We assume df is the main dataset with a binary indicator academicGPA_missing
+ggplot(df %>% mutate(academicGPA_missing = is.na(academicGPA2023)),
+       aes(x = matricGPA, fill = academicGPA_missing)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_manual(values = c("FALSE" = "gray30", "TRUE" = "#D73F09")) +
+  labs(
+    title = "Matric GPA Distribution by Missing Academic GPA",
+    x = "Matric GPA",
+    fill = "Academic GPA Missing"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(color = "#D73F09", face = "bold")
+  )
+```
+
+**Figure 2. Density of Matric GPA, Grouped by Whether Academic GPA is Missing**  
+ 
+This figure displays how the distribution of high-school/Matric GPAs (on the x-axis) differs depending on whether the student’s academicGPA2023 is missing (orange) or observed (gray). If the orange curve shifts away from the gray curve, it indicates that the missingness in academicGPA2023 may depend on students’ prior performance (not MCAR), suggesting a potential MAR or MNAR mechanism.
+
+
+
+```{r fig-faculty-missing, echo=TRUE, fig.width=6, fig.height=4}
+# Proportion of Missing Academic GPA by Faculty (Visualization 3)
+
+df %>%
+  filter(!is.na(faculty)) %>%
+  mutate(academicGPA_missing = is.na(academicGPA2023)) %>%
+  group_by(faculty, academicGPA_missing) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  ggplot(aes(x = faculty, y = count, fill = academicGPA_missing)) +
+    geom_bar(stat = "identity", position = "fill") +
+    coord_flip() +
+    scale_fill_manual(values = c("FALSE" = "black", "TRUE" = "#D73F09")) +
+    labs(
+      title = "Proportion of Missing Academic GPA by Faculty",
+      x = "Faculty",
+      y = "Proportion",
+      fill = "Academic GPA Missing"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      plot.title = element_text(color = "#D73F09", face = "bold")
+    )
+```
+
+**Figure 3. Proportion of Missing Academic GPA by Faculty**  
+ 
+Each bar shows the fraction of students (within each faculty) whose 2023 academic average is missing (orange) versus observed (black). Notable differences across faculties (e.g., a higher proportion of missingness in _Arts & Social Sciences_ compared to _Science_) further hint that missingness is related to observed factors such as faculty affiliation. This again supports the idea that the data are unlikely MCAR and that faculty may be an important predictor in an imputation model.
+
+
+{{< pagebreak >}}
+
+### 2. Multiple Imputation by Chained Equations (MICE)
+
+Under the Missing at Random (MAR) assumption, the probability of missingness for a variable depends only on the observed data. Let $\mathbf{X} = (X_1, \ldots, X_p)$ denote all variables in the dataset, where $X_j$ may contain missing entries. **Chained Equations** iteratively specify conditional models of the form
+$$
+  X_j \;\Big|\; X_{-j},
+$$
+where $X_{-j}$ are all other variables. For each variable with missing data, MICE fits a univariate model (e.g., linear regression for continuous data) and updates the missing entries by drawing from that conditional distribution. After cycling through all variables once, we obtain one “completed” dataset; repeating the cycle $m$ times yields $m$ completed datasets.
+
+**How this model was implemented** 
+
+1. **Predictive Mean Matching (PMM)**: After estimating 
+$$
+  \hat{X}_j = \hat{\beta}_0 + \sum_{k\neq j} \hat{\beta}_k X_k,
+$$
+we identified “donor” values in the observed set with predictions closest to $\hat{X}_j$ and randomly drew an actual observed value from those donors.  
+2. **Normal Imputation**: Assuming 
+$$
+  X_j \mid X_{-j} \sim \mathcal{N}\bigl(\hat{\mu}_j, \hat{\sigma}_j^2\bigr),
+$$
+we sampled missing $X_j$ from the estimated normal distribution.  
+3. **Pooling**: Each completed dataset gave us regression estimates $\hat{\theta}^{(m)}$. We combined them via
+$$
+  \hat{\theta}_{\text{pool}} = \frac{1}{m}\sum_{m=1}^M \hat{\theta}^{(m)}, 
+$$
+and used Rubin’s rules to incorporate both within- and between-imputation variance.
+
+{{< pagebreak >}}
+
+### 3. EM/FIML Approach
+
+We posited that $(\mathbf{Y}, \mathbf{X})$ follow (multivariate) normality. The EM algorithm iterates:
+
+$$
+  \text{E-step}: \quad 
+    Q(\theta \mid \theta^{(t)}) 
+    = \mathbb{E}\bigl[\log f(\mathbf{Y}_{\text{full}}\!;\,\theta)\,\big|\,
+      \mathbf{Y}_{\text{obs}}, \theta^{(t)}\bigr],
+$$
+$$
+  \text{M-step}: \quad 
+    \theta^{(t+1)} = \arg\max_\theta \; Q(\theta \mid \theta^{(t)}),
+$$
+where $\mathbf{Y}_{\text{full}} = \{\mathbf{Y}_{\text{obs}},\mathbf{Y}_{\text{mis}}\}$ is the complete data.
+
+**How this model was implemented**  
+
+1. **Initial Guess**: We replaced missing entries with plausible starting values (e.g., column means) and computed initial parameter estimates $\theta^{(0)}$.  
+2. **Conditioning on Observed Data**: At each E-step, we updated imputed $\mathbf{Y}_{\text{mis}}$ using conditional expectations of the form
+$$
+  \mathbb{E}[\mathbf{Y}_{\text{mis}} \mid \mathbf{Y}_{\text{obs}}, \theta^{(t)}],
+$$
+assuming a normal distribution for $\mathbf{Y}$.  
+3. **Ridge Stabilization**: In the M-step, we maximized a slightly regularized log-likelihood, adding $\lambda \,\text{trace}(\Sigma)$ to the covariance, ensuring numerically stable matrix inversions.  
+4. **Convergence**: We repeated E- and M- steps until changes in the log-likelihood fell below a tolerance threshold, yielding FIML estimates for means, variances, and covariances despite missing data.
+
+{{< pagebreak >}}
+
+### 4. Bayesian Modeling
+
+We place priors on parameters $\theta$ (e.g., regression coefficients, variance terms). For a linear model,
+$$
+  Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \ldots + \varepsilon_i,\quad
+  \varepsilon_i \sim \mathcal{N}(0,\sigma^2),
+$$
+we might assume
+$$
+  \beta_j \sim \mathcal{N}(0,\, \tau^2), \quad 
+  \sigma \sim \text{HalfCauchy}(\gamma),
+$$
+or other weakly informative forms. Missing data under MAR is handled by integrating out the unobserved values within the joint posterior.
+
+**How this model was implemented**  
+
+1. **Defining Priors**: We set weakly informative priors (e.g., $\beta_j \sim \mathcal{N}(0,2^2)$) for regression parameters.  
+2. **Posterior Sampling**: Using MCMC, we iteratively drew samples from
+$$
+  p(\theta, \mathbf{Y}_{\text{mis}} \mid \mathbf{Y}_{\text{obs}})\; 
+  \propto\; p(\mathbf{Y}_{\text{obs}}, \mathbf{Y}_{\text{mis}}\mid \theta)\, p(\theta).
+$$
+3. **Joint Imputation**: At each iteration, missing elements were imputed according to the current parameter draws, allowing the chain to explore plausible values in proportion to their posterior density.  
+4. **Inference**: Posterior means and credible intervals were derived from the MCMC samples, reflecting uncertainty about both $\theta$ and missing data.
+
+{{< pagebreak >}}
+
+### 5. IPW and Pattern-Mixture
+
+#### Inverse Probability Weighting (IPW)
+
+Let $R_i \in \{0,1\}$ indicate whether the $i$-th academic GPA is observed. We assume 
+$$
+  \Pr(R_i=1\mid X_i) = \pi_i(\alpha),
+$$
+often modeled via logistic regression. Then each observed case receives weight $w_i = 1/\hat{\pi}_i$.  
+
+**How this model was implemented**
+
+1. **Logistic Model**: We fit 
+$$
+  \logit(\pi_i) = \alpha_0 + \alpha_1 X_{i1} + \cdots + \alpha_k X_{ik}
+$$
+using only the rows with non-missing GPA to estimate $\hat{\alpha}$.  
+2. **Inverse-Weighting**: Each complete record was assigned $w_i = 1/\hat{\pi}_i$.  
+3. **Weighted Regression**: We then solved
+$$
+  \sum_{i \in \{\text{obs}\}} w_i \, \psi(\mathbf{Y}_i, \mathbf{X}_i; \beta) = 0,
+$$
+where $\psi$ is the usual score function for a linear model. This corrects for the fact that some data points have a lower probability of being observed.
+
+#### Pattern-Mixture Model
+
+We decompose the data by missingness pattern. For our scenario, let $M$ be a binary indicator ($\text{missing}$ or $\text{observed}$) for the academic GPA.
+
+**How this model was implemented**  
+1. **Partition**: We created two subsets: students with observed academicGPA (pattern 1) and those without (pattern 2).  
+2. **Model for Pattern 1**: We fit
+$$
+  Y_i = \beta_0 + \beta_1 X_{i1} + \cdots + \beta_p X_{ip} + \varepsilon_i
+$$
+on only those $i$ with observed $Y_i$.  
+3. **Extrapolation**: We interpreted potential differences if the missing group’s distribution of $\mathbf{X}$ or $\mathbf{Y}$ varied systematically. Though a full pattern-mixture approach can model each pattern differently, we used the observed pattern to gauge sensitivity to possible MNAR issues.
+
+{{< pagebreak >}}
+
+### 6. Final Regression Model
+
+Across all methods, we estimated a linear relationship:
+
+$$
+  \text{academicGPA2023}
+  \;=\;
+  \beta_0
+  \;+\;
+  \beta_{1}\,\text{alcoholDrinks}
+  \;+\;
+  \beta_{2}\,\text{monthlyAllowance2023}
+  \;+\;
+  \beta_{3}\,\text{studyHours}
+  \;+\;
+  \varepsilon,
+$$
+with $\varepsilon \sim \mathcal{N}(0,\sigma^2)$. The estimates $\{\hat{\beta}_j\}$ differ depending on how each method handles missing data—MICE, EM/FIML, Bayesian posterior integration, IPW weighting, or pattern-mixture partitioning.
+
+The choice of these predictors aligns with the project’s research focus on how alcohol consumption, financial support, and study behaviors relate to academic performance.
+
+## Results Summary
+
+Table 1 shows the results we got from using different methods to handle missing data:
+
+| Method             | Alcohol Effect | Allowance Effect | Study Hours Effect |
+|:-------------------|---------------:|-----------------:|-------------------:|
+| **Complete-Case**  |   Negative     |    Slightly Negative   |    Slightly Negative    |
+| **PMM**            |   Slightly Negative    |    Positive   |    Slightly Negative    |
+| **Normal**         |   Slightly Positive    |    Positive   |    Negative    |
+| **EM/FIML**        |   Slightly Negative    |    Near Zero   |    Slightly Positive    |
+| **Bayesian**       |   Near Zero    |    Near Zero   |    Slightly Positive    |
+| **IPW**            |   Slightly Negative    |    Slightly Negative   |    Slightly Positive    |
+| **Pattern-Mixture**|   Negative    |    Slightly Positive   |    Negative    |
+
+- **Alcohol Consumption:** Most methods showed alcohol had either a small negative effect or no effect on academic grades, except for the Normal method which showed a small positive effect.
+- **Monthly Allowance:** Results varied—some methods showed allowance having a positive effect, some negative, and others showed almost no effect at all.
+- **Study Hours:** Depending on the method, extra study hours sometimes had a small positive impact and other times a negative one.
+
+These differences matter because they show how the way we handle missing data can change what we conclude about these factors.
+
+## Conclusion
+
+**Key Takeaways:** The way we handled missing data greatly impacted our results. Different methods gave us different answers, highlighting the importance of carefully checking assumptions, like if the data is normally distributed. Our initial analysis suggested data wasn't missing randomly, so we used more advanced methods like PMM, EM/FIML, Bayesian, and IPW. We found that PMM, EM/FIML, and Bayesian methods worked better than simpler methods.
+
+**Recommendations:** Researchers should clearly explain how they handled missing data and why they chose their methods. Using more than one method helps make sure the conclusions are strong and not just due to the chosen method.
+
+## Further Study
+
+Future studies could look into methods specifically designed for data that's not missing at random. They could also include other factors, like mental health and social support, to better understand how alcohol affects student grades. Lastly, research could investigate programs, like tutoring or financial advice, to help students who might struggle academically or who often have missing information.
+
+## How AI Tools Were Used
+
+To be fully honest about the process, I used ChatGPT, Claude, and Gemini to help me write code, organize the paper, and correct grammar. These AI tools improved the efficiency and clarity of the final report, but all key ideas, methods chosen, and interpretations were my own.
+
+## References
+
+1. **van Buuren, S.** (2018). *Flexible Imputation of Missing Data.* Chapman & Hall/CRC.
+2. **Rubin, D. B.** (1987). *Multiple Imputation for Nonresponse in Surveys.* John Wiley & Sons.
+4. **Kaggle**. Effects of Alcohol on Student Performance. [Dataset Link](https://www.kaggle.com/) (Accessed 2023).
+
+# Appendix
+
+## Step 0 | Libraries & OSU Color Palette
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(mice)
+library(tidyr)
+library(janitor)
+library(patchwork)
+library(RColorBrewer)
+
+# ------------------------------------------------------------------------------
+# Oregon State University Colors
+# ------------------------------------------------------------------------------
+osu_beaver_orange    <- "#D73F09"  # Beaver Orange
+osu_paddletail_black <- "#000000"  # Paddletail Black
+osu_bucktooth_white  <- "#FFFFFF"  # Bucktooth White
+
+# Secondary Colors
+osu_pine_stand    <- "#4A773C"
+osu_high_tide     <- "#00859B"
+osu_luminance     <- "#FFB500"
+osu_stratosphere  <- "#006A8E"
+osu_reindeer_moss <- "#C4D6A4"
+osu_seafoam       <- "#B8DDE1"
+osu_candela       <- "#FDD26E"
+osu_moondust      <- "#C6DAE7"
+osu_hop_bine      <- "#AA9D2E"
+osu_rogue_wave    <- "#0D5257"
+osu_solar_flare   <- "#D3832B"
+osu_star_canvas   <- "#003B5C"
+osu_till          <- "#B7A99A"
+osu_coastline     <- "#A7ACA2"
+osu_high_desert   <- "#7A6855"
+osu_crater        <- "#8E9089"
+
+# ------------------------------------------------------------------------------
+# 1. Categorical Palette
+# ------------------------------------------------------------------------------
+osu_categorical_palette <- c(
+  osu_beaver_orange,
+  osu_pine_stand,
+  osu_high_tide,
+  osu_luminance,
+  osu_stratosphere,
+  osu_reindeer_moss,
+  osu_seafoam,
+  osu_candela,
+  osu_moondust,
+  osu_hop_bine,
+  osu_rogue_wave,
+  osu_solar_flare,
+  osu_star_canvas,
+  osu_till,
+  osu_coastline,
+  osu_high_desert,
+  osu_crater
+)
+
+scale_fill_osu_categorical <- function(...) {
+  scale_fill_manual(values = osu_categorical_palette, ...)
+}
+
+scale_color_osu_categorical <- function(...) {
+  scale_color_manual(values = osu_categorical_palette, ...)
+}
+
+# ------------------------------------------------------------------------------
+# 2. Binary Palette
+# ------------------------------------------------------------------------------
+osu_binary_palette <- c(
+  "TRUE"  = osu_beaver_orange,
+  "FALSE" = osu_paddletail_black
+)
+
+scale_fill_osu_binary <- function(...) {
+  scale_fill_manual(values = osu_binary_palette, ...)
+}
+
+scale_color_osu_binary <- function(...) {
+  scale_color_manual(values = osu_binary_palette, ...)
+}
+
+# ------------------------------------------------------------------------------
+# 3. Sequential Palette (Monochromatic)
+# ------------------------------------------------------------------------------
+osu_sequential_pal <- function(n) {
+  colorRampPalette(c("#cceeff", osu_high_tide, osu_stratosphere))(n)
+}
+
+scale_fill_osu_sequential <- function(discrete = TRUE, ...) {
+  if (discrete) {
+    scale_fill_manual(values = osu_sequential_pal(10), ...)
+  } else {
+    scale_fill_gradientn(colors = osu_sequential_pal(10), ...)
+  }
+}
+
+scale_color_osu_sequential <- function(discrete = TRUE, ...) {
+  if (discrete) {
+    scale_color_manual(values = osu_sequential_pal(10), ...)
+  } else {
+    scale_color_gradientn(colors = osu_sequential_pal(10), ...)
+  }
+}
+
+# ------------------------------------------------------------------------------
+# OSU Theme Function
+# ------------------------------------------------------------------------------
+theme_osu <- function(base_size = 14, base_family = "sans") {
+  theme_minimal(base_size = base_size, base_family = base_family) %+replace%
+    theme(
+      plot.title    = element_text(face = "bold", color = osu_beaver_orange, size = base_size * 1.3, hjust = 0.5),
+      plot.subtitle = element_text(color = "#000000", size = base_size * 1.1),
+      axis.title    = element_text(face = "bold", color = "#000000", size = base_size),
+      legend.title  = element_text(face = "bold", color = "#000000", size = base_size),
+      axis.text     = element_text(color = "#000000", size = base_size * 0.9),
+      panel.grid.major = element_line(color = "#A7ACA2"),
+      panel.grid.minor = element_line(color = "#A7ACA2", linetype = "dotted"),
+      legend.position = "right",
+      legend.text     = element_text(color = "#000000", size = base_size * 0.9),
+      plot.caption    = element_text(color = "#000000", size = base_size * 0.8, hjust = 1)
+    )
+}
+```
+
+{{< pagebreak >}}
+
+## Step 1 | Data Preprocessing & EDA
+
+```{r}
+# Load and clean data
+data <- read_csv("studentDrinking.csv")
+
+data_clean <- data %>% 
+  clean_names() %>% 
+  rename(
+    sex                     = your_sex,
+    matricGPA               = your_matric_grade_12_average_gpa_in_percent,
+    lastStudentYear         = what_year_were_you_in_last_year_2023,
+    faculty                 = what_faculty_does_your_degree_fall_under,
+    academicGPA2023         = your_2023_academic_year_average_gpa_in_percent_ignore_if_you_are_2024_1st_year_student,
+    accommodationStatus2023 = your_accommodation_status_last_year_2023,
+    monthlyAllowance2023    = monthly_allowance_in_2023,
+    scholarship             = were_you_on_scholarship_bursary_in_2023,
+    studyHours              = additional_amount_of_studying_in_hrs_per_week,
+    socialising             = how_often_do_you_go_out_partying_socialising_during_the_week,
+    alcoholDrinks           = on_a_night_out_how_many_alcoholic_drinks_do_you_consume,
+    classesMissed           = how_many_classes_do_you_miss_per_week_due_to_alcohol_reasons_i_e_being_hungover_or_too_tired,
+    modulesFailed           = how_many_modules_have_you_failed_thus_far_into_your_studies,
+    romanticRelationship    = are_you_currently_in_a_romantic_relationship,
+    parentsApproval         = do_your_parents_approve_alcohol_consumption,
+    parentRelationship      = how_strong_is_your_relationship_with_your_parent_s
+  )
+
+# Summarize missing values by column
+missing_summary <- data_clean %>%
+  summarize(across(everything(), ~ sum(is.na(.))))
+missing_summary
+
+# Create a complete cases dataset for baseline modeling
+data_complete <- data_clean %>% drop_na()
+
+# Assign cleaned data to df for further analysis
+df <- data_clean
+
+# Quick EDA Plots
+# 1) Missing Data Heatmap
+df_long <- df %>% 
+  mutate(row = row_number()) %>%
+  pivot_longer(
+    cols = -row,
+    names_to = "variable", 
+    values_to = "value", 
+    values_transform = list(value = as.character)
+  ) %>%
+  mutate(missing = is.na(value))
+
+ggplot(df_long, aes(x = variable, y = row, fill = missing)) +
+  geom_tile() +
+  scale_fill_osu_binary() +
+  theme_osu() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  labs(
+    title = "Missing Data Heatmap",
+    x = "Variable", 
+    y = "Observation",
+    fill = "Missing"
+  )
+
+# 2) Matric GPA Distribution by Missing Academic GPA
+df %>%
+  mutate(academicGPA_missing = is.na(academicGPA2023)) %>%
+  ggplot(aes(x = matricGPA, fill = academicGPA_missing)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_osu_binary() +
+  theme_osu() +
+  labs(
+    title = "Matric GPA Distribution by Missing Academic GPA",
+    x = "Matric GPA", 
+    fill = "Academic GPA\nMissing"
+  )
+
+# 3) Proportion of Missing Academic GPA by Faculty
+df %>%
+  filter(!is.na(faculty)) %>%
+  mutate(academicGPA_missing = is.na(academicGPA2023)) %>%
+  group_by(faculty, academicGPA_missing) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  ggplot(aes(x = faculty, y = count, fill = academicGPA_missing)) +
+    geom_bar(stat = "identity", position = "fill") +
+    coord_flip() +
+    scale_fill_osu_binary() +
+    theme_osu() +
+    labs(
+      title = "Proportion of Missing Academic GPA by Faculty",
+      y = "Proportion",
+      fill = "Academic GPA\nMissing"
+    )
+```
+
+{{< pagebreak >}}
+
+### 1. Complete‐Case Modeling
+
+```{r complete_case}
+# Fit the model using only complete cases.
+cc_fit <- lm(academicGPA2023 ~ alcoholDrinks + monthlyAllowance2023 + studyHours, data = data_complete)
+cc_sum <- summary(cc_fit)
+print(cc_sum)
+
+# Use grep to extract the first coefficient that matches the variable name.
+cc_alcohol    <- cc_sum$coefficients[grep("^alcoholDrinks", rownames(cc_sum$coefficients))[1], "Estimate"]
+cc_alcohol_se <- cc_sum$coefficients[grep("^alcoholDrinks", rownames(cc_sum$coefficients))[1], "Std. Error"]
+
+cc_allowance    <- cc_sum$coefficients[grep("^monthlyAllowance2023", rownames(cc_sum$coefficients))[1], "Estimate"]
+cc_allowance_se <- cc_sum$coefficients[grep("^monthlyAllowance2023", rownames(cc_sum$coefficients))[1], "Std. Error"]
+
+cc_studyHours    <- cc_sum$coefficients[grep("^studyHours", rownames(cc_sum$coefficients))[1], "Estimate"]
+cc_studyHours_se <- cc_sum$coefficients[grep("^studyHours", rownames(cc_sum$coefficients))[1], "Std. Error"]
+
+
+
+cc_alcohol
+
+```
+
+{{< pagebreak >}}
+
+### 2. PMM Imputation with mice
+
+```{r pmm_imputation}
+# Impute missing data using Predictive Mean Matching (PMM)
+imp_pmm <- mice(data_clean, m = 5, method = "pmm", seed = 123)
+fit_pmm <- with(imp_pmm, lm(academicGPA2023 ~ alcoholDrinks + monthlyAllowance2023 + studyHours))
+pooled_fit_pmm <- pool(fit_pmm)
+sum_pmm <- summary(pooled_fit_pmm)
+print(summary(pooled_fit_pmm))
+
+# Extract estimates via term matching
+pmm_alcohol     <- sum_pmm$estimate[grep("^alcoholDrinks", sum_pmm$term)[1]]
+pmm_alcohol_se  <- sum_pmm$std.error[grep("^alcoholDrinks", sum_pmm$term)[1]]
+pmm_allowance    <- sum_pmm$estimate[grep("^monthlyAllowance2023", sum_pmm$term)[1]]
+pmm_allowance_se <- sum_pmm$std.error[grep("^monthlyAllowance2023", sum_pmm$term)[1]]
+pmm_studyHours    <- sum_pmm$estimate[grep("^studyHours", sum_pmm$term)[1]]
+pmm_studyHours_se <- sum_pmm$std.error[grep("^studyHours", sum_pmm$term)[1]]
+
+
+pmm_alcohol
+pmm_allowance
+```
+
+{{< pagebreak >}}
+
+### 3. Normal Imputation with mice
+
+```{r normal_imputation}
+# Impute missing data using the Normal (norm) method.
+imp_norm <- mice(data_clean, m = 5, method = "norm", seed = 123)
+fit_norm <- with(imp_norm, lm(academicGPA2023 ~ alcoholDrinks + monthlyAllowance2023 + studyHours))
+pooled_fit_norm <- pool(fit_norm)
+sum_norm <- summary(pooled_fit_norm)
+print(summary(pooled_fit_norm))
+
+# Extract estimates.
+norm_alcohol     <- sum_norm$estimate[grep("^alcoholDrinks", sum_norm$term)[1]]
+norm_alcohol_se  <- sum_norm$std.error[grep("^alcoholDrinks", sum_norm$term)[1]]
+norm_allowance    <- sum_norm$estimate[grep("^monthlyAllowance2023", sum_norm$term)[1]]
+norm_allowance_se <- sum_norm$std.error[grep("^monthlyAllowance2023", sum_norm$term)[1]]
+norm_studyHours    <- sum_norm$estimate[grep("^studyHours", sum_norm$term)[1]]
+norm_studyHours_se <- sum_norm$std.error[grep("^studyHours", sum_norm$term)[1]]
+
+norm_alcohol
+norm_allowance
+```
+
+{{< pagebreak >}}
+
+### 4. EM/FIML Approach
+
+```{r em_fiml}
+library(dplyr)
+library(mvtnorm)
+library(MASS)  # for mvrnorm()
+
+# ----- Data Preprocessing ----- #
+# Modified data preparation code
+data_em <- data_clean %>% 
+  dplyr::select(academicGPA2023, alcoholDrinks, monthlyAllowance2023, studyHours) %>%
+  # Convert everything to character first
+  mutate(across(everything(), as.character)) %>%
+  # Then recode each column to numeric
+  mutate(
+    academicGPA2023 = as.numeric(academicGPA2023),
+    
+    alcoholDrinks = case_when(
+      alcoholDrinks == "0" ~ 0,
+      alcoholDrinks == "1-3" ~ 2,
+      alcoholDrinks == "3-5" ~ 4,
+      alcoholDrinks == "5-8" ~ 6.5,
+      alcoholDrinks == "8+" ~ 9,
+      TRUE ~ NA_real_
+    ),
+    
+    monthlyAllowance2023 = case_when(
+      monthlyAllowance2023 == "< R 5000" ~ 2500,
+      monthlyAllowance2023 == "R 5001 - R 6000" ~ 5500,
+      monthlyAllowance2023 == "R 6001 - R 7000" ~ 6500,
+      monthlyAllowance2023 == "R 7001 - R 8000" ~ 7500,
+      monthlyAllowance2023 == "R 8000+" ~ 9000,
+      TRUE ~ NA_real_
+    ),
+    
+    studyHours = case_when(
+      studyHours == "0" ~ 0,
+      studyHours == "1-3" ~ 2,
+      studyHours == "3-5" ~ 4,
+      studyHours == "5-8" ~ 6.5,
+      studyHours == "8+" ~ 9,
+      TRUE ~ NA_real_
+    )
+  ) %>% 
+  as.matrix()
+
+# Check the resulting data.
+str(data_em)
+summary(data_em)
+apply(data_em, 2, function(x) sum(is.na(x)))
+
+# Ensure all columns are numeric.
+if (!all(apply(data_em, 2, is.numeric))) {
+  stop("Not all columns are numeric. Check your data conversion.")
+}
+
+# Compute the initial covariance matrix using pairwise complete observations.
+initial_cov <- cov(data_em, use = "pairwise.complete.obs")
+print(paste("Initial condition number:", kappa(initial_cov)))
+
+# ----- EM/FIML – Manual Implementation with Increased Ridge ----- #
+# More robust EM algorithm with stronger regularization
+em_mvnorm <- function(X, tol = 1e-6, maxit = 2000, ridge = 0.1) {  # You can adjust ridge; here we use 0.1 then later set to 1e-3 when calling.
+  n <- nrow(X)
+  d <- ncol(X)
+  
+  # Initial imputation: replace missing values with column means
+  X_imputed <- X
+  for (j in 1:d) {
+    col_mean <- mean(X[, j], na.rm = TRUE)
+    X_imputed[is.na(X[, j]), j] <- col_mean
+  }
+  
+  mu <- colMeans(X_imputed)
+  Sigma <- cov(X_imputed) + diag(ridge, d)  # Add ridge to initial covariance
+  
+  loglik_old <- -Inf
+  for (iter in 1:maxit) {
+    # E-step: Impute missing values
+    X_new <- X_imputed
+    for (i in 1:n) {
+      obs_idx <- which(!is.na(X[i, ]))
+      miss_idx <- which(is.na(X[i, ]))
+      
+      if (length(miss_idx) > 0) {
+        if (length(obs_idx) == 0) {
+          # Entire row missing: impute with current mean
+          X_new[i, ] <- mu
+        } else {
+          tryCatch({
+            Sigma_oo <- Sigma[obs_idx, obs_idx, drop = FALSE]
+            # Always add ridge regardless of condition number
+            Sigma_oo_ridge <- Sigma_oo + diag(ridge, nrow(Sigma_oo))
+            Sigma_oo_inv <- solve(Sigma_oo_ridge)
+            
+            Sigma_mo <- Sigma[miss_idx, obs_idx, drop = FALSE]
+            mu_obs <- mu[obs_idx]
+            mu_mis <- mu[miss_idx]
+            x_obs <- X[i, obs_idx]
+            
+            cond_exp <- mu_mis + Sigma_mo %*% Sigma_oo_inv %*% (x_obs - mu_obs)
+            X_new[i, miss_idx] <- cond_exp
+          }, error = function(e) {
+            # Fallback: impute with the column mean
+            X_new[i, miss_idx] <- mu[miss_idx]
+            cat("Warning: Fallback to mean imputation for row", i, "\n")
+          })
+        }
+      }
+    }
+    
+    X_imputed <- X_new
+    mu_new <- colMeans(X_imputed)
+    
+    # M-step: Update covariance matrix with regularization
+    Sigma_new <- matrix(0, d, d)
+    for (i in 1:n) {
+      diff <- X_imputed[i, ] - mu_new
+      Sigma_new <- Sigma_new + outer(diff, diff)
+    }
+    Sigma_new <- Sigma_new / n
+    
+    # Always add ridge to covariance matrix
+    Sigma_new <- Sigma_new + diag(ridge, d)
+    
+    # Enforce symmetry
+    Sigma_new <- (Sigma_new + t(Sigma_new)) / 2
+    
+    # Add a ridge if determinant is NA or too small.
+    if (is.na(det(Sigma_new)) || det(Sigma_new) <= 1e-6) {
+      Sigma_new <- Sigma_new + diag(ridge, d)
+      Sigma_new <- (Sigma_new + t(Sigma_new)) / 2
+    }
+    
+    # Compute log-likelihood using fully imputed data.
+    loglik <- sum(dmvnorm(X_imputed, mean = mu_new, sigma = Sigma_new, log = TRUE))
+    if (is.na(loglik)) loglik <- -Inf
+    diff_ll <- loglik - loglik_old
+    if (!is.na(diff_ll) && abs(diff_ll) < tol) break
+    
+    loglik_old <- loglik
+    mu <- mu_new
+    Sigma <- Sigma_new
+    
+    if (iter %% 100 == 0) {
+      cat("Iteration:", iter, "\n")
+    }
+  }
+  
+  return(list(mu = mu, Sigma = Sigma, X_imputed = X_imputed, iterations = iter))
+}
+
+# 3. Run the EM algorithm manually with a ridge value of 1e-3.
+em_results <- em_mvnorm(data_em, tol = 1e-6, maxit = 2000, ridge = 1e-3)
+mu_em_manual <- em_results$mu
+Sigma_em_manual <- em_results$Sigma
+
+if (is.null(Sigma_em_manual)) {
+  stop("EM did not produce a covariance matrix. Check data conversion or missingness levels.")
+}
+
+# 4. Compute regression coefficients.
+# Assume academicGPA2023 is column 1 (response) and predictors are columns 2:4.
+beta_em_manual <- Sigma_em_manual[1, 2:4] %*% solve(Sigma_em_manual[2:4, 2:4])
+intercept_em_manual <- mu_em_manual[1] - beta_em_manual %*% mu_em_manual[2:4]
+
+cat("Manual EM Regression Coefficients:\n")
+cat("Intercept:", intercept_em_manual, "\n")
+cat("Alcohol:", beta_em_manual[1], "\n")
+cat("Monthly Allowance:", beta_em_manual[2], "\n")
+cat("Study Hours:", beta_em_manual[3], "\n")
+
+# Set EM estimates for sensitivity table.
+em_alcohol <- as.numeric(beta_em_manual[1])
+em_allowance <- as.numeric(beta_em_manual[2])
+em_studyHours <- as.numeric(beta_em_manual[3])
+
+# ----- Parametric Bootstrap to Approximate Standard Errors for EM Estimates ----- #
+set.seed(123)
+n_boot <- 200   # number of bootstrap replications
+n <- nrow(data_em)
+coefs_boot <- matrix(NA, nrow = n_boot, ncol = 4)  # to store intercept and 3 slopes
+
+for (b in 1:n_boot) {
+  # Generate synthetic complete data from the final EM distribution.
+  X_star <- mvrnorm(n = n, mu = mu_em_manual, Sigma = Sigma_em_manual)
+  
+  # Fit the regression model on the synthetic data.
+  fit_boot <- lm(X_star[,1] ~ X_star[,2] + X_star[,3] + X_star[,4])
+  
+  # Store the regression coefficients: intercept, alcohol, allowance, studyHours.
+  coefs_boot[b, ] <- coef(fit_boot)
+}
+
+# Compute bootstrap standard errors as the standard deviation of the coefficients.
+boot_se <- apply(coefs_boot, 2, sd)
+names(boot_se) <- c("Intercept", "Alcohol", "MonthlyAllowance", "StudyHours")
+
+cat("Bootstrap Standard Errors for EM Estimates:\n")
+print(boot_se)
+
+# For the sensitivity table, we extract only the slopes.
+em_alcohol_se <- boot_se["Alcohol"]
+em_allowance_se <- boot_se["MonthlyAllowance"]
+em_studyHours_se <- boot_se["StudyHours"]
+
+# Print final EM estimates with SE.
+cat("Final EM Estimates with Bootstrap SEs:\n")
+cat("Alcohol:", em_alcohol, "SE:", em_alcohol_se, "\n")
+cat("Monthly Allowance:", em_allowance, "SE:", em_allowance_se, "\n")
+cat("Study Hours:", em_studyHours, "SE:", em_studyHours_se, "\n")
+
+
+```
+
+{{< pagebreak >}}
+
+### 5. Bayesian Analysis (using rstanarm)
+
+```{r bayesian}
+# Improved Bayesian modeling approach using rstanarm
+library(rstanarm)
+library(bayesplot)
+library(loo)
+
+
+# 1. Data preparation - ensure consistent variable encoding
+data_for_bayes <- data_clean %>%
+  mutate(
+    alcoholDrinks = case_when(
+      alcoholDrinks == "0" ~ 0,
+      alcoholDrinks == "1-3" ~ 2,
+      alcoholDrinks == "3-5" ~ 4,
+      alcoholDrinks == "5-8" ~ 6.5,
+      alcoholDrinks == "8+" ~ 9,
+      TRUE ~ NA_real_
+    ),
+    
+    monthlyAllowance2023 = case_when(
+      monthlyAllowance2023 == "< R 5000" ~ 2500,
+      monthlyAllowance2023 == "R 5001 - R 6000" ~ 5500,
+      monthlyAllowance2023 == "R 6001 - R 7000" ~ 6500,
+      monthlyAllowance2023 == "R 7001 - R 8000" ~ 7500,
+      monthlyAllowance2023 == "R 8000+" ~ 9000,
+      TRUE ~ NA_real_
+    ),
+    
+    studyHours = case_when(
+      studyHours == "0" ~ 0,
+      studyHours == "1-3" ~ 2,
+      studyHours == "3-5" ~ 4,
+      studyHours == "5-8" ~ 6.5,
+      studyHours == "8+" ~ 9,
+      TRUE ~ NA_real_
+    )
+  )
+
+# 2. Data standardization - makes priors more interpretable
+data_for_bayes <- data_for_bayes %>%
+  mutate(
+    alcoholDrinks_std = scale(alcoholDrinks),
+    monthlyAllowance2023_std = scale(monthlyAllowance2023),
+    studyHours_std = scale(studyHours)
+  )
+
+# 3. Set more informative priors
+# Using weakly informative priors informed by the problem domain
+prior_intercept <- normal(3.5, 0.5)  # Centered around typical GPA
+prior_coef <- normal(0, 0.5)         # Smaller standard deviation for standardized variables
+prior_aux <- exponential()
+
+         # For residual standard deviation
+
+# 4. Fit models with both standardized and raw variables
+# 4a. Standardized model
+bayes_fit_std <- stan_glm(
+  academicGPA2023 ~ alcoholDrinks_std + monthlyAllowance2023_std + studyHours_std,
+  data = data_for_bayes,
+  prior = prior_coef,
+  prior_intercept = prior_intercept,
+  chains = 4,
+  iter = 3000,
+  warmup = 1000,
+  thin = 2,
+  seed = 123,
+  refresh = 0,
+  adapt_delta = 0.95
+)
+
+# 4b. Original scale model
+bayes_fit_raw <- stan_glm(
+  academicGPA2023 ~ alcoholDrinks + monthlyAllowance2023 + studyHours,
+  data = data_for_bayes,
+  prior = normal(0, 2.5),  # Wider prior for raw variables
+  prior_intercept = normal(2, 1),
+  chains = 4,
+  iter = 3000,
+  warmup = 1000,
+  thin = 2,
+  seed = 123,
+  refresh = 0,
+  adapt_delta = 0.95
+)
+
+
+# 5. Check model diagnostics
+# 5a. MCMC diagnostics
+mcmc_trace(bayes_fit_std)
+mcmc_acf(bayes_fit_std)
+neff_ratio(bayes_fit_std)
+posterior_draws <- as.matrix(bayes_fit_std)
+
+
+# 5b. Posterior predictive checks
+pp_check(bayes_fit_std, nreps = 50)
+pp_check(bayes_fit_std, plotfun = "error_hist")
+pp_check(bayes_fit_std, plotfun = "error_scatter_avg")
+
+# 6. Analyze the posterior distribution
+# 6a. Summary of posterior distributions
+print(summary(bayes_fit_std, digits = 3))
+
+# 6b. Extract posterior draws
+posterior_samples <- as.matrix(bayes_fit_std)
+
+# 6c. Compute probability of effects being positive/negative
+prob_alcohol_negative <- mean(posterior_samples[, "alcoholDrinks_std"] < 0)
+prob_allowance_positive <- mean(posterior_samples[, "monthlyAllowance2023_std"] > 0)
+prob_studyHours_positive <- mean(posterior_samples[, "studyHours_std"] > 0)
+
+# 6d. Compute 95% credible intervals
+ci_95 <- posterior_interval(bayes_fit_std, prob = 0.95)
+
+# 7. Visualize results
+# 7a. Plot coefficients with uncertainty
+mcmc_areas(posterior_samples, 
+           pars = c("alcoholDrinks_std", "monthlyAllowance2023_std", "studyHours_std"),
+           prob = 0.95)
+
+# 7b. Plot posterior predictive checks conditionally on each variable
+# Example for study hours
+pp_data <- data.frame(
+  alcoholDrinks_std = rep(0, 100),
+  monthlyAllowance2023_std = rep(0, 100),
+  studyHours_std = seq(-2, 2, length.out = 100)
+)
+linpred <- posterior_linpred(bayes_fit_std, newdata = pp_data)
+pp_summary <- data.frame(
+  studyHours_std = pp_data$studyHours_std,
+  median = apply(linpred, 2, median),
+  lower = apply(linpred, 2, quantile, 0.025),
+  upper = apply(linpred, 2, quantile, 0.975)
+)
+
+# 8. Model comparison
+# 8a. Fit a model without alcohol
+bayes_fit_noalcohol <- update(bayes_fit_std, formula = academicGPA2023 ~ monthlyAllowance2023_std + studyHours_std)
+
+# 8b. Compare models using LOO
+loo_std <- loo(bayes_fit_std)
+loo_noalcohol <- loo(bayes_fit_noalcohol)
+loo_compare(loo_std, loo_noalcohol)
+
+# 9. Sensitivity analysis with different priors
+bayes_fit_wider <- update(bayes_fit_std, prior = normal(0, 1))
+bayes_fit_narrower <- update(bayes_fit_std, prior = normal(0, 0.25))
+
+# Compare sensitivity to priors
+loo_std <- loo(bayes_fit_std)
+loo_wider <- loo(bayes_fit_wider)
+loo_narrower <- loo(bayes_fit_narrower)
+loo_compare(loo_std, loo_wider, loo_narrower)
+
+# 10. Missing data handling
+# Use brms instead of rstanarm for better missing data handling
+if (requireNamespace("brms", quietly = TRUE)) {
+  library(brms)
+  
+  # Imputation model with brms
+  brms_fit <- brm(
+    academicGPA2023 ~ alcoholDrinks_std + monthlyAllowance2023_std + studyHours_std,
+    data = data_for_bayes,
+    prior = c(
+      prior("normal(0, 0.5)", class = "b"),
+      prior("normal(3.5, 0.5)", class = "Intercept"),
+      prior("exponential(1)", class = "sigma")
+    ),
+    chains = 4,
+    iter = 3000,
+    warmup = 1000,
+    seed = 123,
+    refresh = 0,
+    control = list(adapt_delta = 0.95)
+  )
+  
+  # Compare with rstanarm
+  summary(brms_fit)
+}
+
+# 11. Extract key results for reporting
+posterior_samples_raw <- as.matrix(bayes_fit_raw)
+
+# Extract coefficient estimates (posterior means)
+bayes_alcohol <- mean(posterior_samples_raw[, "alcoholDrinks"])
+bayes_allowance <- mean(posterior_samples_raw[, "monthlyAllowance2023"])
+bayes_studyHours <- mean(posterior_samples_raw[, "studyHours"])
+
+# Extract standard errors (posterior standard deviations)
+bayes_alcohol_se <- sd(posterior_samples_raw[, "alcoholDrinks"])
+bayes_allowance_se <- sd(posterior_samples_raw[, "monthlyAllowance2023"])
+bayes_studyHours_se <- sd(posterior_samples_raw[, "studyHours"])
+
+# 12. Get inference on original scale from standardized model
+# This recovers coefficients on original scale from standardized model
+sd_alcohol <- sd(data_for_bayes$alcoholDrinks, na.rm = TRUE)
+sd_allowance <- sd(data_for_bayes$monthlyAllowance2023, na.rm = TRUE)
+sd_studyHours <- sd(data_for_bayes$studyHours, na.rm = TRUE)
+sd_gpa <- sd(data_for_bayes$academicGPA2023, na.rm = TRUE)
+
+# Convert standardized coefficients back to original scale
+coef_std <- coef(bayes_fit_std)
+alcohol_effect_orig <- coef_std["alcoholDrinks_std"] * (sd_gpa / sd_alcohol)
+allowance_effect_orig <- coef_std["monthlyAllowance2023_std"] * (sd_gpa / sd_allowance)
+studyHours_effect_orig <- coef_std["studyHours_std"] * (sd_gpa / sd_studyHours)
+
+# 13. Generate a summary table of results
+results_table <- data.frame(
+  Variable = c("Alcohol Drinks", "Monthly Allowance", "Study Hours"),
+  Raw_Coefficient = c(bayes_alcohol, bayes_allowance, bayes_studyHours),
+  Raw_SE = c(bayes_alcohol_se, bayes_allowance_se, bayes_studyHours_se),
+  Std_Coefficient = c(coef_std["alcoholDrinks_std"],
+                      coef_std["monthlyAllowance2023_std"],
+                      coef_std["studyHours_std"]),
+  Prob_Direction = c(prob_alcohol_negative, prob_allowance_positive, prob_studyHours_positive),
+  CI_Lower = ci_95[c("alcoholDrinks_std", "monthlyAllowance2023_std", "studyHours_std"), 1],
+  CI_Upper = ci_95[c("alcoholDrinks_std", "monthlyAllowance2023_std", "studyHours_std"), 2]
+)
+
+print(results_table)
+```
+
+{{< pagebreak >}}
+
+### 6. Inverse Probability Weighting (IPW)
+
+```{r ipw}
+# Create a missingness indicator for academicGPA2023.
+data_clean <- data_clean %>% mutate(miss_academicGPA = is.na(academicGPA2023))
+
+# Fit a logistic regression model for missingness using observed covariates.
+ipw_model <- glm(miss_academicGPA ~ alcoholDrinks + monthlyAllowance2023 + studyHours,
+                 data = data_clean, family = binomial)
+                 
+# For complete cases, calculate the predicted probability of being observed.
+data_clean <- data_clean %>% 
+  mutate(prob_obs = ifelse(miss_academicGPA == FALSE,
+                           predict(ipw_model, type = "response"),
+                           NA))
+
+# Restrict to complete cases and compute weights.
+data_cc <- data_clean %>% filter(!miss_academicGPA)
+data_cc <- data_cc %>% mutate(weight = 1/prob_obs)
+
+# Fit a weighted regression on complete cases.
+ipw_fit <- lm(academicGPA2023 ~ alcoholDrinks + monthlyAllowance2023 + studyHours,
+              data = data_cc, weights = weight)
+ipw_sum <- summary(ipw_fit)
+print(ipw_sum)
+
+# Check the row names for IPW model coefficients
+print(rownames(ipw_sum$coefficients))
+
+# Extract coefficients using grep
+ipw_alcohol     <- ipw_sum$coefficients[grep("^alcoholDrinks", rownames(ipw_sum$coefficients))[1], "Estimate"]
+ipw_alcohol_se  <- ipw_sum$coefficients[grep("^alcoholDrinks", rownames(ipw_sum$coefficients))[1], "Std. Error"]
+
+ipw_allowance     <- ipw_sum$coefficients[grep("^monthlyAllowance2023", rownames(ipw_sum$coefficients))[1], "Estimate"]
+ipw_allowance_se  <- ipw_sum$coefficients[grep("^monthlyAllowance2023", rownames(ipw_sum$coefficients))[1], "Std. Error"]
+
+ipw_studyHours     <- ipw_sum$coefficients[grep("^studyHours", rownames(ipw_sum$coefficients))[1], "Estimate"]
+ipw_studyHours_se  <- ipw_sum$coefficients[grep("^studyHours", rownames(ipw_sum$coefficients))[1], "Std. Error"]
+
+# Print the extracted IPW estimates.
+cat("IPW Estimates:\n")
+cat("Alcohol:", ipw_alcohol, "SE:", ipw_alcohol_se, "\n")
+cat("Allowance:", ipw_allowance, "SE:", ipw_allowance_se, "\n")
+cat("StudyHours:", ipw_studyHours, "SE:", ipw_studyHours_se, "\n")
+```
+
+{{< pagebreak >}}
+
+### 7. Pattern-Mixture Model
+
+```{r pattern_mixture}
+# For a simple pattern-mixture approach, split data by missingness on academicGPA2023.
+data_clean <- data_clean %>% 
+  mutate(pattern = ifelse(is.na(academicGPA2023), "Missing", "Observed"))
+
+# For illustration, fit a model on the observed pattern.
+pm_fit <- lm(academicGPA2023 ~ alcoholDrinks + monthlyAllowance2023 + studyHours, 
+             data = data_clean %>% filter(pattern == "Observed"))
+pm_sum <- summary(pm_fit)
+print(pm_sum)
+
+# Use grep to extract coefficients for alcoholDrinks, monthlyAllowance2023, and studyHours.
+pm_alcohol     <- pm_sum$coefficients[grep("^alcoholDrinks", rownames(pm_sum$coefficients))[1], "Estimate"]
+pm_alcohol_se  <- pm_sum$coefficients[grep("^alcoholDrinks", rownames(pm_sum$coefficients))[1], "Std. Error"]
+
+pm_allowance     <- pm_sum$coefficients[grep("^monthlyAllowance2023", rownames(pm_sum$coefficients))[1], "Estimate"]
+pm_allowance_se  <- pm_sum$coefficients[grep("^monthlyAllowance2023", rownames(pm_sum$coefficients))[1], "Std. Error"]
+
+pm_studyHours     <- pm_sum$coefficients[grep("^studyHours", rownames(pm_sum$coefficients))[1], "Estimate"]
+pm_studyHours_se  <- pm_sum$coefficients[grep("^studyHours", rownames(pm_sum$coefficients))[1], "Std. Error"]
+
+cat("Pattern-Mixture Model Estimates:\n")
+cat("Alcohol:", pm_alcohol, "SE:", pm_alcohol_se, "\n")
+cat("Allowance:", pm_allowance, "SE:", pm_allowance_se, "\n")
+cat("StudyHours:", pm_studyHours, "SE:", pm_studyHours_se, "\n")
+```
+
+{{< pagebreak >}}
+
+### 8. Comparison of Methods
+
+```{r comparison_methods, fig.width=12, fig.height=6}
+# Build the comparison table using the estimates from all methods.
+coeff_compare <- data.frame(
+  Method         = c("CompleteCase", "PMM", "Normal", "EM/FIML", "Bayesian", "IPW", "Pattern-Mixture"),
+  Alcohol_Est    = c(cc_alcohol, pmm_alcohol, norm_alcohol, em_alcohol, bayes_alcohol, ipw_alcohol, pm_alcohol),
+  Alcohol_SE     = c(cc_alcohol_se, pmm_alcohol_se, norm_alcohol_se, em_alcohol_se, bayes_alcohol_se, ipw_alcohol_se, pm_alcohol_se),
+  Allowance_Est  = c(cc_allowance, pmm_allowance, norm_allowance, em_allowance, bayes_allowance, ipw_allowance, pm_allowance),
+  Allowance_SE   = c(cc_allowance_se, pmm_allowance_se, norm_allowance_se, em_allowance_se, bayes_allowance_se, ipw_allowance_se, pm_allowance_se),
+  StudyHours_Est = c(cc_studyHours, pmm_studyHours, norm_studyHours, em_studyHours, bayes_studyHours, ipw_studyHours, pm_studyHours),
+  StudyHours_SE  = c(cc_studyHours_se, pmm_studyHours_se, norm_studyHours_se, em_studyHours_se, bayes_studyHours_se, ipw_studyHours_se, pm_studyHours_se)
+)
+print(coeff_compare)
+
+
+
+# Reshape data for plotting
+plot_data <- coeff_compare %>%
+  pivot_longer(cols = c(Alcohol_Est, Allowance_Est, StudyHours_Est),
+               names_to = "Variable", values_to = "Estimate") %>%
+  mutate(SE = case_when(
+    Variable == "Alcohol_Est" ~ Alcohol_SE,
+    Variable == "Allowance_Est" ~ Allowance_SE,
+    Variable == "StudyHours_Est" ~ StudyHours_SE
+  ))
+
+# Create coefficient plot with error bars
+ggplot(plot_data, aes(x = Method, y = Estimate, color = Method)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = Estimate - 1.96*SE, ymax = Estimate + 1.96*SE), width = 0.2) +
+  facet_wrap(~ Variable, scales = "free_y") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Comparison of Missing Data Methods",
+       y = "Coefficient Estimate (with 95% CI)")
+```
+
